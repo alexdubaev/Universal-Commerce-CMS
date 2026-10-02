@@ -3,6 +3,34 @@ import { defineComponent, h, onMounted, onUnmounted, reactive, ref, resolveCompo
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRouter } from "vue-router";
 import { addDocumentSlot, buildCreateValues, buildExpectedSnapshot, buildNativeFormProps, buildProductChanges, canEditForm, canNavigateEditor, cloneValues, compactNativeFields, createRequestSequence, getDocumentFolderId, isSupportedDocumentList, normalizeGalleryRows, nextTabIndex, relationIds, reorderGallery, removeGalleryImage, stageGalleryImage, buildGalleryPayload, mergeNativeTabEdits, updateDocumentSelection, validateProduct } from "./editor-state.mjs";
 
+export { AdminShell, SectionTabs, EditorToolbar, NativeFieldGroup, CollectionList, MediaPicker, ReadonlyDetails, buildNativeFieldProps, buildCollectionQuery } from "./admin-shell.js";
+export { createEditorState, mergeTabValues } from "./admin-state.mjs";
+export { PageSectionEditor, createPageSectionController } from "./page-sections.js";
+
+import { AdminShell } from "./admin-shell.js";
+
+export const sectionRegistry = Object.freeze({});
+
+export const SectionRoute = defineComponent({
+  name: "SectionRoute",
+  props: {
+    collection: { type: String, required: true },
+    id: { type: [String, Number], default: null },
+  },
+  setup(props) {
+    return () => {
+      if (Object.hasOwn(sectionRegistry, props.collection)) {
+        const section = sectionRegistry[props.collection];
+        return h(section.component, props.id == null ? {} : { id: props.id });
+      }
+
+      return h(AdminShell, { title: "Раздел недоступен", readonly: true }, {
+        default: () => h("p", { role: "status" }, `Раздел «${props.collection}» недоступен.`),
+      });
+    };
+  },
+});
+
 const editable = ["title", "brand", "sku", "slug", "category", "status", "price_status", "price", "currency", "availability_status", "delivery_status", "main_image", "image_alt", "image_items", "specifications", "documents", "short_description", "full_description", "part_type", "cta_text", "is_featured", "show_on_homepage", "sort_order", "seo_title", "seo_description", "seo_text", "og_image", "is_indexable", "seo_quality_status", "source_name", "source_url", "verified_at", "reviewed_by", "mpn", "gtin"];
 const groupLabels = { group_main: "Основное", group_price: "Цена и наличие", group_media: "Изображения и документы", group_specs: "Характеристики", group_content: "Описание", group_visibility: "Публикация в каталоге", group_seo: "Поисковая оптимизация", group_source: "Источники данных", group_additional: "Дополнительно", group_system: "Служебные поля" };
 const labels = { title: "Название товара", brand: "Бренд", sku: "Артикул (SKU)", slug: "Адрес товара", category: "Категория", status: "Статус", price_status: "Как показывать цену", price: "Цена", currency: "Валюта", availability_status: "Наличие", delivery_status: "Условия поставки", main_image: "Основное изображение", image_alt: "Описание изображения", image_items: "Фотографии товара", specifications: "Характеристики", documents: "Документы", short_description: "Краткое описание", full_description: "Полное описание", part_type: "Тип детали", cta_text: "Текст кнопки заявки", is_featured: "Рекомендуемый товар", show_on_homepage: "Показывать на главной", sort_order: "Порядок в каталоге", seo_title: "SEO-заголовок", seo_description: "SEO-описание", seo_text: "Текст о товаре для поиска", og_image: "Изображение для соцсетей", is_indexable: "Разрешить индексацию", seo_quality_status: "Проверка SEO", source_name: "Название источника", source_url: "Ссылка на источник", verified_at: "Дата проверки", reviewed_by: "Кто проверил", mpn: "Номер производителя (MPN)", gtin: "Штрихкод (GTIN)" };
@@ -188,4 +216,4 @@ const Editor = defineComponent({
   },
 });
 
-export default defineModule({ id: "product-editor", name: "Товары", icon: "inventory_2", routes: [{ path: "", component: ProductList }, { path: ":id", component: Editor, props: true }], preRegisterCheck: () => true });
+export default defineModule({ id: "product-editor", name: "Товары", icon: "inventory_2", routes: [{ path: "", component: ProductList }, { path: "sections/:collection/:id?", component: SectionRoute, props: true }, { path: ":id", component: Editor, props: true }], preRegisterCheck: () => true });
