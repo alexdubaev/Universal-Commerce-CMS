@@ -1,0 +1,122 @@
+{
+  "collection": "products_analogs",
+  "label": "Аналоги товаров",
+  "group": "group_catalog",
+  "icon": "compare_arrows",
+  "sort": 4,
+  "displayTemplate": "{{relation_type}} · {{product_from.sku}} → {{product_to.sku}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 10,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "product_from": {
+      "schema": {
+        "name": "product_from",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "products",
+        "oneField": "analogs_from",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      "studio": null
+    },
+    "product_to": {
+      "schema": {
+        "name": "product_to",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "products",
+        "oneField": "analogs_to",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      "studio": null
+    },
+    "relation_type": {
+      "schema": {
+        "name": "relation_type",
+        "type": "string",
+        "required": true,
+        "choices": [
+          "analog",
+          "oem_cross",
+          "compatible",
+          "superseded_by"
+        ],
+        "index": true
+      },
+      "studio": null
+    },
+    "canonical_key": {
+      "schema": {
+        "name": "canonical_key",
+        "type": "string",
+        "required": true,
+        "index": true,
+        "note": "Deterministic edge key '<type>:<from>:<to>': the pair is SORTED for the symmetric types and the direction preserved for superseded_by. Physically UNIQUE via migrations/sql/product-analogs-constraints-up.sql; recomputed and verified by migrations/reconcile-product-analogs.mjs."
+      },
+      "studio": null
+    },
+    "source_name": {
+      "schema": {
+        "name": "source_name",
+        "type": "string",
+        "required": true,
+        "default": "manual",
+        "index": true,
+        "note": "Provenance of the relation (feed or catalog name, 'manual' for editors)."
+      },
+      "studio": null
+    },
+    "note": {
+      "schema": {
+        "name": "note",
+        "type": "text"
+      },
+      "studio": null
+    },
+    "verified_at": {
+      "schema": {
+        "name": "verified_at",
+        "type": "timestamp"
+      },
+      "studio": null
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    }
+  }
+}

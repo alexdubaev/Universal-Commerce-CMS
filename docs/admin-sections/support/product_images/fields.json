@@ -1,0 +1,80 @@
+{
+  "collection": "product_images",
+  "owner": "products",
+  "schema": {
+    "name": "product_images",
+    "icon": "photo_library",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      {
+        "name": "product",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "products",
+        "oneField": "image_items",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      {
+        "name": "image",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "directus_files"
+      },
+      {
+        "name": "alt_text",
+        "type": "string"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}

@@ -1,0 +1,80 @@
+{
+  "collection": "product_documents",
+  "owner": "products",
+  "schema": {
+    "name": "product_documents",
+    "icon": "description",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      {
+        "name": "product",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "products",
+        "oneField": "document_items",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      {
+        "name": "file",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "directus_files"
+      },
+      {
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}

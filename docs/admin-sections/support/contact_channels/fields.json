@@ -1,0 +1,103 @@
+{
+  "collection": "contact_channels",
+  "owner": "A0 / home_page + pages",
+  "schema": {
+    "name": "contact_channels",
+    "icon": "contact_phone",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      {
+        "name": "page_section",
+        "type": "uuid",
+        "relatedCollection": "page_sections",
+        "index": true
+      },
+      {
+        "name": "channel_type",
+        "type": "string",
+        "required": true,
+        "choices": [
+          "phone",
+          "email",
+          "messenger",
+          "address",
+          "hours"
+        ],
+        "index": true
+      },
+      {
+        "name": "label",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "url",
+        "type": "string"
+      },
+      {
+        "name": "icon",
+        "type": "string"
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      {
+        "name": "is_visible",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}

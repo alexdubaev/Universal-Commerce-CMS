@@ -1,0 +1,187 @@
+{
+  "collection": "faq_items",
+  "label": "Вопросы и ответы",
+  "group": "group_content",
+  "icon": "quiz",
+  "sort": 2,
+  "displayTemplate": "{{question}} · {{status}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 12,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "question": {
+      "schema": {
+        "name": "question",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Вопрос",
+        "group": "group_main",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "answer": {
+      "schema": {
+        "name": "answer",
+        "type": "text",
+        "required": true
+      },
+      "studio": {
+        "label": "Ответ",
+        "group": "group_main",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "page": {
+      "schema": {
+        "name": "page",
+        "type": "uuid",
+        "relatedCollection": "pages"
+      },
+      "studio": {
+        "label": "Страница",
+        "group": "group_context",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "category": {
+      "schema": {
+        "name": "category",
+        "type": "uuid",
+        "relatedCollection": "categories"
+      },
+      "studio": {
+        "label": "Категория",
+        "group": "group_context",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "product": {
+      "schema": {
+        "name": "product",
+        "type": "uuid",
+        "relatedCollection": "products"
+      },
+      "studio": {
+        "label": "Товар",
+        "group": "group_context",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "sort_order": {
+      "schema": {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0
+      },
+      "studio": {
+        "label": "Порядок",
+        "group": "group_main",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "is_visible": {
+      "schema": {
+        "name": "is_visible",
+        "type": "boolean",
+        "default": true
+      },
+      "studio": {
+        "label": "Показывать",
+        "group": "group_main",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half"
+      }
+    }
+  }
+}

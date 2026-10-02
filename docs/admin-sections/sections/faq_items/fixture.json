@@ -1,0 +1,9 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "faq_items",
+  "record": {
+    "answer": "Синтетический ответ.",
+    "question": "Демонстрационный вопрос?",
+    "status": "draft"
+  }
+}

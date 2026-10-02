@@ -1,0 +1,10 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "seo_work_items",
+  "record": {
+    "summary": "Синтетическая рекомендация без действия.",
+    "dedupe_key": "synthetic-demo-key",
+    "title": "Демо-рекомендация",
+    "status": "draft"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "head": "4b241f0f6fb6c56002d18621af24cc10069c02f5",
+  "captured": "2026-10-02",
+  "files": {
+    "directus/schema/blueprint.mjs": "f87cb4652fc789bd8226ea2fdc3f78526b5ab4713d91fa5132aa7b8878b47233",
+    "directus/schema/studio-blueprint.mjs": "03ca85f62699746ff01363b2e2ec08d7a1773cffdbbf1e1dead0b51198518ba8",
+    "directus/extensions/deere-shop-product-editor/src/index.js": "873c347364253828a3cfedce987aebe2bf34cf410ba120dad4c4e95677e1b9f5",
+    "directus/extensions/commerce-api/src/mutations.mjs": "213d08a350c9de3fc21c8a3da3b4cb36dc16875a025801d03912b3fd72c87b31",
+    "directus/extensions/commerce-api/src/versions.mjs": "4e2b54c926283c293411c0833c4d07958f89e710481da46783f6ba233314b8b5"
+  }
+}

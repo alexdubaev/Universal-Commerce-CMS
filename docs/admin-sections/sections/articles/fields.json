@@ -1,0 +1,478 @@
+{
+  "collection": "articles",
+  "label": "Статьи",
+  "group": "group_content",
+  "icon": "article",
+  "sort": 1,
+  "displayTemplate": "{{title}} · {{status}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 27,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "title": {
+      "schema": {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Название статьи",
+        "group": "group_main",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "slug": {
+      "schema": {
+        "name": "slug",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Адрес статьи",
+        "group": "group_main",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "excerpt": {
+      "schema": {
+        "name": "excerpt",
+        "type": "text",
+        "required": true
+      },
+      "studio": {
+        "label": "Краткое описание",
+        "group": "group_content",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "content": {
+      "schema": {
+        "name": "content",
+        "type": "text",
+        "required": true,
+        "interface": "input-rich-text-html"
+      },
+      "studio": {
+        "label": "Текст статьи",
+        "group": "group_content",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "content_blocks": {
+      "schema": {
+        "name": "content_blocks",
+        "type": "json",
+        "special": [
+          "cast-json"
+        ],
+        "interface": "flexible-editor",
+        "options": {
+          "m2aField": "editor_nodes",
+          "relationBlocks": [
+            "products",
+            "categories"
+          ],
+          "relationInlineBlocks": [
+            "products",
+            "categories"
+          ],
+          "relationMarks": [
+            "products",
+            "categories"
+          ],
+          "tools": [
+            "paragraph",
+            "h2",
+            "h3",
+            "h4",
+            "bold",
+            "italic",
+            "strike",
+            "underline",
+            "code",
+            "subscript",
+            "superscript",
+            "link",
+            "removeLink",
+            "autolink",
+            "bulletList",
+            "orderedList",
+            "blockquote",
+            "codeBlock",
+            "table",
+            "horizontalRule",
+            "hardBreak",
+            "textAlign",
+            "undo",
+            "redo"
+          ]
+        },
+        "note": "Structured ProseMirror content of the flexible editor. articles.content (HTML) stays the canonical source until the cutover release."
+      },
+      "studio": {
+        "label": "Блочный редактор статьи",
+        "group": "group_content",
+        "sort": 3,
+        "width": "full",
+        "note": "Структурный контент статьи. Поле «Текст статьи» (HTML) остаётся каноническим до перехода.",
+        "interface": "flexible-editor",
+        "options": {
+          "m2aField": "editor_nodes",
+          "relationBlocks": [
+            "products",
+            "categories"
+          ],
+          "relationInlineBlocks": [
+            "products",
+            "categories"
+          ],
+          "relationMarks": [
+            "products",
+            "categories"
+          ],
+          "tools": [
+            "paragraph",
+            "h2",
+            "h3",
+            "h4",
+            "bold",
+            "italic",
+            "strike",
+            "underline",
+            "code",
+            "subscript",
+            "superscript",
+            "link",
+            "removeLink",
+            "autolink",
+            "bulletList",
+            "orderedList",
+            "blockquote",
+            "codeBlock",
+            "table",
+            "horizontalRule",
+            "hardBreak",
+            "textAlign",
+            "undo",
+            "redo"
+          ]
+        }
+      }
+    },
+    "editor_nodes": {
+      "schema": {
+        "name": "editor_nodes",
+        "type": "alias",
+        "special": [
+          "m2a"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "articles_editor_nodes",
+        "note": "Hidden M2A alias managed by the flexible editor. Related collections: products, categories."
+      },
+      "studio": {
+        "label": "Узлы редактора (служебное)",
+        "group": "group_content",
+        "sort": 4,
+        "width": "full",
+        "hidden": true
+      }
+    },
+    "cover_image": {
+      "schema": {
+        "name": "cover_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Обложка",
+        "group": "group_content",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "image_alt": {
+      "schema": {
+        "name": "image_alt",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Alt-текст обложки",
+        "group": "group_content",
+        "sort": 6,
+        "width": "full"
+      }
+    },
+    "published_at": {
+      "schema": {
+        "name": "published_at",
+        "type": "timestamp",
+        "required": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Дата публикации",
+        "group": "group_main",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "category_label": {
+      "schema": {
+        "name": "category_label",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Рубрика",
+        "group": "group_main",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "reading_time_minutes": {
+      "schema": {
+        "name": "reading_time_minutes",
+        "type": "integer"
+      },
+      "studio": {
+        "label": "Время чтения, мин",
+        "group": "group_main",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "author": {
+      "schema": {
+        "name": "author",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Автор",
+        "group": "group_content",
+        "sort": 7,
+        "width": "half"
+      }
+    },
+    "reviewer": {
+      "schema": {
+        "name": "reviewer",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Проверил",
+        "group": "group_content",
+        "sort": 8,
+        "width": "half"
+      }
+    },
+    "sources": {
+      "schema": {
+        "name": "sources",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Источники",
+        "group": "group_content",
+        "sort": 9,
+        "width": "full"
+      }
+    },
+    "related_categories": {
+      "schema": {
+        "name": "related_categories",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Связанные категории",
+        "group": "group_relations",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "related_products": {
+      "schema": {
+        "name": "related_products",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Связанные товары",
+        "group": "group_relations",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "is_featured": {
+      "schema": {
+        "name": "is_featured",
+        "type": "boolean",
+        "default": false,
+        "index": true
+      },
+      "studio": {
+        "label": "Рекомендуемая статья",
+        "group": "group_main",
+        "sort": 7,
+        "width": "half"
+      }
+    },
+    "sort_order": {
+      "schema": {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": {
+        "label": "Порядок",
+        "group": "group_main",
+        "sort": 8,
+        "width": "half"
+      }
+    },
+    "seo_title": {
+      "schema": {
+        "name": "seo_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "SEO-заголовок",
+        "group": "group_seo",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "seo_description": {
+      "schema": {
+        "name": "seo_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-описание",
+        "group": "group_seo",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "og_image": {
+      "schema": {
+        "name": "og_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение Open Graph",
+        "group": "group_seo",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "seo": {
+      "schema": {
+        "name": "seo",
+        "type": "json",
+        "interface": "seo-interface",
+        "display": "seo-display",
+        "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+      },
+      "studio": {
+        "label": "SEO-панель (плагин)",
+        "group": "group_seo",
+        "sort": 4,
+        "width": "full",
+        "note": "Приоритетное JSON-поле SEO (R11). Пока JSON пуст, сайт читает скалярные поля выше; миграция заполняет JSON из скаляров и никогда не изменяет их.",
+        "interface": "seo-interface",
+        "display": "seo-display"
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half"
+      }
+    }
+  }
+}

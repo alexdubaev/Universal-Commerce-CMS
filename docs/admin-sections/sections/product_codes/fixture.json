@@ -1,0 +1,11 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "product_codes",
+  "record": {
+    "code": "DEMO-CODE-001",
+    "is_active": false,
+    "product": "00000000-0000-4000-8000-000000000002",
+    "code_type": "external",
+    "source_name": "Демонстрационный источник"
+  }
+}

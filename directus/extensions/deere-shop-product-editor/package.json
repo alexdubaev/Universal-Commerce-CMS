@@ -1,0 +1,7 @@
+{
+  "name": "deere-shop-product-editor",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "directus:extension": { "type": "module", "path": "dist/index.js", "source": "src/index.js", "host": "^12.1.1" }
+}

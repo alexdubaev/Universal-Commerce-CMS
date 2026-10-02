@@ -1,0 +1,10 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "products_analogs",
+  "record": {
+    "product_to": "00000000-0000-4000-8000-000000000003",
+    "relation_type": "analog",
+    "product_from": "00000000-0000-4000-8000-000000000002",
+    "source_name": "Демонстрационный источник"
+  }
+}

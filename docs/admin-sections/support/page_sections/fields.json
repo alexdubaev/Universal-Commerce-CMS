@@ -1,0 +1,326 @@
+{
+  "collection": "page_sections",
+  "owner": "A0 / home_page + pages",
+  "schema": {
+    "name": "page_sections",
+    "icon": "view_quilt",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      {
+        "name": "home_page",
+        "type": "uuid",
+        "relatedCollection": "home_page",
+        "oneField": "sections",
+        "index": true
+      },
+      {
+        "name": "page",
+        "type": "uuid",
+        "relatedCollection": "pages",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      {
+        "name": "section_type",
+        "type": "string",
+        "required": true,
+        "choices": [
+          "hero",
+          "categories",
+          "company_trust",
+          "featured_products",
+          "advantages",
+          "steps",
+          "cta",
+          "catalog_preview",
+          "seo_text",
+          "lead_form",
+          "parts_request",
+          "recent_supplies",
+          "faq",
+          "contacts",
+          "articles",
+          "custom"
+        ],
+        "index": true
+      },
+      {
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "name": "subtitle",
+        "type": "string"
+      },
+      {
+        "name": "text",
+        "type": "text"
+      },
+      {
+        "name": "image",
+        "type": "uuid",
+        "relatedCollection": "directus_files",
+        "interface": "file-image"
+      },
+      {
+        "name": "image_alt",
+        "type": "string"
+      },
+      {
+        "name": "button_text",
+        "type": "string"
+      },
+      {
+        "name": "button_url",
+        "type": "string"
+      },
+      {
+        "name": "items",
+        "type": "json"
+      },
+      {
+        "name": "settings",
+        "type": "json"
+      },
+      {
+        "name": "is_visible",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {
+    "groups": {
+      "group_main": {
+        "label": "Основное",
+        "interface": "group-detail",
+        "sort": 1
+      },
+      "group_content": {
+        "label": "Контент",
+        "interface": "group-detail",
+        "sort": 2
+      },
+      "group_items": {
+        "label": "Элементы",
+        "interface": "group-accordion",
+        "sort": 3
+      },
+      "group_button": {
+        "label": "Кнопка",
+        "interface": "group-accordion",
+        "sort": 4
+      },
+      "group_system": {
+        "label": "Служебное",
+        "interface": "group-accordion",
+        "sort": 5,
+        "options": {
+          "start": "closed"
+        }
+      }
+    },
+    "fields": {
+      "status": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      },
+      "section_type": {
+        "label": "Тип секции",
+        "group": "group_main",
+        "sort": 2,
+        "width": "half"
+      },
+      "is_visible": {
+        "label": "Показывать",
+        "group": "group_main",
+        "sort": 3,
+        "width": "half"
+      },
+      "sort_order": {
+        "label": "Порядок",
+        "group": "group_main",
+        "sort": 4,
+        "width": "half"
+      },
+      "title": {
+        "label": "Заголовок",
+        "group": "group_content",
+        "sort": 1,
+        "width": "full"
+      },
+      "subtitle": {
+        "label": "Подзаголовок",
+        "group": "group_content",
+        "sort": 2,
+        "width": "full"
+      },
+      "text": {
+        "label": "Текст",
+        "group": "group_content",
+        "sort": 3,
+        "width": "full"
+      },
+      "image": {
+        "label": "Изображение",
+        "group": "group_content",
+        "sort": 4,
+        "width": "full",
+        "interface": "file-image"
+      },
+      "image_alt": {
+        "label": "Alt-текст",
+        "group": "group_content",
+        "sort": 5,
+        "width": "full"
+      },
+      "items": {
+        "label": "Элементы секции",
+        "group": "group_items",
+        "sort": 1,
+        "width": "full",
+        "interface": "list",
+        "options": {
+          "template": "{{title}}",
+          "fields": [
+            {
+              "field": "title",
+              "name": "Заголовок",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "full"
+              }
+            },
+            {
+              "field": "text",
+              "name": "Текст",
+              "type": "text",
+              "meta": {
+                "interface": "input-multiline",
+                "width": "full"
+              }
+            },
+            {
+              "field": "icon",
+              "name": "Иконка",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half"
+              }
+            },
+            {
+              "field": "url",
+              "name": "Ссылка",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half"
+              }
+            }
+          ]
+        }
+      },
+      "button_text": {
+        "label": "Текст кнопки",
+        "group": "group_button",
+        "sort": 1,
+        "width": "half"
+      },
+      "button_url": {
+        "label": "Ссылка кнопки",
+        "group": "group_button",
+        "sort": 2,
+        "width": "half"
+      },
+      "settings": {
+        "label": "Дополнительные параметры",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full",
+        "hidden": true
+      },
+      "page": {
+        "label": "Страница",
+        "group": "group_system",
+        "sort": 2,
+        "width": "full",
+        "readonly": true
+      },
+      "home_page": {
+        "label": "Главная страница",
+        "group": "group_system",
+        "sort": 3,
+        "width": "full",
+        "readonly": true
+      },
+      "id": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 4,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      },
+      "translations": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 5,
+        "width": "full",
+        "hidden": true
+      }
+    }
+  }
+}

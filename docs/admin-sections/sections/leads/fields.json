@@ -1,0 +1,377 @@
+{
+  "collection": "leads",
+  "label": "Заявки",
+  "group": "group_sales",
+  "icon": "inbox",
+  "sort": 1,
+  "displayTemplate": "{{name}} · {{phone}} · {{status}} · {{created_at}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 26,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "request_key": {
+      "schema": {
+        "name": "request_key",
+        "type": "uuid",
+        "unique": true,
+        "hidden": true,
+        "readonly": true
+      },
+      "studio": {
+        "label": "Идентификатор отправки",
+        "group": "group_system",
+        "sort": 4,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "request_fingerprint": {
+      "schema": {
+        "name": "request_fingerprint",
+        "type": "string",
+        "maxLength": 64,
+        "hidden": true,
+        "readonly": true
+      },
+      "studio": {
+        "label": "Контрольная сумма запроса",
+        "group": "group_system",
+        "sort": 5,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "user_created": {
+      "schema": {
+        "name": "user_created",
+        "type": "uuid",
+        "relatedCollection": "directus_users",
+        "special": [
+          "user-created"
+        ],
+        "hidden": true,
+        "readonly": true
+      },
+      "studio": {
+        "label": "Создал",
+        "group": "group_system",
+        "sort": 6,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "new",
+        "choices": [
+          "new",
+          "in_progress",
+          "closed",
+          "spam"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_workflow",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "name": {
+      "schema": {
+        "name": "name",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Имя",
+        "group": "group_contact",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "phone": {
+      "schema": {
+        "name": "phone",
+        "type": "string",
+        "relaxNullable": true
+      },
+      "studio": {
+        "label": "Телефон",
+        "group": "group_contact",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "email": {
+      "schema": {
+        "name": "email",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Email",
+        "group": "group_contact",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "message": {
+      "schema": {
+        "name": "message",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Сообщение",
+        "group": "group_request",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "product": {
+      "schema": {
+        "name": "product",
+        "type": "uuid",
+        "relatedCollection": "products"
+      },
+      "studio": {
+        "label": "Товар",
+        "group": "group_request",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "category": {
+      "schema": {
+        "name": "category",
+        "type": "uuid",
+        "relatedCollection": "categories"
+      },
+      "studio": {
+        "label": "Категория",
+        "group": "group_request",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "lead_form": {
+      "schema": {
+        "name": "lead_form",
+        "type": "uuid",
+        "relatedCollection": "lead_forms"
+      },
+      "studio": {
+        "label": "Форма",
+        "group": "group_request",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "page_url": {
+      "schema": {
+        "name": "page_url",
+        "type": "text",
+        "required": true
+      },
+      "studio": {
+        "label": "Страница отправки",
+        "group": "group_attribution",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "utm_source": {
+      "schema": {
+        "name": "utm_source",
+        "type": "string"
+      },
+      "studio": {
+        "label": "UTM source",
+        "group": "group_attribution",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "utm_medium": {
+      "schema": {
+        "name": "utm_medium",
+        "type": "string"
+      },
+      "studio": {
+        "label": "UTM medium",
+        "group": "group_attribution",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "utm_campaign": {
+      "schema": {
+        "name": "utm_campaign",
+        "type": "string"
+      },
+      "studio": {
+        "label": "UTM campaign",
+        "group": "group_attribution",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "utm_content": {
+      "schema": {
+        "name": "utm_content",
+        "type": "string"
+      },
+      "studio": {
+        "label": "UTM content",
+        "group": "group_attribution",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "utm_term": {
+      "schema": {
+        "name": "utm_term",
+        "type": "string"
+      },
+      "studio": {
+        "label": "UTM term",
+        "group": "group_attribution",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "request_items": {
+      "schema": {
+        "name": "request_items",
+        "type": "json",
+        "note": "Normalized parts request lines: article and quantity."
+      },
+      "studio": {
+        "label": "Позиции запроса",
+        "group": "group_request",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "attachments": {
+      "schema": {
+        "name": "attachments",
+        "type": "json",
+        "note": "Directus file IDs uploaded with a parts request."
+      },
+      "studio": {
+        "label": "Вложения",
+        "group": "group_request",
+        "sort": 6,
+        "width": "full"
+      }
+    },
+    "marketing_consent": {
+      "schema": {
+        "name": "marketing_consent",
+        "type": "boolean",
+        "default": false
+      },
+      "studio": {
+        "label": "Согласие на рекламу",
+        "group": "group_consent",
+        "sort": 1,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "marketing_consent_at": {
+      "schema": {
+        "name": "marketing_consent_at",
+        "type": "timestamp"
+      },
+      "studio": {
+        "label": "Дата согласия",
+        "group": "group_consent",
+        "sort": 2,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "marketing_consent_version": {
+      "schema": {
+        "name": "marketing_consent_version",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Версия текста",
+        "group": "group_consent",
+        "sort": 3,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "manager_comment": {
+      "schema": {
+        "name": "manager_comment",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Комментарий менеджера",
+        "group": "group_workflow",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 2,
+        "width": "half"
+      }
+    }
+  }
+}

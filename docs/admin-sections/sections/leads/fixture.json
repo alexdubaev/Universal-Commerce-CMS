@@ -1,0 +1,12 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "leads",
+  "record": {
+    "name": "Синтетический заявитель",
+    "status": "new",
+    "phone": "+7 000 000-00-00",
+    "page_url": "https://example.invalid/demo",
+    "message": "Тестовые данные, не заявка.",
+    "email": "demo@example.invalid"
+  }
+}

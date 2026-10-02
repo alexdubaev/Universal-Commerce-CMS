@@ -1,0 +1,13 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "products",
+  "record": {
+    "status": "draft",
+    "currency": "RUB",
+    "slug": "synthetic-item",
+    "price_status": "on_request",
+    "availability_status": "on_request",
+    "title": "Синтетический товар",
+    "sku": "DEMO-000"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "deere-shop",
+  "version": "1.0.0",
+  "description": "Indexed catalog code search endpoint over normalized product codes.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "dist/index.js",
+    "source": "src/index.js",
+    "host": "^12.0.0"
+  }
+}

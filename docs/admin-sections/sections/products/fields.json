@@ -1,0 +1,917 @@
+{
+  "collection": "products",
+  "label": "Товары",
+  "group": "group_catalog",
+  "icon": "inventory_2",
+  "sort": 1,
+  "displayTemplate": "{{title}} · {{sku}} · {{category.title}} · {{availability_status}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 53,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "title": {
+      "schema": {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Название товара",
+        "group": "group_main",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "slug": {
+      "schema": {
+        "name": "slug",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Адрес товара",
+        "group": "group_main",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "sku": {
+      "schema": {
+        "name": "sku",
+        "type": "string",
+        "required": true,
+        "identityManagedUnique": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Артикул",
+        "group": "group_main",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "category": {
+      "schema": {
+        "name": "category",
+        "type": "uuid",
+        "relatedCollection": "categories",
+        "index": true
+      },
+      "studio": {
+        "label": "Категория",
+        "group": "group_main",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "short_description": {
+      "schema": {
+        "name": "short_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Краткое описание",
+        "group": "group_main",
+        "sort": 10,
+        "width": "full"
+      }
+    },
+    "full_description": {
+      "schema": {
+        "name": "full_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Полное описание",
+        "group": "group_main",
+        "sort": 11,
+        "width": "full"
+      }
+    },
+    "seo_text": {
+      "schema": {
+        "name": "seo_text",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-текст",
+        "group": "group_seo",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "main_image": {
+      "schema": {
+        "name": "main_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Основное изображение",
+        "group": "group_media",
+        "sort": 1,
+        "width": "full",
+        "interface": "file-image",
+        "options": {
+          "crop": false
+        }
+      }
+    },
+    "gallery": {
+      "schema": {
+        "name": "gallery",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Предпросмотр галереи",
+        "group": "group_media",
+        "sort": 3,
+        "width": "full",
+        "note": "Автоматический предпросмотр всех изображений из канонической связи product_images. Изменения выполняются в поле «Управление галереей» ниже.",
+        "interface": "deere-shop-product-gallery-preview",
+        "hidden": false,
+        "readonly": true
+      }
+    },
+    "media_sources": {
+      "schema": {
+        "name": "media_sources",
+        "type": "json",
+        "hidden": true,
+        "readonly": true,
+        "note": "Managed source policy per images/specifications/documents: children or legacy. Empty children do not restore legacy data."
+      },
+      "studio": {
+        "label": "Источник данных медиа",
+        "group": "group_system",
+        "sort": 7,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "price": {
+      "schema": {
+        "name": "price",
+        "type": "decimal",
+        "precision": 12,
+        "scale": 2
+      },
+      "studio": {
+        "label": "Цена",
+        "group": "group_sales",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "currency": {
+      "schema": {
+        "name": "currency",
+        "type": "string",
+        "required": true,
+        "default": "RUB"
+      },
+      "studio": {
+        "label": "Валюта",
+        "group": "group_sales",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "price_status": {
+      "schema": {
+        "name": "price_status",
+        "type": "string",
+        "required": true,
+        "default": "fixed",
+        "choices": [
+          "fixed",
+          "on_request",
+          "hidden"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус цены",
+        "group": "group_sales",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "availability_status": {
+      "schema": {
+        "name": "availability_status",
+        "type": "string",
+        "required": true,
+        "default": "on_request",
+        "choices": [
+          "in_stock",
+          "on_request",
+          "out_of_stock"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Наличие",
+        "group": "group_sales",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "brand": {
+      "schema": {
+        "name": "brand",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Бренд",
+        "group": "group_main",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "brand_key": {
+      "schema": {
+        "name": "brand_key",
+        "type": "string",
+        "hidden": true,
+        "readonly": true,
+        "index": true,
+        "note": "Server-owned normalized brand label; original brand remains unchanged."
+      },
+      "studio": {
+        "label": "Нормализованный бренд",
+        "group": "group_system",
+        "sort": 8,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "identity_key": {
+      "schema": {
+        "name": "identity_key",
+        "type": "string",
+        "unique": true,
+        "maxLength": 64,
+        "hidden": true,
+        "readonly": true,
+        "note": "SHA256 of normalized brand and article. Backfill and constraint cutover require migrate-product-identity.mjs; no automatic brand aliasing."
+      },
+      "studio": {
+        "label": "Ключ бренда и артикула",
+        "group": "group_system",
+        "sort": 9,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "mpn": {
+      "schema": {
+        "name": "mpn",
+        "type": "string",
+        "index": true
+      },
+      "studio": {
+        "label": "MPN / номер производителя",
+        "group": "group_main",
+        "sort": 7,
+        "width": "half"
+      }
+    },
+    "gtin": {
+      "schema": {
+        "name": "gtin",
+        "type": "string",
+        "index": true
+      },
+      "studio": {
+        "label": "GTIN",
+        "group": "group_main",
+        "sort": 8,
+        "width": "half"
+      }
+    },
+    "sku_normalized": {
+      "schema": {
+        "name": "sku_normalized",
+        "type": "string",
+        "hidden": true,
+        "index": true,
+        "note": "Derived uppercase alphanumeric copy of sku, filled only by migrations/backfill-product-search.mjs. Indexed search key, never edited by hand."
+      },
+      "studio": {
+        "label": "Артикул (нормализованный)",
+        "group": "group_system",
+        "sort": 5,
+        "width": "full",
+        "note": "Индексный ключ поиска — заполняется только миграцией backfill-product-search.",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "mpn_normalized": {
+      "schema": {
+        "name": "mpn_normalized",
+        "type": "string",
+        "hidden": true,
+        "index": true,
+        "note": "Derived uppercase alphanumeric copy of mpn, filled only by migrations/backfill-product-search.mjs. Indexed search key, never edited by hand."
+      },
+      "studio": {
+        "label": "MPN (нормализованный)",
+        "group": "group_system",
+        "sort": 6,
+        "width": "full",
+        "note": "Индексный ключ поиска — заполняется только миграцией backfill-product-search.",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "part_type": {
+      "schema": {
+        "name": "part_type",
+        "type": "string",
+        "choices": [
+          "original",
+          "oem",
+          "analog"
+        ]
+      },
+      "studio": {
+        "label": "Тип детали",
+        "group": "group_main",
+        "sort": 9,
+        "width": "half"
+      }
+    },
+    "delivery_status": {
+      "schema": {
+        "name": "delivery_status",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Условия поставки",
+        "group": "group_sales",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "specifications": {
+      "schema": {
+        "name": "specifications",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Характеристики",
+        "group": "group_specs",
+        "sort": 1,
+        "width": "full",
+        "interface": "list",
+        "options": {
+          "template": "{{name}}: {{value}} {{unit}}",
+          "fields": [
+            {
+              "field": "name",
+              "name": "Название",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half",
+                "required": true
+              }
+            },
+            {
+              "field": "value",
+              "name": "Значение",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half",
+                "required": true
+              }
+            },
+            {
+              "field": "unit",
+              "name": "Единица",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "documents": {
+      "schema": {
+        "name": "documents",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Документы",
+        "group": "group_media",
+        "sort": 4,
+        "width": "full",
+        "interface": "list",
+        "options": {
+          "template": "{{title}}",
+          "fields": [
+            {
+              "field": "title",
+              "name": "Название",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half",
+                "required": true
+              }
+            },
+            {
+              "field": "file",
+              "name": "Файл",
+              "type": "uuid",
+              "meta": {
+                "interface": "file",
+                "width": "half",
+                "required": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    "image_items": {
+      "schema": {
+        "name": "image_items",
+        "type": "alias",
+        "special": [
+          "o2m"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "product_images",
+        "note": "R7C declaration: hidden O2M alias over product_images. products.gallery JSON stays the editable interface until the R7C gate (after the R7B gallery migration and reconcile)."
+      },
+      "studio": {
+        "label": "Управление галереей",
+        "group": "group_media",
+        "sort": 5,
+        "width": "full",
+        "note": "Все изображения галереи из канонической связи product_images. Нажмите изображение, чтобы изменить файл, alt-текст или порядок.",
+        "interface": "list-o2m",
+        "options": {
+          "layout": "list",
+          "template": "{{image}} {{alt_text}}",
+          "enableCreate": true,
+          "enableSelect": false,
+          "limit": 15
+        },
+        "hidden": false
+      }
+    },
+    "specification_items": {
+      "schema": {
+        "name": "specification_items",
+        "type": "alias",
+        "special": [
+          "o2m"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "product_specifications",
+        "note": "R7C declaration: hidden O2M alias over product_specifications. products.specifications JSON stays the editable interface until the R7C gate."
+      },
+      "studio": {
+        "label": "Характеристики (структурные)",
+        "group": "group_specs",
+        "sort": 2,
+        "width": "full",
+        "note": "Канонические характеристики товара (product_specifications). Скрыто до перехода R7C — до них редактируется список JSON.",
+        "interface": "list-o2m",
+        "options": {
+          "template": "{{name}}: {{value}} {{unit}}",
+          "enableCreate": true,
+          "enableSelect": false
+        },
+        "hidden": true
+      }
+    },
+    "document_items": {
+      "schema": {
+        "name": "document_items",
+        "type": "alias",
+        "special": [
+          "o2m"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "product_documents",
+        "note": "R7C declaration: hidden O2M alias over product_documents. products.documents JSON stays the editable interface until the R7C gate."
+      },
+      "studio": {
+        "label": "Документы (структурные)",
+        "group": "group_media",
+        "sort": 6,
+        "width": "full",
+        "note": "Канонические документы товара (product_documents). Скрыто до перехода R7C — до него редактируется список JSON.",
+        "interface": "list-o2m",
+        "options": {
+          "template": "{{title}}",
+          "enableCreate": true,
+          "enableSelect": false
+        },
+        "hidden": true
+      }
+    },
+    "analogs_from": {
+      "schema": {
+        "name": "analogs_from",
+        "type": "alias",
+        "special": [
+          "o2m"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "products_analogs",
+        "note": "R8 declaration: hidden O2M alias over products_analogs.product_from (edges stored with this product as the from side). Manage edges in the products_analogs collection."
+      },
+      "studio": {
+        "label": "Связи: исходящие (служебное)",
+        "group": "group_analogs",
+        "sort": 1,
+        "width": "full",
+        "note": "Рёбра products_analogs, где товар стоит в product_from. Редактируйте связи в коллекции «Аналоги товаров».",
+        "interface": "list-o2m",
+        "options": {
+          "template": "{{relation_type}} · {{product_to.sku}}",
+          "enableCreate": false,
+          "enableSelect": false
+        },
+        "hidden": true
+      }
+    },
+    "analogs_to": {
+      "schema": {
+        "name": "analogs_to",
+        "type": "alias",
+        "special": [
+          "o2m"
+        ],
+        "interface": null,
+        "hidden": true,
+        "relatedCollection": "products_analogs",
+        "note": "R8 declaration: hidden O2M alias over products_analogs.product_to (edges stored with this product as the to side). Manage edges in the products_analogs collection."
+      },
+      "studio": {
+        "label": "Связи: входящие (служебное)",
+        "group": "group_analogs",
+        "sort": 2,
+        "width": "full",
+        "note": "Рёбра products_analogs, где товар стоит в product_to. Редактируйте связи в коллекции «Аналоги товаров».",
+        "interface": "list-o2m",
+        "options": {
+          "template": "{{relation_type}} · {{product_from.sku}}",
+          "enableCreate": false,
+          "enableSelect": false
+        },
+        "hidden": true
+      }
+    },
+    "source_name": {
+      "schema": {
+        "name": "source_name",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Название источника",
+        "group": "group_source",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "source_url": {
+      "schema": {
+        "name": "source_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка на источник",
+        "group": "group_source",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "verified_at": {
+      "schema": {
+        "name": "verified_at",
+        "type": "timestamp"
+      },
+      "studio": {
+        "label": "Проверено",
+        "group": "group_source",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "reviewed_by": {
+      "schema": {
+        "name": "reviewed_by",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Проверил",
+        "group": "group_source",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "seo_title": {
+      "schema": {
+        "name": "seo_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "SEO-заголовок",
+        "group": "group_seo",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "seo_description": {
+      "schema": {
+        "name": "seo_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-описание",
+        "group": "group_seo",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "og_image": {
+      "schema": {
+        "name": "og_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение Open Graph",
+        "group": "group_seo",
+        "sort": 4,
+        "width": "full",
+        "interface": "file-image"
+      }
+    },
+    "image_alt": {
+      "schema": {
+        "name": "image_alt",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Alt-текст основного изображения",
+        "group": "group_media",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "seo_quality_status": {
+      "schema": {
+        "name": "seo_quality_status",
+        "type": "string",
+        "default": "pending",
+        "choices": [
+          "pending",
+          "reviewed",
+          "published",
+          "needs_fix"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус SEO-проверки",
+        "group": "group_seo",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "is_indexable": {
+      "schema": {
+        "name": "is_indexable",
+        "type": "boolean",
+        "default": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Разрешить индексацию",
+        "group": "group_seo",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "seo": {
+      "schema": {
+        "name": "seo",
+        "type": "json",
+        "interface": "seo-interface",
+        "display": "seo-display",
+        "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+      },
+      "studio": {
+        "label": "SEO-панель (плагин)",
+        "group": "group_seo",
+        "sort": 7,
+        "width": "full",
+        "note": "Приоритетное JSON-поле SEO (R11). Пока JSON пуст, сайт читает скалярные поля ниже; миграция заполняет JSON из скаляров и никогда не изменяет их.",
+        "interface": "seo-interface",
+        "display": "seo-display"
+      }
+    },
+    "sort_order": {
+      "schema": {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": {
+        "label": "Порядок",
+        "group": "group_visibility",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "popularity_score": {
+      "schema": {
+        "name": "popularity_score",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": {
+        "label": "Популярность",
+        "group": "group_visibility",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "is_featured": {
+      "schema": {
+        "name": "is_featured",
+        "type": "boolean",
+        "default": false,
+        "index": true
+      },
+      "studio": {
+        "label": "Рекомендуемый товар",
+        "group": "group_visibility",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "show_on_homepage": {
+      "schema": {
+        "name": "show_on_homepage",
+        "type": "boolean",
+        "default": false,
+        "index": true
+      },
+      "studio": {
+        "label": "Показывать на главной",
+        "group": "group_visibility",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "cta_text": {
+      "schema": {
+        "name": "cta_text",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Текст кнопки заявки",
+        "group": "group_main",
+        "sort": 12,
+        "width": "full"
+      }
+    },
+    "related_products": {
+      "schema": {
+        "name": "related_products",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Связанные товары",
+        "group": "group_main",
+        "sort": 13,
+        "width": "full"
+      }
+    },
+    "lead_form": {
+      "schema": {
+        "name": "lead_form",
+        "type": "uuid",
+        "relatedCollection": "lead_forms"
+      },
+      "studio": {
+        "label": "Форма заявки",
+        "group": "group_main",
+        "sort": 14,
+        "width": "full"
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 2,
+        "width": "full",
+        "hidden": true
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 4,
+        "width": "half",
+        "readonly": true
+      }
+    }
+  }
+}

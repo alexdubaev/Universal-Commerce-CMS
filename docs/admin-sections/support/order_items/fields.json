@@ -1,0 +1,83 @@
+{
+  "collection": "order_items",
+  "owner": "orders",
+  "schema": {
+    "name": "order_items",
+    "icon": "inventory",
+    "note": "Snapshot line items for an order. order→products is SET NULL on product deletion to preserve history.",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "order",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "orders",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      {
+        "name": "product",
+        "type": "uuid",
+        "relatedCollection": "products",
+        "index": true
+      },
+      {
+        "name": "sku_snapshot",
+        "type": "string"
+      },
+      {
+        "name": "title_snapshot",
+        "type": "text"
+      },
+      {
+        "name": "brand_snapshot",
+        "type": "string"
+      },
+      {
+        "name": "unit_price",
+        "type": "decimal",
+        "precision": 12,
+        "scale": 2
+      },
+      {
+        "name": "quantity",
+        "type": "integer",
+        "required": true,
+        "default": 1
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "required": true,
+        "default": "RUB"
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}

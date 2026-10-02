@@ -1,0 +1,13 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "navigation_items",
+  "record": {
+    "sort_order": 10,
+    "status": "draft",
+    "is_visible": false,
+    "location": "footer",
+    "open_in_new_tab": false,
+    "label": "Демо-пункт",
+    "url": "/demo"
+  }
+}

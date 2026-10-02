@@ -1,0 +1,123 @@
+{
+  "collection": "product_codes",
+  "label": "Коды товаров",
+  "group": "group_catalog",
+  "icon": "qr_code_2",
+  "sort": 3,
+  "displayTemplate": "{{code}} · {{code_type}} · {{product.sku}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 10,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "product": {
+      "schema": {
+        "name": "product",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "products",
+        "index": true,
+        "onDelete": "CASCADE"
+      },
+      "studio": null
+    },
+    "code": {
+      "schema": {
+        "name": "code",
+        "type": "string",
+        "required": true
+      },
+      "studio": null
+    },
+    "normalized_code": {
+      "schema": {
+        "name": "normalized_code",
+        "type": "string",
+        "required": true,
+        "index": true,
+        "note": "Uppercase alphanumeric copy of code: the indexed OEM search key."
+      },
+      "studio": null
+    },
+    "code_type": {
+      "schema": {
+        "name": "code_type",
+        "type": "string",
+        "required": true,
+        "default": "oem",
+        "choices": [
+          "oem",
+          "mpn",
+          "supplier",
+          "previous",
+          "superseded",
+          "external",
+          "barcode"
+        ],
+        "index": true
+      },
+      "studio": null
+    },
+    "source_name": {
+      "schema": {
+        "name": "source_name",
+        "type": "string",
+        "required": true,
+        "default": "manual",
+        "index": true,
+        "note": "Provenance of the code (feed or catalog name, 'manual' for editors)."
+      },
+      "studio": null
+    },
+    "source_reference": {
+      "schema": {
+        "name": "source_reference",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "is_active": {
+      "schema": {
+        "name": "is_active",
+        "type": "boolean",
+        "default": true,
+        "index": true
+      },
+      "studio": null
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    }
+  }
+}

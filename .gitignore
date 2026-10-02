@@ -1,0 +1,8 @@
+dev/.env
+dev/.env.*.local
+directus/uploads/**
+!directus/uploads/.gitkeep
+directus/extensions/**/node_modules/
+directus/extensions/**/.directus/
+node_modules/
+*.log

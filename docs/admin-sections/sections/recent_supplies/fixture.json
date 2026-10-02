@@ -1,0 +1,12 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "recent_supplies",
+  "record": {
+    "positions": [],
+    "status": "draft",
+    "region": "Демонстрационный регион",
+    "supply_format": "Пример",
+    "equipment_type": "Демо-тип",
+    "delivery_term": "Не задан"
+  }
+}

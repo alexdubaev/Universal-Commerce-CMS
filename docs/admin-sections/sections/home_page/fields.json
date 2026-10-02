@@ -1,0 +1,496 @@
+{
+  "collection": "home_page",
+  "label": "Главная страница",
+  "group": "group_site",
+  "icon": "home",
+  "sort": 1,
+  "displayTemplate": null,
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 34,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 5,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус публикации",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "source_page": {
+      "schema": {
+        "name": "source_page",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "pages",
+        "index": true
+      },
+      "studio": {
+        "label": "Связанная системная страница",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full",
+        "readonly": true
+      }
+    },
+    "h1": {
+      "schema": {
+        "name": "h1",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Заголовок H1",
+        "group": "group_main",
+        "sort": 2,
+        "width": "full",
+        "note": "Единственный H1 главной страницы."
+      }
+    },
+    "hero_title": {
+      "schema": {
+        "name": "hero_title",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Заголовок первого экрана",
+        "group": "group_hero",
+        "sort": 1,
+        "width": "full",
+        "note": "Главный заголовок, который посетитель видит первым."
+      }
+    },
+    "hero_text": {
+      "schema": {
+        "name": "hero_text",
+        "type": "text",
+        "required": true
+      },
+      "studio": {
+        "label": "Описание первого экрана",
+        "group": "group_hero",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "hero_image": {
+      "schema": {
+        "name": "hero_image",
+        "type": "uuid",
+        "required": true,
+        "relatedCollection": "directus_files",
+        "interface": "file-image"
+      },
+      "studio": {
+        "label": "Изображение первого экрана",
+        "group": "group_hero",
+        "sort": 3,
+        "width": "full",
+        "interface": "file-image"
+      }
+    },
+    "hero_image_alt": {
+      "schema": {
+        "name": "hero_image_alt",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Alt-текст изображения",
+        "group": "group_hero",
+        "sort": 4,
+        "width": "full",
+        "note": "Кратко опишите содержимое изображения для доступности и SEO."
+      }
+    },
+    "hero_primary_button_text": {
+      "schema": {
+        "name": "hero_primary_button_text",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Текст основной кнопки",
+        "group": "group_hero",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "hero_primary_button_url": {
+      "schema": {
+        "name": "hero_primary_button_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка основной кнопки",
+        "group": "group_hero",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "hero_secondary_button_text": {
+      "schema": {
+        "name": "hero_secondary_button_text",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Текст дополнительной кнопки",
+        "group": "group_hero",
+        "sort": 7,
+        "width": "half"
+      }
+    },
+    "hero_secondary_button_url": {
+      "schema": {
+        "name": "hero_secondary_button_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка дополнительной кнопки",
+        "group": "group_hero",
+        "sort": 8,
+        "width": "half"
+      }
+    },
+    "hero_search_label": {
+      "schema": {
+        "name": "hero_search_label",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Название поиска для озвучивания",
+        "group": "group_hero",
+        "sort": 9,
+        "width": "half"
+      }
+    },
+    "hero_search_placeholder": {
+      "schema": {
+        "name": "hero_search_placeholder",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Подсказка в строке поиска",
+        "group": "group_hero",
+        "sort": 10,
+        "width": "half"
+      }
+    },
+    "hero_search_button_text": {
+      "schema": {
+        "name": "hero_search_button_text",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Текст кнопки поиска",
+        "group": "group_hero",
+        "sort": 11,
+        "width": "half"
+      }
+    },
+    "hero_bulk_prompt": {
+      "schema": {
+        "name": "hero_bulk_prompt",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Подпись группового запроса",
+        "group": "group_hero",
+        "sort": 12,
+        "width": "half"
+      }
+    },
+    "hero_bulk_link_text": {
+      "schema": {
+        "name": "hero_bulk_link_text",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Текст ссылки «Список»",
+        "group": "group_hero",
+        "sort": 13,
+        "width": "half"
+      }
+    },
+    "hero_bulk_link_url": {
+      "schema": {
+        "name": "hero_bulk_link_url",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Ссылка «Список»",
+        "group": "group_hero",
+        "sort": 14,
+        "width": "half"
+      }
+    },
+    "hero_excel_link_text": {
+      "schema": {
+        "name": "hero_excel_link_text",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Текст ссылки «Excel»",
+        "group": "group_hero",
+        "sort": 15,
+        "width": "half"
+      }
+    },
+    "hero_excel_link_url": {
+      "schema": {
+        "name": "hero_excel_link_url",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Ссылка «Excel»",
+        "group": "group_hero",
+        "sort": 16,
+        "width": "half"
+      }
+    },
+    "hero_photo_link_text": {
+      "schema": {
+        "name": "hero_photo_link_text",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Текст ссылки «Фото»",
+        "group": "group_hero",
+        "sort": 17,
+        "width": "half"
+      }
+    },
+    "hero_photo_link_url": {
+      "schema": {
+        "name": "hero_photo_link_url",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Ссылка «Фото»",
+        "group": "group_hero",
+        "sort": 18,
+        "width": "half"
+      }
+    },
+    "seo_title": {
+      "schema": {
+        "name": "seo_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "SEO-заголовок",
+        "group": "group_seo",
+        "sort": 1,
+        "width": "full",
+        "note": "Рекомендуемая длина — до 60 символов."
+      }
+    },
+    "seo_description": {
+      "schema": {
+        "name": "seo_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-описание",
+        "group": "group_seo",
+        "sort": 2,
+        "width": "full",
+        "note": "Рекомендуемая длина — 130–160 символов."
+      }
+    },
+    "canonical_url": {
+      "schema": {
+        "name": "canonical_url",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Канонический URL",
+        "group": "group_seo",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "og_title": {
+      "schema": {
+        "name": "og_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Заголовок Open Graph",
+        "group": "group_seo",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "og_description": {
+      "schema": {
+        "name": "og_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Описание Open Graph",
+        "group": "group_seo",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "og_image": {
+      "schema": {
+        "name": "og_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение Open Graph",
+        "group": "group_seo",
+        "sort": 6,
+        "width": "full",
+        "interface": "file-image"
+      }
+    },
+    "is_indexable": {
+      "schema": {
+        "name": "is_indexable",
+        "type": "boolean",
+        "default": true
+      },
+      "studio": {
+        "label": "Разрешить индексацию",
+        "group": "group_seo",
+        "sort": 7,
+        "width": "half"
+      }
+    },
+    "seo": {
+      "schema": {
+        "name": "seo",
+        "type": "json",
+        "interface": "seo-interface",
+        "display": "seo-display",
+        "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+      },
+      "studio": {
+        "label": "SEO-панель (плагин)",
+        "group": "group_seo",
+        "sort": 8,
+        "width": "full",
+        "note": "Приоритетное JSON-поле SEO (R11). Пока JSON пуст, сайт читает скалярные поля ниже; миграция заполняет JSON из скаляров и никогда не изменяет их.",
+        "interface": "seo-interface",
+        "display": "seo-display"
+      }
+    },
+    "sections": {
+      "schema": {
+        "name": "sections",
+        "type": "alias",
+        "interface": "list-o2m",
+        "special": [
+          "o2m"
+        ]
+      },
+      "studio": {
+        "label": "Секции главной страницы",
+        "group": "group_sections",
+        "sort": 1,
+        "width": "full",
+        "note": "Откройте секцию, чтобы изменить текст, видимость и порядок.",
+        "interface": "list-o2m",
+        "options": {
+          "template": "{{section_type}} · {{title}}",
+          "enableCreate": true,
+          "enableSelect": false
+        }
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 2,
+        "width": "full",
+        "hidden": true
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 4,
+        "width": "half",
+        "readonly": true
+      }
+    }
+  }
+}

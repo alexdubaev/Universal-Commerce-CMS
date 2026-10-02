@@ -1,0 +1,537 @@
+{
+  "collection": "site_settings",
+  "label": "Настройки сайта",
+  "group": "group_settings",
+  "icon": "settings",
+  "sort": 1,
+  "displayTemplate": null,
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 38,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full",
+        "hidden": true,
+        "readonly": true
+      }
+    },
+    "company_name": {
+      "schema": {
+        "name": "company_name",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Название компании",
+        "group": "group_company",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "phone": {
+      "schema": {
+        "name": "phone",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Телефон",
+        "group": "group_contacts",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "email": {
+      "schema": {
+        "name": "email",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Email",
+        "group": "group_contacts",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "messengers": {
+      "schema": {
+        "name": "messengers",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Мессенджеры",
+        "group": "group_contacts",
+        "sort": 7,
+        "width": "full",
+        "interface": "list",
+        "options": {
+          "template": "{{label}} · {{url}}",
+          "fields": [
+            {
+              "field": "label",
+              "name": "Название",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half",
+                "required": true
+              }
+            },
+            {
+              "field": "url",
+              "name": "Ссылка",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half",
+                "required": true
+              }
+            },
+            {
+              "field": "icon",
+              "name": "Иконка",
+              "type": "string",
+              "meta": {
+                "interface": "input",
+                "width": "half"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "social_links": {
+      "schema": {
+        "name": "social_links",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Социальные сети",
+        "group": "group_contacts",
+        "sort": 8,
+        "width": "full"
+      }
+    },
+    "commerce_profile": {
+      "schema": {
+        "name": "commerce_profile",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Профиль коммерции",
+        "group": "group_company",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "address": {
+      "schema": {
+        "name": "address",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Адрес",
+        "group": "group_contacts",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "city": {
+      "schema": {
+        "name": "city",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Город",
+        "group": "group_contacts",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "working_hours": {
+      "schema": {
+        "name": "working_hours",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Часы работы",
+        "group": "group_contacts",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "delivery_region": {
+      "schema": {
+        "name": "delivery_region",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Регион поставки",
+        "group": "group_contacts",
+        "sort": 6,
+        "width": "full"
+      }
+    },
+    "logo": {
+      "schema": {
+        "name": "logo",
+        "type": "uuid",
+        "relatedCollection": "directus_files",
+        "interface": "file-image"
+      },
+      "studio": {
+        "label": "Логотип",
+        "group": "group_brand",
+        "sort": 1,
+        "width": "full",
+        "interface": "file-image"
+      }
+    },
+    "favicon": {
+      "schema": {
+        "name": "favicon",
+        "type": "uuid",
+        "relatedCollection": "directus_files",
+        "interface": "file-image"
+      },
+      "studio": {
+        "label": "Favicon",
+        "group": "group_brand",
+        "sort": 2,
+        "width": "full",
+        "interface": "file-image"
+      }
+    },
+    "default_og_image": {
+      "schema": {
+        "name": "default_og_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение Open Graph",
+        "group": "group_seo",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "seo_title": {
+      "schema": {
+        "name": "seo_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "SEO-заголовок по умолчанию",
+        "group": "group_seo",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "seo_description": {
+      "schema": {
+        "name": "seo_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-описание по умолчанию",
+        "group": "group_seo",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "og_title": {
+      "schema": {
+        "name": "og_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Заголовок Open Graph",
+        "group": "group_seo",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "og_description": {
+      "schema": {
+        "name": "og_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Описание Open Graph",
+        "group": "group_seo",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "primary_color": {
+      "schema": {
+        "name": "primary_color",
+        "type": "string",
+        "default": "#245c2a"
+      },
+      "studio": {
+        "label": "Основной цвет",
+        "group": "group_brand",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "accent_color": {
+      "schema": {
+        "name": "accent_color",
+        "type": "string",
+        "default": "#f2c94c"
+      },
+      "studio": {
+        "label": "Акцентный цвет",
+        "group": "group_brand",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "primary_cta_text": {
+      "schema": {
+        "name": "primary_cta_text",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Текст основной кнопки",
+        "group": "group_cta",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "primary_cta_url": {
+      "schema": {
+        "name": "primary_cta_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка основной кнопки",
+        "group": "group_cta",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "footer_text": {
+      "schema": {
+        "name": "footer_text",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Текст подвала",
+        "group": "group_footer",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "footer_disclaimer": {
+      "schema": {
+        "name": "footer_disclaimer",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Примечание в подвале",
+        "group": "group_footer",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "inn": {
+      "schema": {
+        "name": "inn",
+        "type": "string"
+      },
+      "studio": {
+        "label": "ИНН",
+        "group": "group_legal",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "kpp": {
+      "schema": {
+        "name": "kpp",
+        "type": "string"
+      },
+      "studio": {
+        "label": "КПП",
+        "group": "group_legal",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "ogrn": {
+      "schema": {
+        "name": "ogrn",
+        "type": "string"
+      },
+      "studio": {
+        "label": "ОГРН",
+        "group": "group_legal",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "legal_address": {
+      "schema": {
+        "name": "legal_address",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Юридический адрес",
+        "group": "group_legal",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "legal_name": {
+      "schema": {
+        "name": "legal_name",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Юридическое название",
+        "group": "group_company",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "vat_info": {
+      "schema": {
+        "name": "vat_info",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Информация о НДС",
+        "group": "group_legal",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "requisites_url": {
+      "schema": {
+        "name": "requisites_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка на реквизиты",
+        "group": "group_footer",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "documents_url": {
+      "schema": {
+        "name": "documents_url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Ссылка на документы",
+        "group": "group_footer",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "company_image": {
+      "schema": {
+        "name": "company_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение компании",
+        "group": "group_company",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "yandex_metrica_id": {
+      "schema": {
+        "name": "yandex_metrica_id",
+        "type": "string"
+      },
+      "studio": {
+        "label": "ID Яндекс Метрики",
+        "group": "group_analytics",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "gtm_id": {
+      "schema": {
+        "name": "gtm_id",
+        "type": "string"
+      },
+      "studio": {
+        "label": "ID Google Tag Manager",
+        "group": "group_analytics",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 2,
+        "width": "full",
+        "hidden": true
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 4,
+        "width": "half",
+        "readonly": true
+      }
+    }
+  }
+}

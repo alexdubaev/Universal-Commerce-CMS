@@ -1,0 +1,209 @@
+[
+  {
+    "collection": "site_settings",
+    "label": "Настройки сайта",
+    "visible": true,
+    "fields": 38,
+    "owner": "site_settings",
+    "guarded": "existing",
+    "materials": "sections/site_settings"
+  },
+  {
+    "collection": "home_page",
+    "label": "Главная страница",
+    "visible": true,
+    "fields": 34,
+    "owner": "home_page",
+    "guarded": "existing",
+    "materials": "sections/home_page"
+  },
+  {
+    "collection": "pages",
+    "label": "Страницы",
+    "visible": true,
+    "fields": 18,
+    "owner": "pages",
+    "guarded": "existing",
+    "materials": "sections/pages"
+  },
+  {
+    "collection": "page_sections",
+    "label": "Секции страниц",
+    "visible": false,
+    "fields": 19,
+    "owner": "A0 / home_page + pages",
+    "guarded": "existing",
+    "materials": "support/page_sections"
+  },
+  {
+    "collection": "navigation_items",
+    "label": "Меню",
+    "visible": true,
+    "fields": 12,
+    "owner": "navigation_items",
+    "guarded": "gap",
+    "materials": "sections/navigation_items"
+  },
+  {
+    "collection": "categories",
+    "label": "Категории",
+    "visible": true,
+    "fields": 27,
+    "owner": "categories",
+    "guarded": "existing",
+    "materials": "sections/categories"
+  },
+  {
+    "collection": "articles",
+    "label": "Статьи",
+    "visible": true,
+    "fields": 27,
+    "owner": "articles",
+    "guarded": "existing",
+    "materials": "sections/articles"
+  },
+  {
+    "collection": "articles_editor_nodes",
+    "label": "Узлы редактора статей",
+    "visible": false,
+    "fields": 4,
+    "owner": "articles",
+    "guarded": "native-support",
+    "materials": "support/articles_editor_nodes"
+  },
+  {
+    "collection": "products",
+    "label": "Товары",
+    "visible": true,
+    "fields": 53,
+    "owner": "products",
+    "guarded": "existing",
+    "materials": "sections/products"
+  },
+  {
+    "collection": "faq_items",
+    "label": "Вопросы и ответы",
+    "visible": true,
+    "fields": 12,
+    "owner": "faq_items",
+    "guarded": "gap",
+    "materials": "sections/faq_items"
+  },
+  {
+    "collection": "lead_forms",
+    "label": "Настройки форм",
+    "visible": false,
+    "fields": 14,
+    "owner": "site_settings",
+    "guarded": "gap",
+    "materials": "support/lead_forms"
+  },
+  {
+    "collection": "leads",
+    "label": "Заявки",
+    "visible": true,
+    "fields": 26,
+    "owner": "leads",
+    "guarded": "gap",
+    "materials": "sections/leads"
+  },
+  {
+    "collection": "contact_channels",
+    "label": "Каналы связи",
+    "visible": false,
+    "fields": 13,
+    "owner": "A0 / home_page + pages",
+    "guarded": "gap",
+    "materials": "support/contact_channels"
+  },
+  {
+    "collection": "recent_supplies",
+    "label": "Недавние поставки",
+    "visible": true,
+    "fields": 14,
+    "owner": "recent_supplies",
+    "guarded": "gap",
+    "materials": "sections/recent_supplies"
+  },
+  {
+    "collection": "product_images",
+    "label": "Изображения товаров",
+    "visible": false,
+    "fields": 9,
+    "owner": "products",
+    "guarded": "existing",
+    "materials": "support/product_images"
+  },
+  {
+    "collection": "product_specifications",
+    "label": "Характеристики товаров",
+    "visible": false,
+    "fields": 11,
+    "owner": "products",
+    "guarded": "existing",
+    "materials": "support/product_specifications"
+  },
+  {
+    "collection": "product_documents",
+    "label": "Документы товаров",
+    "visible": false,
+    "fields": 9,
+    "owner": "products",
+    "guarded": "existing",
+    "materials": "support/product_documents"
+  },
+  {
+    "collection": "product_codes",
+    "label": "Коды товаров",
+    "visible": true,
+    "fields": 10,
+    "owner": "product_codes",
+    "guarded": "existing",
+    "materials": "sections/product_codes"
+  },
+  {
+    "collection": "products_analogs",
+    "label": "Аналоги товаров",
+    "visible": true,
+    "fields": 10,
+    "owner": "products_analogs",
+    "guarded": "existing",
+    "materials": "sections/products_analogs"
+  },
+  {
+    "collection": "seo_redirects",
+    "label": "SEO-редиректы",
+    "visible": false,
+    "fields": 7,
+    "owner": "seo_work_items",
+    "guarded": "gap",
+    "materials": "support/seo_redirects"
+  },
+  {
+    "collection": "seo_work_items",
+    "label": "SEO-задачи",
+    "visible": true,
+    "fields": 31,
+    "owner": "seo_work_items",
+    "guarded": "gap",
+    "materials": "sections/seo_work_items"
+  },
+  {
+    "collection": "orders",
+    "label": "Заказы",
+    "visible": true,
+    "fields": 23,
+    "owner": "orders",
+    "guarded": "gap",
+    "materials": "sections/orders"
+  },
+  {
+    "collection": "order_items",
+    "label": "Позиции заказов",
+    "visible": false,
+    "fields": 11,
+    "owner": "orders",
+    "guarded": "native-support",
+    "materials": "support/order_items"
+  }
+]

@@ -1,0 +1,22 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "home_page",
+  "record": {
+    "hero_excel_link_url": "/demo-file",
+    "hero_photo_link_url": "/demo-photo",
+    "status": "draft",
+    "hero_search_placeholder": "Введите запрос",
+    "h1": "Демонстрационный заголовок",
+    "hero_search_label": "Поиск",
+    "hero_title": "Пример главного экрана",
+    "hero_bulk_link_url": "/demo-list",
+    "hero_image": "00000000-0000-4000-8000-000000000001",
+    "hero_text": "Только синтетический текст для статического макета.",
+    "hero_excel_link_text": "Таблица",
+    "hero_bulk_link_text": "Список",
+    "hero_search_button_text": "Найти",
+    "hero_image_alt": "Синтетическое изображение",
+    "hero_photo_link_text": "Фото",
+    "hero_bulk_prompt": "Демонстрационный запрос"
+  }
+}

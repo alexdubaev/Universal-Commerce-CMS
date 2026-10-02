@@ -1,0 +1,2953 @@
+{
+  "version": 3,
+  "collections": [
+    {
+      "name": "group_site",
+      "folder": true,
+      "icon": "web",
+      "sort": 1,
+      "fields": []
+    },
+    {
+      "name": "group_catalog",
+      "folder": true,
+      "icon": "inventory_2",
+      "sort": 2,
+      "fields": []
+    },
+    {
+      "name": "group_content",
+      "folder": true,
+      "icon": "article",
+      "sort": 3,
+      "fields": []
+    },
+    {
+      "name": "group_sales",
+      "folder": true,
+      "icon": "request_quote",
+      "sort": 4,
+      "fields": []
+    },
+    {
+      "name": "group_settings",
+      "folder": true,
+      "icon": "settings",
+      "sort": 5,
+      "fields": []
+    },
+    {
+      "name": "group_seo",
+      "folder": true,
+      "icon": "travel_explore",
+      "sort": 6,
+      "fields": []
+    },
+    {
+      "name": "site_settings",
+      "icon": "settings",
+      "singleton": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "company_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "messengers",
+          "type": "json"
+        },
+        {
+          "name": "social_links",
+          "type": "json"
+        },
+        {
+          "name": "commerce_profile",
+          "type": "json"
+        },
+        {
+          "name": "address",
+          "type": "text"
+        },
+        {
+          "name": "city",
+          "type": "string"
+        },
+        {
+          "name": "working_hours",
+          "type": "string"
+        },
+        {
+          "name": "delivery_region",
+          "type": "string"
+        },
+        {
+          "name": "logo",
+          "type": "uuid",
+          "relatedCollection": "directus_files",
+          "interface": "file-image"
+        },
+        {
+          "name": "favicon",
+          "type": "uuid",
+          "relatedCollection": "directus_files",
+          "interface": "file-image"
+        },
+        {
+          "name": "default_og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "og_title",
+          "type": "string"
+        },
+        {
+          "name": "og_description",
+          "type": "text"
+        },
+        {
+          "name": "primary_color",
+          "type": "string",
+          "default": "#245c2a"
+        },
+        {
+          "name": "accent_color",
+          "type": "string",
+          "default": "#f2c94c"
+        },
+        {
+          "name": "primary_cta_text",
+          "type": "string"
+        },
+        {
+          "name": "primary_cta_url",
+          "type": "string"
+        },
+        {
+          "name": "footer_text",
+          "type": "text"
+        },
+        {
+          "name": "footer_disclaimer",
+          "type": "text"
+        },
+        {
+          "name": "inn",
+          "type": "string"
+        },
+        {
+          "name": "kpp",
+          "type": "string"
+        },
+        {
+          "name": "ogrn",
+          "type": "string"
+        },
+        {
+          "name": "legal_address",
+          "type": "text"
+        },
+        {
+          "name": "legal_name",
+          "type": "string"
+        },
+        {
+          "name": "vat_info",
+          "type": "string"
+        },
+        {
+          "name": "requisites_url",
+          "type": "string"
+        },
+        {
+          "name": "documents_url",
+          "type": "string"
+        },
+        {
+          "name": "company_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "yandex_metrica_id",
+          "type": "string"
+        },
+        {
+          "name": "gtm_id",
+          "type": "string"
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "home_page",
+      "icon": "home",
+      "singleton": true,
+      "versioning": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "source_page",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "pages",
+          "index": true
+        },
+        {
+          "name": "h1",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_text",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "hero_image",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "directus_files",
+          "interface": "file-image"
+        },
+        {
+          "name": "hero_image_alt",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_primary_button_text",
+          "type": "string"
+        },
+        {
+          "name": "hero_primary_button_url",
+          "type": "string"
+        },
+        {
+          "name": "hero_secondary_button_text",
+          "type": "string"
+        },
+        {
+          "name": "hero_secondary_button_url",
+          "type": "string"
+        },
+        {
+          "name": "hero_search_label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_search_placeholder",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_search_button_text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_bulk_prompt",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_bulk_link_text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_bulk_link_url",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_excel_link_text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_excel_link_url",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_photo_link_text",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "hero_photo_link_url",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "canonical_url",
+          "type": "text"
+        },
+        {
+          "name": "og_title",
+          "type": "string"
+        },
+        {
+          "name": "og_description",
+          "type": "text"
+        },
+        {
+          "name": "og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "is_indexable",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "seo",
+          "type": "json",
+          "interface": "seo-interface",
+          "display": "seo-display",
+          "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+        },
+        {
+          "name": "sections",
+          "type": "alias",
+          "interface": "list-o2m",
+          "special": [
+            "o2m"
+          ]
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "pages",
+      "icon": "web",
+      "versioning": true,
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "page_type",
+          "type": "string",
+          "required": true,
+          "choices": [
+            "home",
+            "catalog",
+            "about",
+            "delivery",
+            "contacts",
+            "privacy_policy",
+            "thank_you",
+            "articles",
+            "standard"
+          ],
+          "index": true
+        },
+        {
+          "name": "h1",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "eyebrow",
+          "type": "string"
+        },
+        {
+          "name": "intro",
+          "type": "text"
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "seo_text",
+          "type": "text"
+        },
+        {
+          "name": "og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "canonical_url",
+          "type": "text"
+        },
+        {
+          "name": "is_indexable",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "seo",
+          "type": "json",
+          "interface": "seo-interface",
+          "display": "seo-display",
+          "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "page_sections",
+      "icon": "view_quilt",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "home_page",
+          "type": "uuid",
+          "relatedCollection": "home_page",
+          "oneField": "sections",
+          "index": true
+        },
+        {
+          "name": "page",
+          "type": "uuid",
+          "relatedCollection": "pages",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "section_type",
+          "type": "string",
+          "required": true,
+          "choices": [
+            "hero",
+            "categories",
+            "company_trust",
+            "featured_products",
+            "advantages",
+            "steps",
+            "cta",
+            "catalog_preview",
+            "seo_text",
+            "lead_form",
+            "parts_request",
+            "recent_supplies",
+            "faq",
+            "contacts",
+            "articles",
+            "custom"
+          ],
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "subtitle",
+          "type": "string"
+        },
+        {
+          "name": "text",
+          "type": "text"
+        },
+        {
+          "name": "image",
+          "type": "uuid",
+          "relatedCollection": "directus_files",
+          "interface": "file-image"
+        },
+        {
+          "name": "image_alt",
+          "type": "string"
+        },
+        {
+          "name": "button_text",
+          "type": "string"
+        },
+        {
+          "name": "button_url",
+          "type": "string"
+        },
+        {
+          "name": "items",
+          "type": "json"
+        },
+        {
+          "name": "settings",
+          "type": "json"
+        },
+        {
+          "name": "is_visible",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "navigation_items",
+      "icon": "menu",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "parent",
+          "type": "uuid",
+          "relatedCollection": "navigation_items"
+        },
+        {
+          "name": "location",
+          "type": "string",
+          "required": true,
+          "default": "header",
+          "choices": [
+            "header",
+            "footer",
+            "legal"
+          ],
+          "index": true
+        },
+        {
+          "name": "open_in_new_tab",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "is_visible",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "categories",
+      "icon": "category",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "parent",
+          "type": "uuid",
+          "relatedCollection": "categories"
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "image_alt",
+          "type": "string"
+        },
+        {
+          "name": "icon",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "icon_alt",
+          "type": "string"
+        },
+        {
+          "name": "h1",
+          "type": "string"
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "seo_text",
+          "type": "text"
+        },
+        {
+          "name": "intro",
+          "type": "text"
+        },
+        {
+          "name": "selection_guide",
+          "type": "json"
+        },
+        {
+          "name": "internal_links",
+          "type": "json"
+        },
+        {
+          "name": "og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "faq",
+          "type": "json"
+        },
+        {
+          "name": "is_indexable",
+          "type": "boolean",
+          "default": true,
+          "index": true
+        },
+        {
+          "name": "seo",
+          "type": "json",
+          "interface": "seo-interface",
+          "display": "seo-display",
+          "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+        },
+        {
+          "name": "redirect_target",
+          "type": "string"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "show_on_homepage",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "articles",
+      "icon": "article",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "excerpt",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "content",
+          "type": "text",
+          "required": true,
+          "interface": "input-rich-text-html"
+        },
+        {
+          "name": "content_blocks",
+          "type": "json",
+          "special": [
+            "cast-json"
+          ],
+          "interface": "flexible-editor",
+          "options": {
+            "m2aField": "editor_nodes",
+            "relationBlocks": [
+              "products",
+              "categories"
+            ],
+            "relationInlineBlocks": [
+              "products",
+              "categories"
+            ],
+            "relationMarks": [
+              "products",
+              "categories"
+            ],
+            "tools": [
+              "paragraph",
+              "h2",
+              "h3",
+              "h4",
+              "bold",
+              "italic",
+              "strike",
+              "underline",
+              "code",
+              "subscript",
+              "superscript",
+              "link",
+              "removeLink",
+              "autolink",
+              "bulletList",
+              "orderedList",
+              "blockquote",
+              "codeBlock",
+              "table",
+              "horizontalRule",
+              "hardBreak",
+              "textAlign",
+              "undo",
+              "redo"
+            ]
+          },
+          "note": "Structured ProseMirror content of the flexible editor. articles.content (HTML) stays the canonical source until the cutover release."
+        },
+        {
+          "name": "editor_nodes",
+          "type": "alias",
+          "special": [
+            "m2a"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "articles_editor_nodes",
+          "note": "Hidden M2A alias managed by the flexible editor. Related collections: products, categories."
+        },
+        {
+          "name": "cover_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "image_alt",
+          "type": "string"
+        },
+        {
+          "name": "published_at",
+          "type": "timestamp",
+          "required": true,
+          "index": true
+        },
+        {
+          "name": "category_label",
+          "type": "string"
+        },
+        {
+          "name": "reading_time_minutes",
+          "type": "integer"
+        },
+        {
+          "name": "author",
+          "type": "string"
+        },
+        {
+          "name": "reviewer",
+          "type": "string"
+        },
+        {
+          "name": "sources",
+          "type": "json"
+        },
+        {
+          "name": "related_categories",
+          "type": "json"
+        },
+        {
+          "name": "related_products",
+          "type": "json"
+        },
+        {
+          "name": "is_featured",
+          "type": "boolean",
+          "default": false,
+          "index": true
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "seo",
+          "type": "json",
+          "interface": "seo-interface",
+          "display": "seo-display",
+          "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "articles_editor_nodes",
+      "icon": "account_tree",
+      "hidden": true,
+      "note": "M2A junction of the articles flexible editor (articles.editor_nodes). Created before the alias; managed by the editor, not by hand.",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "articles_id",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "articles",
+          "oneField": "editor_nodes",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "collection",
+          "type": "alias",
+          "special": [
+            "m2a"
+          ],
+          "note": "Polymorphic discriminator of the related collection (products or categories). Alias — matches the live schema created by the R7 migration."
+        },
+        {
+          "name": "item",
+          "type": "uuid",
+          "special": [
+            "m2o"
+          ],
+          "junctionField": "collection",
+          "note": "Polymorphic key of the related item. Column (the R7 migration created it with a real column; only the discriminator is an alias)."
+        }
+      ]
+    },
+    {
+      "name": "products",
+      "icon": "inventory_2",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "slug",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "sku",
+          "type": "string",
+          "required": true,
+          "identityManagedUnique": true,
+          "index": true
+        },
+        {
+          "name": "category",
+          "type": "uuid",
+          "relatedCollection": "categories",
+          "index": true
+        },
+        {
+          "name": "short_description",
+          "type": "text"
+        },
+        {
+          "name": "full_description",
+          "type": "text"
+        },
+        {
+          "name": "seo_text",
+          "type": "text"
+        },
+        {
+          "name": "main_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "gallery",
+          "type": "json"
+        },
+        {
+          "name": "media_sources",
+          "type": "json",
+          "hidden": true,
+          "readonly": true,
+          "note": "Managed source policy per images/specifications/documents: children or legacy. Empty children do not restore legacy data."
+        },
+        {
+          "name": "price",
+          "type": "decimal",
+          "precision": 12,
+          "scale": 2
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "default": "RUB"
+        },
+        {
+          "name": "price_status",
+          "type": "string",
+          "required": true,
+          "default": "fixed",
+          "choices": [
+            "fixed",
+            "on_request",
+            "hidden"
+          ],
+          "index": true
+        },
+        {
+          "name": "availability_status",
+          "type": "string",
+          "required": true,
+          "default": "on_request",
+          "choices": [
+            "in_stock",
+            "on_request",
+            "out_of_stock"
+          ],
+          "index": true
+        },
+        {
+          "name": "brand",
+          "type": "string"
+        },
+        {
+          "name": "brand_key",
+          "type": "string",
+          "hidden": true,
+          "readonly": true,
+          "index": true,
+          "note": "Server-owned normalized brand label; original brand remains unchanged."
+        },
+        {
+          "name": "identity_key",
+          "type": "string",
+          "unique": true,
+          "maxLength": 64,
+          "hidden": true,
+          "readonly": true,
+          "note": "SHA256 of normalized brand and article. Backfill and constraint cutover require migrate-product-identity.mjs; no automatic brand aliasing."
+        },
+        {
+          "name": "mpn",
+          "type": "string",
+          "index": true
+        },
+        {
+          "name": "gtin",
+          "type": "string",
+          "index": true
+        },
+        {
+          "name": "sku_normalized",
+          "type": "string",
+          "hidden": true,
+          "index": true,
+          "note": "Derived uppercase alphanumeric copy of sku, filled only by migrations/backfill-product-search.mjs. Indexed search key, never edited by hand."
+        },
+        {
+          "name": "mpn_normalized",
+          "type": "string",
+          "hidden": true,
+          "index": true,
+          "note": "Derived uppercase alphanumeric copy of mpn, filled only by migrations/backfill-product-search.mjs. Indexed search key, never edited by hand."
+        },
+        {
+          "name": "part_type",
+          "type": "string",
+          "choices": [
+            "original",
+            "oem",
+            "analog"
+          ]
+        },
+        {
+          "name": "delivery_status",
+          "type": "string"
+        },
+        {
+          "name": "specifications",
+          "type": "json"
+        },
+        {
+          "name": "documents",
+          "type": "json"
+        },
+        {
+          "name": "image_items",
+          "type": "alias",
+          "special": [
+            "o2m"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "product_images",
+          "note": "R7C declaration: hidden O2M alias over product_images. products.gallery JSON stays the editable interface until the R7C gate (after the R7B gallery migration and reconcile)."
+        },
+        {
+          "name": "specification_items",
+          "type": "alias",
+          "special": [
+            "o2m"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "product_specifications",
+          "note": "R7C declaration: hidden O2M alias over product_specifications. products.specifications JSON stays the editable interface until the R7C gate."
+        },
+        {
+          "name": "document_items",
+          "type": "alias",
+          "special": [
+            "o2m"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "product_documents",
+          "note": "R7C declaration: hidden O2M alias over product_documents. products.documents JSON stays the editable interface until the R7C gate."
+        },
+        {
+          "name": "analogs_from",
+          "type": "alias",
+          "special": [
+            "o2m"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "products_analogs",
+          "note": "R8 declaration: hidden O2M alias over products_analogs.product_from (edges stored with this product as the from side). Manage edges in the products_analogs collection."
+        },
+        {
+          "name": "analogs_to",
+          "type": "alias",
+          "special": [
+            "o2m"
+          ],
+          "interface": null,
+          "hidden": true,
+          "relatedCollection": "products_analogs",
+          "note": "R8 declaration: hidden O2M alias over products_analogs.product_to (edges stored with this product as the to side). Manage edges in the products_analogs collection."
+        },
+        {
+          "name": "source_name",
+          "type": "string"
+        },
+        {
+          "name": "source_url",
+          "type": "string"
+        },
+        {
+          "name": "verified_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "reviewed_by",
+          "type": "string"
+        },
+        {
+          "name": "seo_title",
+          "type": "string"
+        },
+        {
+          "name": "seo_description",
+          "type": "text"
+        },
+        {
+          "name": "og_image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "image_alt",
+          "type": "string"
+        },
+        {
+          "name": "seo_quality_status",
+          "type": "string",
+          "default": "pending",
+          "choices": [
+            "pending",
+            "reviewed",
+            "published",
+            "needs_fix"
+          ],
+          "index": true
+        },
+        {
+          "name": "is_indexable",
+          "type": "boolean",
+          "default": true,
+          "index": true
+        },
+        {
+          "name": "seo",
+          "type": "json",
+          "interface": "seo-interface",
+          "display": "seo-display",
+          "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "popularity_score",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "is_featured",
+          "type": "boolean",
+          "default": false,
+          "index": true
+        },
+        {
+          "name": "show_on_homepage",
+          "type": "boolean",
+          "default": false,
+          "index": true
+        },
+        {
+          "name": "cta_text",
+          "type": "string"
+        },
+        {
+          "name": "related_products",
+          "type": "json"
+        },
+        {
+          "name": "lead_form",
+          "type": "uuid",
+          "relatedCollection": "lead_forms"
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "faq_items",
+      "icon": "quiz",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "question",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "answer",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "page",
+          "type": "uuid",
+          "relatedCollection": "pages"
+        },
+        {
+          "name": "category",
+          "type": "uuid",
+          "relatedCollection": "categories"
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "relatedCollection": "products"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0
+        },
+        {
+          "name": "is_visible",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "lead_forms",
+      "icon": "dynamic_form",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "type": "text"
+        },
+        {
+          "name": "button_text",
+          "type": "string"
+        },
+        {
+          "name": "success_message",
+          "type": "text"
+        },
+        {
+          "name": "success_url",
+          "type": "string",
+          "default": "/thank-you"
+        },
+        {
+          "name": "fields",
+          "type": "json"
+        },
+        {
+          "name": "turnstile_required",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "leads",
+      "icon": "inbox",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "request_key",
+          "type": "uuid",
+          "unique": true,
+          "hidden": true,
+          "readonly": true
+        },
+        {
+          "name": "request_fingerprint",
+          "type": "string",
+          "maxLength": 64,
+          "hidden": true,
+          "readonly": true
+        },
+        {
+          "name": "user_created",
+          "type": "uuid",
+          "relatedCollection": "directus_users",
+          "special": [
+            "user-created"
+          ],
+          "hidden": true,
+          "readonly": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "new",
+          "choices": [
+            "new",
+            "in_progress",
+            "closed",
+            "spam"
+          ],
+          "index": true
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "relaxNullable": true
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "message",
+          "type": "text"
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "relatedCollection": "products"
+        },
+        {
+          "name": "category",
+          "type": "uuid",
+          "relatedCollection": "categories"
+        },
+        {
+          "name": "lead_form",
+          "type": "uuid",
+          "relatedCollection": "lead_forms"
+        },
+        {
+          "name": "page_url",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "utm_source",
+          "type": "string"
+        },
+        {
+          "name": "utm_medium",
+          "type": "string"
+        },
+        {
+          "name": "utm_campaign",
+          "type": "string"
+        },
+        {
+          "name": "utm_content",
+          "type": "string"
+        },
+        {
+          "name": "utm_term",
+          "type": "string"
+        },
+        {
+          "name": "request_items",
+          "type": "json",
+          "note": "Normalized parts request lines: article and quantity."
+        },
+        {
+          "name": "attachments",
+          "type": "json",
+          "note": "Directus file IDs uploaded with a parts request."
+        },
+        {
+          "name": "marketing_consent",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "marketing_consent_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "marketing_consent_version",
+          "type": "string"
+        },
+        {
+          "name": "manager_comment",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "contact_channels",
+      "icon": "contact_phone",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "page_section",
+          "type": "uuid",
+          "relatedCollection": "page_sections",
+          "index": true
+        },
+        {
+          "name": "channel_type",
+          "type": "string",
+          "required": true,
+          "choices": [
+            "phone",
+            "email",
+            "messenger",
+            "address",
+            "hours"
+          ],
+          "index": true
+        },
+        {
+          "name": "label",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "url",
+          "type": "string"
+        },
+        {
+          "name": "icon",
+          "type": "string"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "is_visible",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "recent_supplies",
+      "icon": "local_shipping",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "image",
+          "type": "uuid",
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "image_alt",
+          "type": "string"
+        },
+        {
+          "name": "equipment_type",
+          "type": "string"
+        },
+        {
+          "name": "positions",
+          "type": "json"
+        },
+        {
+          "name": "region",
+          "type": "string"
+        },
+        {
+          "name": "delivery_term",
+          "type": "string"
+        },
+        {
+          "name": "supply_format",
+          "type": "string"
+        },
+        {
+          "name": "supplied_at",
+          "type": "timestamp",
+          "index": true
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "product_images",
+      "icon": "photo_library",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "oneField": "image_items",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "image",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "alt_text",
+          "type": "string"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "product_specifications",
+      "icon": "table_chart",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "oneField": "specification_items",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "group_name",
+          "type": "string"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "value",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "unit",
+          "type": "string"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "product_documents",
+      "icon": "description",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "published",
+            "archived"
+          ],
+          "index": true
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "oneField": "document_items",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "file",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "directus_files"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "sort_order",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "translations",
+          "type": "json",
+          "note": "Future translations keyed by locale, for example ru-RU."
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "product_codes",
+      "icon": "qr_code_2",
+      "note": "Additional OEM/MPN/supplier/previous/superseded/external/barcode codes of a product (ADR-003); products.sku and products.mpn stay the canonical article fields. The composite UNIQUE (product, code_type, normalized_code, source_name) is created by migrations/sql/product-search-indexes-up.sql — the Directus REST API cannot express composite constraints.",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "normalized_code",
+          "type": "string",
+          "required": true,
+          "index": true,
+          "note": "Uppercase alphanumeric copy of code: the indexed OEM search key."
+        },
+        {
+          "name": "code_type",
+          "type": "string",
+          "required": true,
+          "default": "oem",
+          "choices": [
+            "oem",
+            "mpn",
+            "supplier",
+            "previous",
+            "superseded",
+            "external",
+            "barcode"
+          ],
+          "index": true
+        },
+        {
+          "name": "source_name",
+          "type": "string",
+          "required": true,
+          "default": "manual",
+          "index": true,
+          "note": "Provenance of the code (feed or catalog name, 'manual' for editors)."
+        },
+        {
+          "name": "source_reference",
+          "type": "string"
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "default": true,
+          "index": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "products_analogs",
+      "icon": "compare_arrows",
+      "note": "Typed one-edge relations between products (R8, ADR-003): analog/oem_cross/compatible are symmetric — canonical_key derives from the SORTED id pair so a mirror duplicate is physically impossible under the unique key; superseded_by is directed and keeps the from/to order. No self-edges (CHECK) and UNIQUE canonical_key are enforced by migrations/sql/product-analogs-constraints-up.sql — the Directus REST API cannot express table CHECKs.",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "product_from",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "oneField": "analogs_from",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "product_to",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "products",
+          "oneField": "analogs_to",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "relation_type",
+          "type": "string",
+          "required": true,
+          "choices": [
+            "analog",
+            "oem_cross",
+            "compatible",
+            "superseded_by"
+          ],
+          "index": true
+        },
+        {
+          "name": "canonical_key",
+          "type": "string",
+          "required": true,
+          "index": true,
+          "note": "Deterministic edge key '<type>:<from>:<to>': the pair is SORTED for the symmetric types and the direction preserved for superseded_by. Physically UNIQUE via migrations/sql/product-analogs-constraints-up.sql; recomputed and verified by migrations/reconcile-product-analogs.mjs."
+        },
+        {
+          "name": "source_name",
+          "type": "string",
+          "required": true,
+          "default": "manual",
+          "index": true,
+          "note": "Provenance of the relation (feed or catalog name, 'manual' for editors)."
+        },
+        {
+          "name": "note",
+          "type": "text"
+        },
+        {
+          "name": "verified_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "seo_redirects",
+      "icon": "alt_route",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "old_url",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "index": true
+        },
+        {
+          "name": "new_url",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status_code",
+          "type": "integer",
+          "required": true,
+          "default": 301,
+          "choices": [
+            301,
+            302
+          ]
+        },
+        {
+          "name": "is_active",
+          "type": "boolean",
+          "default": true,
+          "index": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "seo_work_items",
+      "icon": "checklist",
+      "note": "Control-plane queue of the SEO content factory (R10A, Task 14): one row per worker recommendation with evidence, sources and a draft-only patch. The W1 worker only ever writes status=draft; ready/review/applied/rolled_back/rejected are human lifecycle transitions. status is Directus choices, NOT a SQL enum. dedupe_key (sha256 of entity+type+subtype+patch) is physically UNIQUE via migrations/sql/seo-work-items-constraints-up.sql — the Directus REST API cannot express the constraint without creating a duplicate of its own. High-volume crawl telemetry is never written here.",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "index": true,
+          "note": "Recommendation type, for example missing_meta or title_rewrite."
+        },
+        {
+          "name": "subtype",
+          "type": "string",
+          "index": true,
+          "note": "Optional refinement of type."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "draft",
+          "choices": [
+            "draft",
+            "ready",
+            "review",
+            "approved",
+            "processing",
+            "draft_created",
+            "retryable",
+            "applied",
+            "rolled_back",
+            "rejected"
+          ],
+          "index": true
+        },
+        {
+          "name": "severity",
+          "type": "string",
+          "default": "minor",
+          "index": true,
+          "note": "Impact label of the recommendation (minor/major/...)."
+        },
+        {
+          "name": "priority_score",
+          "type": "integer",
+          "default": 0,
+          "index": true
+        },
+        {
+          "name": "confidence",
+          "type": "decimal",
+          "precision": 5,
+          "scale": 4,
+          "default": 0,
+          "note": "Model/analysis confidence 0..1."
+        },
+        {
+          "name": "entity_type",
+          "type": "string",
+          "index": true,
+          "note": "Target collection of the recommendation: articles, categories, products, pages or home_page."
+        },
+        {
+          "name": "entity_id",
+          "type": "uuid"
+        },
+        {
+          "name": "entity_key",
+          "type": "string",
+          "index": true,
+          "note": "Stable human key of the target (slug/sku) — survives re-imports that change entity_id."
+        },
+        {
+          "name": "url",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "summary",
+          "type": "text"
+        },
+        {
+          "name": "recommendation",
+          "type": "text"
+        },
+        {
+          "name": "current_value_json",
+          "type": "json",
+          "note": "Snapshot of the target field values at analysis time."
+        },
+        {
+          "name": "proposed_value_json",
+          "type": "json"
+        },
+        {
+          "name": "patch_json",
+          "type": "json",
+          "note": "Allowlisted field patch the worker proposes; applied only after human approval."
+        },
+        {
+          "name": "evidence_json",
+          "type": "json",
+          "note": "Claim-to-source evidence tiers backing the recommendation."
+        },
+        {
+          "name": "sources_json",
+          "type": "json"
+        },
+        {
+          "name": "metrics_json",
+          "type": "json",
+          "note": "Compact decision metrics only — crawl telemetry lives outside this collection."
+        },
+        {
+          "name": "dedupe_key",
+          "type": "string",
+          "required": true,
+          "index": true,
+          "note": "Deterministic sha256 of entity_type+entity_key+type+subtype+patch (seo-worker computeDedupeKey). Physically UNIQUE via migrations/sql/seo-work-items-constraints-up.sql, the product_codes/analogs precedent."
+        },
+        {
+          "name": "before_hash",
+          "type": "string",
+          "note": "sha256 of the target field values at analysis time; a mismatch means the entity changed and the proposal is stale."
+        },
+        {
+          "name": "article",
+          "type": "uuid",
+          "relatedCollection": "articles",
+          "index": true,
+          "note": "Nullable M2O to the draft article created from an approved work item. Junction side only — articles carries no O2M alias (production R7 lesson)."
+        },
+        {
+          "name": "worker_run_id",
+          "type": "string",
+          "index": true,
+          "note": "Run identifier of the W1 worker that produced or claimed the item."
+        },
+        {
+          "name": "claimed_at",
+          "type": "timestamp",
+          "note": "When a worker run claimed the item for execution."
+        },
+        {
+          "name": "expires_at",
+          "type": "timestamp",
+          "index": true,
+          "note": "Claim expiry; an expired claim may be taken over by another run."
+        },
+        {
+          "name": "applied_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "rolled_back_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "last_error",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "icon": "shopping_cart_checkout",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "user_created",
+          "type": "uuid",
+          "relatedCollection": "directus_users",
+          "special": [
+            "user-created"
+          ],
+          "hidden": true,
+          "readonly": true
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "default": "new",
+          "choices": [
+            "new",
+            "in_progress",
+            "confirmed",
+            "shipped",
+            "delivered",
+            "cancelled"
+          ],
+          "index": true
+        },
+        {
+          "name": "request_key",
+          "type": "uuid",
+          "unique": true,
+          "index": true,
+          "hidden": true,
+          "readonly": true,
+          "note": "Durable first-party request identity. Nullable only for legacy orders."
+        },
+        {
+          "name": "request_fingerprint",
+          "type": "string",
+          "hidden": true,
+          "readonly": true
+        },
+        {
+          "name": "customer_name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "comment",
+          "type": "text"
+        },
+        {
+          "name": "total",
+          "type": "decimal",
+          "precision": 12,
+          "scale": 2
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "default": "RUB"
+        },
+        {
+          "name": "page_url",
+          "type": "text",
+          "required": true
+        },
+        {
+          "name": "utm_source",
+          "type": "string"
+        },
+        {
+          "name": "utm_medium",
+          "type": "string"
+        },
+        {
+          "name": "utm_campaign",
+          "type": "string"
+        },
+        {
+          "name": "utm_content",
+          "type": "string"
+        },
+        {
+          "name": "utm_term",
+          "type": "string"
+        },
+        {
+          "name": "marketing_consent",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "name": "marketing_consent_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "marketing_consent_version",
+          "type": "string"
+        },
+        {
+          "name": "manager_comment",
+          "type": "text"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "icon": "inventory",
+      "note": "Snapshot line items for an order. order→products is SET NULL on product deletion to preserve history.",
+      "fields": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "primary": true,
+          "required": true,
+          "default": "uuid",
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "order",
+          "type": "uuid",
+          "required": true,
+          "relatedCollection": "orders",
+          "index": true,
+          "onDelete": "CASCADE"
+        },
+        {
+          "name": "product",
+          "type": "uuid",
+          "relatedCollection": "products",
+          "index": true
+        },
+        {
+          "name": "sku_snapshot",
+          "type": "string"
+        },
+        {
+          "name": "title_snapshot",
+          "type": "text"
+        },
+        {
+          "name": "brand_snapshot",
+          "type": "string"
+        },
+        {
+          "name": "unit_price",
+          "type": "decimal",
+          "precision": 12,
+          "scale": 2
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "required": true,
+          "default": 1
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "default": "RUB"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp",
+          "special": [
+            "date-created"
+          ],
+          "readonly": true,
+          "hidden": true
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp",
+          "special": [
+            "date-updated"
+          ],
+          "readonly": true,
+          "hidden": true
+        }
+      ]
+    }
+  ]
+}

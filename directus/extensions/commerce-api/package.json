@@ -1,0 +1,15 @@
+{
+  "name": "commerce",
+  "version": "1.0.0",
+  "description": "Universal indexed catalog search and authenticated preview bridge",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "directus:extension": {
+    "type": "endpoint",
+    "path": "dist/index.js",
+    "source": "src/index.js",
+    "host": "^12.0.0"
+  }
+}

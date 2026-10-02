@@ -1,0 +1,456 @@
+{
+  "collection": "seo_work_items",
+  "label": "SEO-задачи",
+  "group": "group_seo",
+  "icon": "checklist",
+  "sort": 1,
+  "displayTemplate": "{{type}} · {{title}} · {{status}} · {{severity}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 31,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 5,
+        "width": "full"
+      }
+    },
+    "type": {
+      "schema": {
+        "name": "type",
+        "type": "string",
+        "index": true,
+        "note": "Recommendation type, for example missing_meta or title_rewrite."
+      },
+      "studio": {
+        "label": "Тип задачи",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "subtype": {
+      "schema": {
+        "name": "subtype",
+        "type": "string",
+        "index": true,
+        "note": "Optional refinement of type."
+      },
+      "studio": {
+        "label": "Подтип",
+        "group": "group_main",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "ready",
+          "review",
+          "approved",
+          "processing",
+          "draft_created",
+          "retryable",
+          "applied",
+          "rolled_back",
+          "rejected"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "severity": {
+      "schema": {
+        "name": "severity",
+        "type": "string",
+        "default": "minor",
+        "index": true,
+        "note": "Impact label of the recommendation (minor/major/...)."
+      },
+      "studio": {
+        "label": "Критичность",
+        "group": "group_main",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "priority_score": {
+      "schema": {
+        "name": "priority_score",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": {
+        "label": "Приоритет",
+        "group": "group_main",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "confidence": {
+      "schema": {
+        "name": "confidence",
+        "type": "decimal",
+        "precision": 5,
+        "scale": 4,
+        "default": 0,
+        "note": "Model/analysis confidence 0..1."
+      },
+      "studio": {
+        "label": "Уверенность",
+        "group": "group_main",
+        "sort": 6,
+        "width": "half"
+      }
+    },
+    "entity_type": {
+      "schema": {
+        "name": "entity_type",
+        "type": "string",
+        "index": true,
+        "note": "Target collection of the recommendation: articles, categories, products, pages or home_page."
+      },
+      "studio": {
+        "label": "Тип сущности",
+        "group": "group_entity",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "entity_id": {
+      "schema": {
+        "name": "entity_id",
+        "type": "uuid"
+      },
+      "studio": {
+        "label": "ID сущности",
+        "group": "group_entity",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "entity_key": {
+      "schema": {
+        "name": "entity_key",
+        "type": "string",
+        "index": true,
+        "note": "Stable human key of the target (slug/sku) — survives re-imports that change entity_id."
+      },
+      "studio": {
+        "label": "Ключ сущности (slug/sku)",
+        "group": "group_entity",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "url": {
+      "schema": {
+        "name": "url",
+        "type": "string"
+      },
+      "studio": {
+        "label": "URL страницы",
+        "group": "group_entity",
+        "sort": 4,
+        "width": "half"
+      }
+    },
+    "title": {
+      "schema": {
+        "name": "title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Заголовок",
+        "group": "group_main",
+        "sort": 7,
+        "width": "full"
+      }
+    },
+    "summary": {
+      "schema": {
+        "name": "summary",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Краткое описание",
+        "group": "group_main",
+        "sort": 8,
+        "width": "full"
+      }
+    },
+    "recommendation": {
+      "schema": {
+        "name": "recommendation",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Рекомендация",
+        "group": "group_recommendation",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "current_value_json": {
+      "schema": {
+        "name": "current_value_json",
+        "type": "json",
+        "note": "Snapshot of the target field values at analysis time."
+      },
+      "studio": {
+        "label": "Текущее значение (JSON)",
+        "group": "group_recommendation",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "proposed_value_json": {
+      "schema": {
+        "name": "proposed_value_json",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Предлагаемое значение (JSON)",
+        "group": "group_recommendation",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "patch_json": {
+      "schema": {
+        "name": "patch_json",
+        "type": "json",
+        "note": "Allowlisted field patch the worker proposes; applied only after human approval."
+      },
+      "studio": {
+        "label": "Патч полей (JSON)",
+        "group": "group_recommendation",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "evidence_json": {
+      "schema": {
+        "name": "evidence_json",
+        "type": "json",
+        "note": "Claim-to-source evidence tiers backing the recommendation."
+      },
+      "studio": {
+        "label": "Обоснование (JSON)",
+        "group": "group_evidence",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "sources_json": {
+      "schema": {
+        "name": "sources_json",
+        "type": "json"
+      },
+      "studio": {
+        "label": "Источники (JSON)",
+        "group": "group_evidence",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "metrics_json": {
+      "schema": {
+        "name": "metrics_json",
+        "type": "json",
+        "note": "Compact decision metrics only — crawl telemetry lives outside this collection."
+      },
+      "studio": {
+        "label": "Метрики (JSON)",
+        "group": "group_evidence",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "dedupe_key": {
+      "schema": {
+        "name": "dedupe_key",
+        "type": "string",
+        "required": true,
+        "index": true,
+        "note": "Deterministic sha256 of entity_type+entity_key+type+subtype+patch (seo-worker computeDedupeKey). Physically UNIQUE via migrations/sql/seo-work-items-constraints-up.sql, the product_codes/analogs precedent."
+      },
+      "studio": {
+        "label": "Ключ дедупликации",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full",
+        "note": "Вычисляет воркер (sha256 сущность+тип+подтип+патч); уникален физически, через SQL-констрейнт.",
+        "readonly": true
+      }
+    },
+    "before_hash": {
+      "schema": {
+        "name": "before_hash",
+        "type": "string",
+        "note": "sha256 of the target field values at analysis time; a mismatch means the entity changed and the proposal is stale."
+      },
+      "studio": {
+        "label": "Хеш до изменения",
+        "group": "group_system",
+        "sort": 2,
+        "width": "full",
+        "readonly": true
+      }
+    },
+    "article": {
+      "schema": {
+        "name": "article",
+        "type": "uuid",
+        "relatedCollection": "articles",
+        "index": true,
+        "note": "Nullable M2O to the draft article created from an approved work item. Junction side only — articles carries no O2M alias (production R7 lesson)."
+      },
+      "studio": {
+        "label": "Статья (черновик)",
+        "group": "group_entity",
+        "sort": 5,
+        "width": "full",
+        "note": "Заполняется только после одобрения задачи; публикует человек, не воркер."
+      }
+    },
+    "worker_run_id": {
+      "schema": {
+        "name": "worker_run_id",
+        "type": "string",
+        "index": true,
+        "note": "Run identifier of the W1 worker that produced or claimed the item."
+      },
+      "studio": {
+        "label": "Прогон воркера",
+        "group": "group_pipeline",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "claimed_at": {
+      "schema": {
+        "name": "claimed_at",
+        "type": "timestamp",
+        "note": "When a worker run claimed the item for execution."
+      },
+      "studio": {
+        "label": "Захвачено",
+        "group": "group_pipeline",
+        "sort": 2,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "expires_at": {
+      "schema": {
+        "name": "expires_at",
+        "type": "timestamp",
+        "index": true,
+        "note": "Claim expiry; an expired claim may be taken over by another run."
+      },
+      "studio": {
+        "label": "Захват истекает",
+        "group": "group_pipeline",
+        "sort": 3,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "applied_at": {
+      "schema": {
+        "name": "applied_at",
+        "type": "timestamp"
+      },
+      "studio": {
+        "label": "Применено",
+        "group": "group_pipeline",
+        "sort": 4,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "rolled_back_at": {
+      "schema": {
+        "name": "rolled_back_at",
+        "type": "timestamp"
+      },
+      "studio": {
+        "label": "Откатено",
+        "group": "group_pipeline",
+        "sort": 5,
+        "width": "half",
+        "readonly": true
+      }
+    },
+    "last_error": {
+      "schema": {
+        "name": "last_error",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Последняя ошибка",
+        "group": "group_pipeline",
+        "sort": 6,
+        "width": "full",
+        "readonly": true
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half"
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 4,
+        "width": "half"
+      }
+    }
+  }
+}

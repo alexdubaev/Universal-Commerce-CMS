@@ -1,0 +1,10 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "categories",
+  "record": {
+    "title": "Демо-категория",
+    "slug": "demo-category",
+    "h1": "Демо-категория",
+    "status": "draft"
+  }
+}

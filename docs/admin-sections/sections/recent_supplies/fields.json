@@ -1,0 +1,138 @@
+{
+  "collection": "recent_supplies",
+  "label": "Недавние поставки",
+  "group": "group_content",
+  "icon": "local_shipping",
+  "sort": 3,
+  "displayTemplate": "{{equipment_type}} · {{region}} · {{status}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 14,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": null
+    },
+    "image": {
+      "schema": {
+        "name": "image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": null
+    },
+    "image_alt": {
+      "schema": {
+        "name": "image_alt",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "equipment_type": {
+      "schema": {
+        "name": "equipment_type",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "positions": {
+      "schema": {
+        "name": "positions",
+        "type": "json"
+      },
+      "studio": null
+    },
+    "region": {
+      "schema": {
+        "name": "region",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "delivery_term": {
+      "schema": {
+        "name": "delivery_term",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "supply_format": {
+      "schema": {
+        "name": "supply_format",
+        "type": "string"
+      },
+      "studio": null
+    },
+    "supplied_at": {
+      "schema": {
+        "name": "supplied_at",
+        "type": "timestamp",
+        "index": true
+      },
+      "studio": null
+    },
+    "sort_order": {
+      "schema": {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": null
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": null
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    }
+  }
+}

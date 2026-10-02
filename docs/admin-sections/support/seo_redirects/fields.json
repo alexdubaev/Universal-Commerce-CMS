@@ -1,0 +1,66 @@
+{
+  "collection": "seo_redirects",
+  "owner": "seo_work_items",
+  "schema": {
+    "name": "seo_redirects",
+    "icon": "alt_route",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "old_url",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "new_url",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "status_code",
+        "type": "integer",
+        "required": true,
+        "default": 301,
+        "choices": [
+          301,
+          302
+        ]
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "default": true,
+        "index": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}

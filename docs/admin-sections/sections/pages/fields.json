@@ -1,0 +1,279 @@
+{
+  "collection": "pages",
+  "label": "Страницы",
+  "group": "group_site",
+  "icon": "web",
+  "sort": 2,
+  "displayTemplate": "{{title}} · /{{slug}} · {{status}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 18,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Идентификатор",
+        "group": "group_system",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Статус",
+        "group": "group_main",
+        "sort": 1,
+        "width": "half"
+      }
+    },
+    "title": {
+      "schema": {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Название страницы",
+        "group": "group_main",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "slug": {
+      "schema": {
+        "name": "slug",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "index": true
+      },
+      "studio": {
+        "label": "Адрес страницы",
+        "group": "group_main",
+        "sort": 4,
+        "width": "full",
+        "note": "Часть URL без начального слеша."
+      }
+    },
+    "page_type": {
+      "schema": {
+        "name": "page_type",
+        "type": "string",
+        "required": true,
+        "choices": [
+          "home",
+          "catalog",
+          "about",
+          "delivery",
+          "contacts",
+          "privacy_policy",
+          "thank_you",
+          "articles",
+          "standard"
+        ],
+        "index": true
+      },
+      "studio": {
+        "label": "Тип страницы",
+        "group": "group_main",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "h1": {
+      "schema": {
+        "name": "h1",
+        "type": "string",
+        "required": true
+      },
+      "studio": {
+        "label": "Заголовок H1",
+        "group": "group_content",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "eyebrow": {
+      "schema": {
+        "name": "eyebrow",
+        "type": "string"
+      },
+      "studio": {
+        "label": "Надзаголовок",
+        "group": "group_content",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "intro": {
+      "schema": {
+        "name": "intro",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Вводный текст",
+        "group": "group_content",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "seo_title": {
+      "schema": {
+        "name": "seo_title",
+        "type": "string"
+      },
+      "studio": {
+        "label": "SEO-заголовок",
+        "group": "group_seo",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "seo_description": {
+      "schema": {
+        "name": "seo_description",
+        "type": "text"
+      },
+      "studio": {
+        "label": "SEO-описание",
+        "group": "group_seo",
+        "sort": 2,
+        "width": "full"
+      }
+    },
+    "seo_text": {
+      "schema": {
+        "name": "seo_text",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Основной текст",
+        "group": "group_content",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "og_image": {
+      "schema": {
+        "name": "og_image",
+        "type": "uuid",
+        "relatedCollection": "directus_files"
+      },
+      "studio": {
+        "label": "Изображение Open Graph",
+        "group": "group_seo",
+        "sort": 3,
+        "width": "full"
+      }
+    },
+    "canonical_url": {
+      "schema": {
+        "name": "canonical_url",
+        "type": "text"
+      },
+      "studio": {
+        "label": "Канонический URL",
+        "group": "group_seo",
+        "sort": 4,
+        "width": "full"
+      }
+    },
+    "is_indexable": {
+      "schema": {
+        "name": "is_indexable",
+        "type": "boolean",
+        "default": true
+      },
+      "studio": {
+        "label": "Разрешить индексацию",
+        "group": "group_seo",
+        "sort": 5,
+        "width": "half"
+      }
+    },
+    "seo": {
+      "schema": {
+        "name": "seo",
+        "type": "json",
+        "interface": "seo-interface",
+        "display": "seo-display",
+        "note": "R11 SEO-plugin JSON (title, meta_description, og_image, additional_fields.canonical_url, no_index, no_follow). JSON-first on the frontend; the scalar SEO fields stay the fallback and are never cleared by the migration."
+      },
+      "studio": {
+        "label": "SEO-панель (плагин)",
+        "group": "group_seo",
+        "sort": 6,
+        "width": "full",
+        "note": "Приоритетное JSON-поле SEO (R11). Пока JSON пуст, сайт читает скалярные поля выше; миграция заполняет JSON из скаляров и никогда не изменяет их.",
+        "interface": "seo-interface",
+        "display": "seo-display"
+      }
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": {
+        "label": "Переводы",
+        "group": "group_system",
+        "sort": 1,
+        "width": "full"
+      }
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Создано",
+        "group": "group_system",
+        "sort": 2,
+        "width": "half"
+      }
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": {
+        "label": "Обновлено",
+        "group": "group_system",
+        "sort": 3,
+        "width": "half"
+      }
+    }
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "collection": "navigation_items",
+  "label": "Навигация",
+  "group": "group_site",
+  "icon": "menu",
+  "sort": 3,
+  "displayTemplate": "{{label}} · {{location}}",
+  "source": "directus/schema/blueprint.mjs + directus/schema/studio-blueprint.mjs @ 4b241f0",
+  "fieldCount": 12,
+  "fields": {
+    "id": {
+      "schema": {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "status": {
+      "schema": {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      "studio": null
+    },
+    "label": {
+      "schema": {
+        "name": "label",
+        "type": "string",
+        "required": true
+      },
+      "studio": null
+    },
+    "url": {
+      "schema": {
+        "name": "url",
+        "type": "string",
+        "required": true
+      },
+      "studio": null
+    },
+    "parent": {
+      "schema": {
+        "name": "parent",
+        "type": "uuid",
+        "relatedCollection": "navigation_items"
+      },
+      "studio": null
+    },
+    "location": {
+      "schema": {
+        "name": "location",
+        "type": "string",
+        "required": true,
+        "default": "header",
+        "choices": [
+          "header",
+          "footer",
+          "legal"
+        ],
+        "index": true
+      },
+      "studio": null
+    },
+    "open_in_new_tab": {
+      "schema": {
+        "name": "open_in_new_tab",
+        "type": "boolean",
+        "default": false
+      },
+      "studio": null
+    },
+    "is_visible": {
+      "schema": {
+        "name": "is_visible",
+        "type": "boolean",
+        "default": true
+      },
+      "studio": null
+    },
+    "sort_order": {
+      "schema": {
+        "name": "sort_order",
+        "type": "integer",
+        "default": 0,
+        "index": true
+      },
+      "studio": null
+    },
+    "translations": {
+      "schema": {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      "studio": null
+    },
+    "created_at": {
+      "schema": {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    },
+    "updated_at": {
+      "schema": {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      "studio": null
+    }
+  }
+}

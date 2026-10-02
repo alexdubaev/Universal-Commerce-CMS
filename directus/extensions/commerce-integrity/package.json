@@ -1,0 +1,6 @@
+{
+  "name": "commerce-integrity", "version": "1.0.0", "private": true,
+  "type": "module", "main": "dist/index.js",
+  "description": "Maintain source-derived catalog fields and media provenance",
+  "directus:extension": {"type": "hook", "path": "dist/index.js", "source": "src/index.js", "host": "^12.0.0"}
+}

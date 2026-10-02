@@ -1,0 +1,16 @@
+{
+  "_warning": "SYNTHETIC OFFLINE MOCK ONLY. Never import into Directus. UUIDs, contact details, prices and identifiers are placeholders.",
+  "collection": "site_settings",
+  "record": {
+    "working_hours": "Пн–Пт, 09:00–18:00",
+    "city": "Тестовый город",
+    "phone": "+7 000 000-00-00",
+    "footer_disclaimer": "Демо-данные",
+    "yandex_metrica_id": null,
+    "company_name": "Пример организации",
+    "email": "demo@example.invalid",
+    "gtm_id": null,
+    "footer_text": "Демонстрационный текст",
+    "address": "Тестовый адрес"
+  }
+}

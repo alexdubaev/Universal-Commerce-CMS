@@ -1,0 +1,20 @@
+{
+  "name": "universal-commerce-cms-directus-tooling",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20.6.0" },
+  "scripts": {
+    "test": "node --test",
+    "schema:check": "node --test schema/blueprint.test.mjs schema/platform-compatibility.test.mjs test/profile.test.mjs",
+    "schema:apply": "node --env-file=../dev/.env schema/apply-schema.mjs",
+    "schema:studio": "node --env-file=../dev/.env schema/apply-studio.mjs",
+    "project:settings": "node --env-file=../dev/.env studio/apply-project-settings.mjs",
+    "studio:workspace": "node --env-file=../dev/.env studio/apply-workspace.mjs",
+    "studio:versioning": "node --env-file=../dev/.env studio/apply-versioning.mjs",
+    "product-editor:setup": "node --env-file=../dev/.env schema/setup-product-editor.mjs",
+    "access:apply": "node --env-file=../dev/.env access/apply-access.mjs",
+    "access:folders": "node --env-file=../dev/.env access/apply-access.mjs --folders-only",
+    "db:constraints": "node --env-file=../dev/.env ../dev/apply-constraints.mjs",
+    "cms:bootstrap": "node --env-file=../dev/.env ../dev/bootstrap.mjs"
+  }
+}

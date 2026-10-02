@@ -1,0 +1,98 @@
+{
+  "collection": "lead_forms",
+  "owner": "site_settings",
+  "schema": {
+    "name": "lead_forms",
+    "icon": "dynamic_form",
+    "fields": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "primary": true,
+        "required": true,
+        "default": "uuid",
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "required": true,
+        "default": "draft",
+        "choices": [
+          "draft",
+          "published",
+          "archived"
+        ],
+        "index": true
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "required": true,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "description",
+        "type": "text"
+      },
+      {
+        "name": "button_text",
+        "type": "string"
+      },
+      {
+        "name": "success_message",
+        "type": "text"
+      },
+      {
+        "name": "success_url",
+        "type": "string",
+        "default": "/thank-you"
+      },
+      {
+        "name": "fields",
+        "type": "json"
+      },
+      {
+        "name": "turnstile_required",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "name": "is_active",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "name": "translations",
+        "type": "json",
+        "note": "Future translations keyed by locale, for example ru-RU."
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp",
+        "special": [
+          "date-created"
+        ],
+        "readonly": true,
+        "hidden": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp",
+        "special": [
+          "date-updated"
+        ],
+        "readonly": true,
+        "hidden": true
+      }
+    ]
+  },
+  "studio": {}
+}
