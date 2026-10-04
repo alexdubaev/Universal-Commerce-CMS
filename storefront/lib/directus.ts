@@ -6,23 +6,26 @@ export function isMockMode() {
   return mockMode;
 }
 
+type DirectusInit = RequestInit & { revalidate?: number };
+
 export async function directusFetch<T>(
   path: string,
-  init: RequestInit & { revalidate?: number } = {},
+  init: DirectusInit = {},
 ): Promise<T> {
   if (!directusUrl) throw new Error("DIRECTUS_URL is not configured");
 
-  const headers = new Headers(init.headers);
+  const { revalidate = 60, ...requestInit } = init;
+  const headers = new Headers(requestInit.headers);
   headers.set("Accept", "application/json");
-  if (!headers.has("Content-Type") && init.body) headers.set("Content-Type", "application/json");
+  if (!headers.has("Content-Type") && requestInit.body) headers.set("Content-Type", "application/json");
   if (directusToken) headers.set("Authorization", `Bearer ${directusToken}`);
 
   const response = await fetch(`${directusUrl}${path}`, {
-    ...init,
+    ...requestInit,
     headers,
-    next: init.method && init.method !== "GET"
+    next: requestInit.method && requestInit.method !== "GET"
       ? undefined
-      : { revalidate: init.revalidate ?? 60 },
+      : { revalidate },
   });
 
   if (!response.ok) {
