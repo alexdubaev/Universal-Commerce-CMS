@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { directusFetch, isMockMode } from "@/lib/directus";
 
 type Body = {
+  request_key?: string;
   company?: string;
   name?: string;
   phone?: string;
@@ -10,6 +11,8 @@ type Body = {
   page_url?: string;
   request_items?: Array<{ article: string; quantity: number }>;
 };
+
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,14 +37,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Укажите имя и телефон или email." }, { status: 400 });
     }
 
+    const requestKey = body.request_key && uuid.test(body.request_key)
+      ? body.request_key
+      : crypto.randomUUID();
+
     if (isMockMode()) {
-      return NextResponse.json({ id: `mock-${Date.now()}`, replayed: false, mock: true });
+      return NextResponse.json({ id: `mock-${requestKey}`, replayed: false, mock: true });
     }
 
     const payload = await directusFetch<{ data: { id: string; replayed: boolean } }>("/commerce/leads", {
       method: "POST",
       body: JSON.stringify({
-        request_key: crypto.randomUUID(),
+        request_key: requestKey,
         lead,
         attachments: [],
         attachment_manifest: [],

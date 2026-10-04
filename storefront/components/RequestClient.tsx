@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type { RequestItem } from "@/lib/types";
 
 const storageKey = "smtechno-request";
@@ -9,6 +9,7 @@ export function RequestClient() {
   const [items, setItems] = useState<RequestItem[]>([]);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const requestKey = useRef<string | null>(null);
 
   useEffect(() => {
     try {
@@ -40,12 +41,14 @@ export function RequestClient() {
     const form = new FormData(event.currentTarget);
     setStatus("sending");
     setMessage("");
+    requestKey.current ??= crypto.randomUUID();
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          request_key: requestKey.current,
           name: String(form.get("name") ?? ""),
           phone: String(form.get("phone") ?? ""),
           email: String(form.get("email") ?? ""),
@@ -59,6 +62,7 @@ export function RequestClient() {
       if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
       setStatus("success");
       setMessage(`Заявка принята. Номер: ${payload.id}`);
+      requestKey.current = null;
       persist([]);
       event.currentTarget.reset();
     } catch (error) {
@@ -108,7 +112,7 @@ export function RequestClient() {
         <label>Компания<input name="company" placeholder="ООО «Пример»" /></label>
         <label>Контактное лицо<input name="name" required minLength={2} placeholder="Имя" /></label>
         <div className="form-row">
-          <label>Телефон<input name="phone" type="tel" placeholder="+7 ..." /></label>
+          <label>Телефон<input name="phone" required type="tel" placeholder="+7 ..." /></label>
           <label>Email<input name="email" type="email" placeholder="mail@company.ru" /></label>
         </div>
         <label>Комментарий<textarea name="message" rows={5} placeholder="Сроки, доставка, аналоги, реквизиты..." /></label>

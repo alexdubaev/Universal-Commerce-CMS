@@ -53,7 +53,7 @@ export function Header({ settings }: { settings: SiteSettings }) {
 
         <nav className={open ? "main-nav is-open" : "main-nav"} aria-label="Основная навигация">
           <Link href="/catalog" onClick={close}>Каталог</Link>
-          <Link href="/#brands" onClick={close}>Бренды</Link>
+          <Link href="/brands" onClick={close}>Бренды</Link>
           <Link href="/delivery" onClick={close}>Доставка</Link>
           <Link href="/payment" onClick={close}>Оплата</Link>
           <Link href="/about" onClick={close}>О компании</Link>

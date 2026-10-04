@@ -1,22 +1,25 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 
 export function QuickLeadForm({ title = "Связаться с менеджером" }: { title?: string }) {
   const [state, setState] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const requestKey = useRef<string | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setState("sending");
     setMessage("");
+    requestKey.current ??= crypto.randomUUID();
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          request_key: requestKey.current,
           company: String(form.get("company") ?? ""),
           name: String(form.get("name") ?? ""),
           phone: String(form.get("phone") ?? ""),
@@ -30,6 +33,7 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
       if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
       setState("success");
       setMessage(`Заявка принята: ${payload.id}`);
+      requestKey.current = null;
       event.currentTarget.reset();
     } catch (error) {
       setState("error");
