@@ -196,7 +196,7 @@ export async function getBrands(): Promise<Brand[]> {
       const slug = slugifyBrand(name);
       if (!slug || bySlug.has(slug)) continue;
       const known = brands.find((brand) => brand.name.toLowerCase() === name.toLowerCase());
-      bySlug.set(slug, known ?? {
+      bySlug.set(slug, known ? { ...known, name } : {
         slug,
         name,
         description: `Запчасти ${name} для спецтехники.`,
