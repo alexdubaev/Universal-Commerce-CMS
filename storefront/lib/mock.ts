@@ -6,6 +6,11 @@ export const defaultSettings: SiteSettings = {
   email: "sales@example.test",
   primary_cta_text: "Отправить заявку",
   primary_cta_url: "/request",
+  city: "Санкт-Петербург",
+  working_hours: "Пн–Пт · 9:00–18:00",
+  delivery_region: "Россия",
+  footer_text: "B2B-поставка запчастей для спецтехники.",
+  footer_disclaimer: "Условия поставки и оплаты подтверждаются менеджером в коммерческом предложении.",
 };
 
 export const brands: Brand[] = [

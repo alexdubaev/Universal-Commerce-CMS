@@ -100,6 +100,13 @@ export type SiteSettings = {
   email: string;
   primary_cta_text: string;
   primary_cta_url: string;
+  address?: string | null;
+  city?: string | null;
+  working_hours?: string | null;
+  delivery_region?: string | null;
+  footer_text?: string | null;
+  footer_disclaimer?: string | null;
+  vat_info?: string | null;
 };
 
 export type Brand = {

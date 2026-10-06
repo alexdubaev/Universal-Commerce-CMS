@@ -135,7 +135,6 @@ export default async function CatalogPage({ searchParams }: Props) {
           <div className="catalog-toolbar">
             <span>Найдено: <strong>{result.total}</strong></span>
             <div className="catalog-toolbar-right">
-              <span className="source-badge">{result.source === "directus" ? "Directus" : "Mock data"}</span>
               <form action="/catalog" method="get">
                 {params.q && <input type="hidden" name="q" value={params.q} />}
                 {params.brand && <input type="hidden" name="brand" value={params.brand} />}

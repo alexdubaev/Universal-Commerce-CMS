@@ -121,7 +121,7 @@ export default async function ProductPage({ params }: Props) {
           </div>
           <h1>{product.title}</h1>
           <div className="article-big">Артикул <strong>{product.sku}</strong></div>
-          <p>{product.short_description ?? "Описание будет загружено из Directus."}</p>
+          <p>{product.short_description ?? "Описание и применяемость уточняются по запросу."}</p>
           <div className="product-price">{price}</div>
           <AddToRequest product={product} full />
           <Link className="button secondary wide" href="/request">Открыть заявку</Link>
@@ -136,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
         <article className="panel">
           <span className="eyebrow">Описание</span>
           <h2>О товаре</h2>
-          <p>{product.full_description ?? product.short_description ?? "Полное описание подключается к полю full_description в Directus."}</p>
+          <p>{product.full_description ?? product.short_description ?? "Дополнительную информацию по детали можно запросить у менеджера."}</p>
           {product.category && <Link className="text-link" href={`/category/${product.category.slug}`}>Категория: {product.category.title} →</Link>}
         </article>
         <article className="panel">

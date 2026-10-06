@@ -70,6 +70,12 @@ The current commerce lead API permits at most 100 `request_items`, so the UI exp
 
 File attachment upload to Directus is deliberately separate from XLSX parsing. The CMS has a strict private attachment manifest contract; do not bypass it.
 
+### Public asset proxy
+
+`/api/assets/:id` accepts only UUID file IDs and checks that the file is referenced by published products, published product child records, published categories, or storefront site settings before proxying it with the server token.
+
+This is defense-in-depth. Production still requires least-privilege Directus file permissions.
+
 ### SEO
 
 Implemented:
@@ -121,7 +127,7 @@ CI covers:
 - TypeScript;
 - production build;
 - production dependency audit;
-- server-token client-bundle leak canary;
+- server-token client-bundle leak canary;\n- public asset-id validation and API guard-rail tests;
 - Playwright desktop;
 - Playwright 390px mobile;
 - route overflow checks;

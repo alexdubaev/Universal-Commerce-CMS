@@ -13,7 +13,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
               <small>запчасти для спецтехники</small>
             </span>
           </div>
-          <p>Демонстрационная витрина Universal Commerce CMS. Товары и цены в mock-режиме являются вымышленными.</p>
+          <p>{settings.footer_text || "B2B-каталог и поставка запчастей для спецтехники."}</p>
         </div>
         <div>
           <strong>Покупателям</strong>
@@ -30,13 +30,13 @@ export function Footer({ settings }: { settings: SiteSettings }) {
           <a href={`tel:${settings.phone.replace(/[^+\d]/g, "")}`}>{settings.phone}</a>
         </div>
         <div className="footer-note">
-          <span>Только B2B</span>
-          <p>Счёт, НДС, закрывающие документы. Условия являются демонстрационными до подключения профиля магазина.</p>
+          <span>B2B</span>
+          <p>{settings.footer_disclaimer || "Условия поставки, оплаты и документы подтверждаются менеджером при оформлении заявки."}</p>
         </div>
       </div>
       <div className="shell footer-bottom">
         <span>© {new Date().getFullYear()} {settings.company_name}</span>
-        <span>Universal Commerce Storefront</span>
+        <Link href="/contacts">Контакты и реквизиты</Link>
       </div>
     </footer>
   );

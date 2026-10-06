@@ -6,7 +6,7 @@ export async function GET() {
   try {
     await directusFetch("/server/health", { revalidate: 0 });
     return NextResponse.json({ ok: true, source: "directus" });
-  } catch (error) {
-    return NextResponse.json({ ok: false, source: "directus", error: String(error) }, { status: 503 });
+  } catch {
+    return NextResponse.json({ ok: false, source: "directus" }, { status: 503 });
   }
 }

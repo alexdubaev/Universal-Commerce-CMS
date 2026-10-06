@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { directusFetch, isMockMode } from "@/lib/directus";
+import { DirectusRequestError, directusFetch, isMockMode } from "@/lib/directus";
 
 type Body = {
   request_key?: string;
@@ -12,15 +12,40 @@ type Body = {
   request_items?: Array<{ article: string; quantity: number }>;
 };
 
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MAX_BODY_BYTES = 512_000;
+
+function publicDirectusError(error: DirectusRequestError) {
+  if ([400, 409, 422].includes(error.status)) {
+    return NextResponse.json(
+      { error: error.publicMessage || "Проверьте данные заявки." },
+      { status: error.status },
+    );
+  }
+  return NextResponse.json({ error: "Сервис заявок временно недоступен." }, { status: 502 });
+}
 
 export async function POST(request: NextRequest) {
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+  if (contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json({ error: "Заявка слишком большая." }, { status: 413 });
+  }
+
   try {
     const body = await request.json() as Body;
+    if (JSON.stringify(body).length > MAX_BODY_BYTES) {
+      return NextResponse.json({ error: "Заявка слишком большая." }, { status: 413 });
+    }
+
     const company = String(body.company ?? "").trim();
     const message = [company ? `Компания: ${company}` : "", String(body.message ?? "").trim()]
       .filter(Boolean)
       .join("\n\n");
+
+    const requestItems = Array.isArray(body.request_items) ? body.request_items : [];
+    if (requestItems.length > 100) {
+      return NextResponse.json({ error: "В одной заявке можно отправить не более 100 позиций." }, { status: 400 });
+    }
 
     const lead = {
       name: String(body.name ?? "").trim(),
@@ -30,14 +55,14 @@ export async function POST(request: NextRequest) {
       page_url: /^https?:\/\//.test(String(body.page_url ?? ""))
         ? String(body.page_url)
         : (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-      request_items: Array.isArray(body.request_items) ? body.request_items : [],
+      request_items: requestItems,
     };
 
     if (lead.name.length < 2 || (!lead.phone && !lead.email)) {
       return NextResponse.json({ error: "Укажите имя и телефон или email." }, { status: 400 });
     }
 
-    const requestKey = body.request_key && uuid.test(body.request_key)
+    const requestKey = body.request_key && UUID.test(body.request_key)
       ? body.request_key
       : crypto.randomUUID();
 
@@ -58,10 +83,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(payload.data);
   } catch (error) {
-    console.error("Lead proxy error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Не удалось отправить заявку." },
-      { status: 500 },
-    );
+    console.error("Lead proxy failed:", error);
+    if (error instanceof DirectusRequestError) return publicDirectusError(error);
+    return NextResponse.json({ error: "Не удалось отправить заявку." }, { status: 500 });
   }
 }

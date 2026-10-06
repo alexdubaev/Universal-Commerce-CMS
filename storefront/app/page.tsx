@@ -29,9 +29,9 @@ export default async function HomePage() {
         </div>
 
         <div className="shell hero-benefits">
-          <div><span>◆</span><strong>30 000+</strong><small>позиций в демонстрационном каталоге</small></div>
+          <div><span>◆</span><strong>Поиск по артикулу</strong><small>SKU, OEM-номера и дополнительные коды</small></div>
           <div><span>▣</span><strong>По всей России</strong><small>доставка транспортными компаниями</small></div>
-          <div><span>◇</span><strong>6 месяцев</strong><small>демо-условие гарантии</small></div>
+          <div><span>◇</span><strong>Оригиналы и аналоги</strong><small>несколько вариантов в одной заявке</small></div>
           <div><span>◎</span><strong>Только B2B</strong><small>счёт, НДС и документы</small></div>
         </div>
       </section>
@@ -84,18 +84,18 @@ export default async function HomePage() {
         <article className="service-card large">
           <span className="eyebrow">Заявка по списку</span>
           <h2>Не ищите позиции по одной</h2>
-          <p>Соберите товары в заявку или передайте менеджеру список артикулов. Интерфейс уже подготовлен к подключению Directus lead API.</p>
+          <p>Соберите товары в заявку или передайте менеджеру список артикулов вручную, через CSV или XLSX.</p>
           <Link className="button primary" href="/request">Собрать заявку</Link>
         </article>
         <article className="service-card">
           <span className="service-icon">⌁</span>
           <h3>Поиск по артикулу</h3>
-          <p>Используется нормализованный SKU/OEM-поиск существующего commerce API.</p>
+          <p>Дефисы, пробелы и распространённые варианты записи артикула не мешают поиску.</p>
         </article>
         <article className="service-card">
           <span className="service-icon">↔</span>
           <h3>Оригиналы и аналоги</h3>
-          <p>CMS уже содержит product_codes и typed products_analogs.</p>
+          <p>Дополнительные номера, замены и совместимые позиции показываются прямо в карточке товара.</p>
         </article>
       </section>
     </>

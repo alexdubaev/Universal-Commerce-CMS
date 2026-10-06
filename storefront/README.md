@@ -27,9 +27,9 @@ Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 - `/commerce/search` integration;
 - `/commerce/leads` proxy with durable request-key reuse;
 - `/commerce/orders` proxy prepared for later cart/account work;
-- Directus asset proxy, so the server token never reaches the browser;
-- health endpoint;
-- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
+- Directus asset proxy with UUID validation and allowlisting of files referenced by published storefront content; the server token never reaches the browser;
+- health endpoint without upstream error-detail leakage;
+- request-size/search guard rails and sanitized public API errors;\n- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
 
 The storefront does **not** change Directus schema, roles, permissions, Docker, database or deployment configuration.
 

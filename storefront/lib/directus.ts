@@ -3,6 +3,18 @@ const directusToken = process.env.DIRECTUS_TOKEN;
 const mockMode = process.env.STOREFRONT_MOCK_MODE === "true" || !directusUrl;
 const mockFallback = process.env.STOREFRONT_ALLOW_MOCK_FALLBACK === "true";
 
+export class DirectusRequestError extends Error {
+  status: number;
+  publicMessage: string | null;
+
+  constructor(status: number, publicMessage: string | null = null) {
+    super(`Directus request failed with status ${status}`);
+    this.name = "DirectusRequestError";
+    this.status = status;
+    this.publicMessage = publicMessage;
+  }
+}
+
 export function isMockMode() {
   return mockMode;
 }
@@ -34,8 +46,20 @@ export async function directusFetch<T>(
   });
 
   if (!response.ok) {
-    const message = await response.text().catch(() => "");
-    throw new Error(`Directus ${response.status}: ${message.slice(0, 240)}`);
+    const text = await response.text().catch(() => "");
+    let publicMessage: string | null = null;
+
+    if (response.status < 500 && text) {
+      try {
+        const parsed = JSON.parse(text) as { errors?: Array<{ message?: unknown }> };
+        const message = parsed.errors?.[0]?.message;
+        if (typeof message === "string" && message.length <= 500) publicMessage = message;
+      } catch {
+        publicMessage = null;
+      }
+    }
+
+    throw new DirectusRequestError(response.status, publicMessage);
   }
 
   return response.json() as Promise<T>;

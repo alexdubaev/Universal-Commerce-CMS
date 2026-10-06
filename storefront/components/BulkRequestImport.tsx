@@ -17,7 +17,7 @@ export function BulkRequestImport() {
     writeRequestItems(limited);
     const added = Math.max(0, limited.length - current.length);
     const truncated = merged.length > MAX_REQUEST_ITEMS;
-    setMessage(`${source}: добавлено ${added}, всего ${limited.length}.${truncated ? " Лимит текущего API — 100 позиций." : ""}`);
+    setMessage(`${source}: добавлено ${added}, всего ${limited.length}.${truncated ? " Достигнут лимит 100 позиций." : ""}`);
   }
 
   function addManual() {
@@ -73,7 +73,7 @@ export function BulkRequestImport() {
         </div>
         <div className="bulk-file">
           <strong>XLSX / CSV / TXT</strong>
-          <p>До 5 МБ. В текущую заявку можно передать до 100 позиций — это ограничение существующего commerce API.</p>
+          <p>До 5 МБ. В одну заявку можно добавить до 100 позиций.</p>
           <label className="button primary file-button">
             Выбрать файл
             <input type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain" onChange={upload} />

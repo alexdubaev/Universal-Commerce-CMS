@@ -45,7 +45,7 @@ export default async function BrandPage({ params }: Props) {
       </section>
       <section className="section shell">
         <div className="brand-stats">
-          <div><strong>{products.total}+</strong><span>позиций в текущем источнике</span></div>
+          <div><strong>{products.total}</strong><span>товаров в каталоге бренда</span></div>
           <div><strong>OEM</strong><span>дополнительные номера</span></div>
           <div><strong>24/7</strong><span>онлайн-заявка</span></div>
           <div><strong>B2B</strong><span>работа с юрлицами</span></div>

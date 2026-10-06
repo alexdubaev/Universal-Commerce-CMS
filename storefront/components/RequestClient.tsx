@@ -122,7 +122,7 @@ export function RequestClient() {
           {status === "sending" ? "Отправляем..." : "Отправить менеджеру"}
         </button>
         {message && <p className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
-        <small className="form-hint">Повторная отправка сохраняет тот же request_key до подтверждённого успеха.</small>
+        <small className="form-hint">Повторная отправка не должна создавать дублирующую заявку.</small>
       </form>
     </div>
   );

@@ -196,7 +196,7 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
   } catch (error) {
     console.error("Storefront catalog error:", error);
     if (allowMockFallback()) return mockQuery({ ...query, page, limit });
-    return { items: [], total: 0, page, limit, source: "directus" };
+    throw error;
   }
 }
 
@@ -216,7 +216,8 @@ export async function getCategories(): Promise<Category[]> {
     return result.data.map(mapCategory);
   } catch (error) {
     console.error("Storefront categories error:", error);
-    return allowMockFallback() ? mockCategories : [];
+    if (allowMockFallback()) return mockCategories;
+    throw error;
   }
 }
 
@@ -240,7 +241,8 @@ export async function getProduct(slug: string): Promise<Product | null> {
     return result.data[0] ? mapProduct(result.data[0]) : null;
   } catch (error) {
     console.error("Storefront product error:", error);
-    return allowMockFallback() ? mockProducts.find((item) => item.slug === slug) ?? null : null;
+    if (allowMockFallback()) return mockProducts.find((item) => item.slug === slug) ?? null;
+    throw error;
   }
 }
 
@@ -363,8 +365,9 @@ export async function getProductCount() {
       { revalidate: 300 },
     );
     return Number(result.meta?.filter_count ?? result.data.length);
-  } catch {
-    return 0;
+  } catch (error) {
+    if (allowMockFallback()) return mockProducts.length;
+    throw error;
   }
 }
 
@@ -390,17 +393,27 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   if (isMockMode()) return defaultSettings;
   try {
     const result = await directusFetch<{ data: Record<string, unknown>[] }>(
-      "/items/site_settings?limit=1&fields=company_name,phone,email,primary_cta_text,primary_cta_url",
+      "/items/site_settings?limit=1&fields=company_name,phone,email,primary_cta_text,primary_cta_url,address,city,working_hours,delivery_region,footer_text,footer_disclaimer,vat_info",
       { revalidate: 120 },
     );
     const row = result.data[0];
-    if (!row) return defaultSettings;
+    if (!row) {
+      if (allowMockFallback()) return defaultSettings;
+      throw new Error("site_settings is not configured");
+    }
     return {
       company_name: String(row.company_name ?? defaultSettings.company_name),
       phone: String(row.phone ?? defaultSettings.phone),
       email: String(row.email ?? defaultSettings.email),
       primary_cta_text: String(row.primary_cta_text ?? defaultSettings.primary_cta_text),
       primary_cta_url: String(row.primary_cta_url ?? defaultSettings.primary_cta_url),
+      address: row.address ? String(row.address) : null,
+      city: row.city ? String(row.city) : null,
+      working_hours: row.working_hours ? String(row.working_hours) : null,
+      delivery_region: row.delivery_region ? String(row.delivery_region) : null,
+      footer_text: row.footer_text ? String(row.footer_text) : null,
+      footer_disclaimer: row.footer_disclaimer ? String(row.footer_disclaimer) : null,
+      vat_info: row.vat_info ? String(row.vat_info) : null,
     };
   } catch (error) {
     if (allowMockFallback()) return defaultSettings;

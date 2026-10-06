@@ -15,24 +15,32 @@ export default function AboutPage() {
         <div className="page-title">
           <span className="eyebrow">СМ ТЕХНО</span>
           <h1>Поставка запчастей без лишней сложности</h1>
-          <p>Демонстрационная страница компании. Тексты специально отделены от commerce-данных, чтобы позже перенести их в страницы и секции Directus.</p>
+          <p>Помогаем быстро найти нужную позицию по артикулу, собрать несколько товаров в одну заявку и согласовать поставку с менеджером.</p>
           <Link className="button primary" href="/contacts">Связаться с нами</Link>
         </div>
         <div className="about-visual panel">
-          <span>COMMERCE</span>
-          <strong>CORE</strong>
-          <small>Directus + Next.js</small>
+          <span>HEAVY EQUIPMENT</span>
+          <strong>PARTS</strong>
+          <small>мультибрендовый B2B-каталог</small>
         </div>
       </section>
       <section className="brand-stats about-stats">
-        <div><strong>100 000</strong><span>архитектура рассчитана на большой каталог</span></div>
-        <div><strong>1 API</strong><span>единая точка commerce-интеграции</span></div>
-        <div><strong>2 UI</strong><span>desktop и mobile</span></div>
-        <div><strong>B2B</strong><span>заявки вместо перегруженной розничной логики</span></div>
+        <div><strong>Мультибренд</strong><span>один каталог для разных производителей</span></div>
+        <div><strong>Артикул</strong><span>поиск по SKU и OEM-номерам</span></div>
+        <div><strong>Списком</strong><span>массовая заявка на несколько позиций</span></div>
+        <div><strong>B2B</strong><span>работа через заявку и менеджера</span></div>
       </section>
       <section className="two-columns">
-        <article className="panel prose"><span className="eyebrow">Подход</span><h2>Поиск сначала</h2><p>Главный сценарий — быстро найти запчасть по артикулу, а затем отправить запрос. Это соответствует уже существующему нормализованному поиску CMS.</p></article>
-        <article className="panel prose"><span className="eyebrow">Данные</span><h2>CMS как источник истины</h2><p>Товары, SEO, документы, аналоги и заявки берутся из Universal Commerce CMS. Mock-данные автоматически уступают место Directus после настройки env.</p></article>
+        <article className="panel prose">
+          <span className="eyebrow">Подбор</span>
+          <h2>Поиск начинается с номера детали</h2>
+          <p>Введите артикул или OEM-номер. Если точной позиции нет в выдаче, отправьте запрос — менеджер сможет проверить замену или совместимый вариант.</p>
+        </article>
+        <article className="panel prose">
+          <span className="eyebrow">Закупка</span>
+          <h2>Несколько позиций — одна заявка</h2>
+          <p>Товары можно добавлять из каталога или загрузить списком. Это удобнее для закупок, где одновременно требуется несколько десятков артикулов.</p>
+        </article>
       </section>
     </div>
   );

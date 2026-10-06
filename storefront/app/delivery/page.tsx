@@ -1,49 +1,53 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { getSiteSettings } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Доставка запчастей",
-  description: "Условия доставки B2B-заказов запчастей для спецтехники по России.",
+  description: "Условия доставки B2B-заказов запчастей для спецтехники.",
   alternates: { canonical: "/delivery" },
 };
 
-export default function DeliveryPage() {
+export default async function DeliveryPage() {
+  const settings = await getSiteSettings();
+  const region = settings.delivery_region || "по России";
+
   return (
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Доставка</span></div>
       <div className="page-title">
         <span className="eyebrow">Логистика</span>
-        <h1>Доставка по всей России</h1>
-        <p>Страница подготовлена под редактируемый контент Directus. Ниже — демонстрационные условия для макета.</p>
+        <h1>Доставка {region}</h1>
+        <p>Способ, стоимость и срок доставки согласуются при подтверждении заявки с учётом склада, веса и габаритов заказа.</p>
       </div>
 
       <section className="info-hero panel">
         <div>
           <span className="eyebrow">B2B поставка</span>
-          <h2>От склада до вашего предприятия</h2>
-          <p>Передадим груз выбранной транспортной компании, подготовим документы и сообщим данные для отслеживания.</p>
+          <h2>От комплектации до передачи перевозчику</h2>
+          <p>После согласования заказа менеджер подтверждает вариант отгрузки и передаёт информацию для отслеживания.</p>
         </div>
         <div className="info-symbol">→</div>
       </section>
 
       <section className="steps-grid">
-        <article className="panel"><span>01</span><h3>Согласование</h3><p>Подтверждаем наличие, сроки и способ доставки.</p></article>
-        <article className="panel"><span>02</span><h3>Оплата</h3><p>Выставляем счёт и резервируем позиции.</p></article>
-        <article className="panel"><span>03</span><h3>Комплектация</h3><p>Проверяем заказ, упаковку и документы.</p></article>
-        <article className="panel"><span>04</span><h3>Отправка</h3><p>Передаём заказ перевозчику и отправляем трек-данные.</p></article>
+        <article className="panel"><span>01</span><h3>Согласование</h3><p>Подтверждаем позиции, сроки и способ доставки.</p></article>
+        <article className="panel"><span>02</span><h3>Оплата</h3><p>Формируем документы по согласованным условиям.</p></article>
+        <article className="panel"><span>03</span><h3>Комплектация</h3><p>Собираем заказ и подготавливаем его к отправке.</p></article>
+        <article className="panel"><span>04</span><h3>Отправка</h3><p>Передаём заказ выбранному перевозчику.</p></article>
       </section>
 
       <section className="two-columns">
         <article className="panel prose">
           <span className="eyebrow">Варианты</span>
-          <h2>Транспортные компании</h2>
-          <p>В production сюда подключается контент из CMS: Деловые Линии, ПЭК, СДЭК, Энергия и другие перевозчики.</p>
-          <ul><li>До терминала</li><li>До двери</li><li>Страхование груза</li><li>Межтерминальная доставка</li></ul>
+          <h2>До терминала или до адреса</h2>
+          <p>Конкретный перевозчик и способ доставки выбираются при согласовании заказа. Для крупногабаритных и тяжёлых деталей условия рассчитываются отдельно.</p>
+          <ul><li>Отправка до терминала</li><li>Доставка до адреса</li><li>Дополнительная упаковка при необходимости</li><li>Отдельный расчёт негабаритных грузов</li></ul>
         </article>
         <article className="panel prose">
-          <span className="eyebrow">Сроки</span>
-          <h2>Расчёт под заказ</h2>
-          <p>Стоимость и срок зависят от склада, габаритов и выбранного перевозчика. Для тяжёлых деталей менеджер согласует условия отдельно.</p>
+          <span className="eyebrow">Расчёт</span>
+          <h2>Нужен срок и стоимость?</h2>
+          <p>Добавьте позиции в заявку — менеджер сможет рассчитать поставку по конкретному составу заказа.</p>
           <Link className="button primary" href="/request">Рассчитать поставку</Link>
         </article>
       </section>

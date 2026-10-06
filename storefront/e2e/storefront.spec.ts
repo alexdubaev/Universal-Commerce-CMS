@@ -137,6 +137,49 @@ test("robots and chunked sitemap expose catalog URLs", async ({ request }) => {
   expect(staticXml).toContain("/category/filters");
 });
 
+
+test("API guard rails reject invalid public requests and keep order retries stable", async ({ request }) => {
+  const longSearch = await request.get(`/api/search?q=${"X".repeat(80)}`);
+  expect(longSearch.status()).toBe(400);
+
+  const tooManyItems = await request.post("/api/lead", {
+    data: {
+      request_key: "33333333-3333-4333-8333-333333333333",
+      name: "Limit Test",
+      phone: "+79990000000",
+      page_url: "http://127.0.0.1:3000/request",
+      request_items: Array.from({ length: 101 }, (_, index) => ({ article: `P-${index}`, quantity: 1 })),
+    },
+  });
+  expect(tooManyItems.status()).toBe(400);
+
+  const asset = await request.get("/api/assets/not-a-uuid");
+  expect(asset.status()).toBe(404);
+
+  const requestKey = "44444444-4444-4444-8444-444444444444";
+  const orderBody = {
+    request_key: requestKey,
+    order: {
+      customer_name: "Order Test",
+      phone: "+79990000000",
+      page_url: "http://127.0.0.1:3000/catalog",
+      currency: "RUB",
+    },
+    items: [{
+      product: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      quantity: 1,
+      unit_price: 100,
+    }],
+  };
+  const [first, second] = await Promise.all([
+    request.post("/api/order", { data: orderBody }),
+    request.post("/api/order", { data: orderBody }),
+  ]);
+  expect(first.ok()).toBe(true);
+  expect(second.ok()).toBe(true);
+  expect((await first.json()).id).toBe((await second.json()).id);
+});
+
 test("mobile menu works and key routes never overflow horizontally", async ({ page }, testInfo) => {
   if (testInfo.project.name === "mobile-chromium") {
     await page.goto("/");
