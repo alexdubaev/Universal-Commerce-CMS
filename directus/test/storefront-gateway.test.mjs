@@ -191,10 +191,12 @@ test('frontend asset-reference query shapes map through fixed selectors and pres
   const h = harness();
   const id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   const status = { status: { _eq: 'published' } };
+  const publicCategory = { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] };
+  const publicProductCategory = { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] };
   const queries = [
-    ['products', { _and: [status, { main_image: { _eq: id } }] }, 'id'],
-    ['product_images', { _and: [status, { image: { _eq: id } }, { product: status }] }, 'id'],
-    ['product_documents', { _and: [status, { file: { _eq: id } }, { product: status }] }, 'id'],
+    ['products', { _and: [status, { main_image: { _eq: id } }, publicCategory] }, 'id'],
+    ['product_images', { _and: [status, { image: { _eq: id } }, { product: status }, publicProductCategory] }, 'id'],
+    ['product_documents', { _and: [status, { file: { _eq: id } }, { product: status }, publicProductCategory] }, 'id'],
     ['categories', { _and: [status, { _or: [{ image: { _eq: id } }, { icon: { _eq: id } }, { og_image: { _eq: id } }] }] }, 'id'],
     ['pages', { _and: [status, { og_image: { _eq: id } }] }, 'id'],
     ['page_sections', { _and: [status, { is_visible: { _eq: true } }, { image: { _eq: id } }, { page: status }] }, 'id'],
@@ -206,11 +208,22 @@ test('frontend asset-reference query shapes map through fixed selectors and pres
   }
   for (const collection of ['product_images','product_documents']) {
     const query = h.calls.find(call => call.collection === collection && call.query)?.query;
+    assert.deepEqual(query.filter._or, publicProductCategory._or);
     assert.deepEqual(query.filter._and.slice(-2), [
       { product: { status: { _eq: 'published' } } },
       { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] },
     ], `${collection} uses Directus relation paths under root boolean operators`);
   }
+  const productAssetQuery = h.calls.find(call => call.collection === 'products' && call.query)?.query;
+  assert.deepEqual(productAssetQuery.filter._and[0]._or, publicCategory._or);
+
+  const invalid = harness();
+  const rejected = await invalid.invoke('/storefront/items/:collection', {
+    params: { collection: 'product_images' },
+    query: { fields: 'id', limit: '1', filter: JSON.stringify({ _or: [{ product: { status: { _eq: 'draft' } } }, { product: { category: { status: { _eq: 'published' } } } }] }) },
+  });
+  assert.equal(rejected.statusCode, 400);
+  assert.equal(invalid.calls.length, 0);
   const home = await h.invoke('/storefront/items/:collection', { params: { collection: 'home_page' }, query: { fields: 'status,hero_image,og_image' } });
   assert.equal(home.statusCode, 200);
   const settings = await h.invoke('/storefront/items/:collection', { params: { collection: 'site_settings' }, query: { fields: 'logo,favicon,default_og_image,company_image' } });

@@ -44,6 +44,25 @@ function gate(req, res, env) {
   return config;
 }
 
+function hasCategoryVisibilityBranches(branches, relation = null) {
+  if (!Array.isArray(branches) || branches.length !== 2) return false;
+  const kinds = branches.map(branch => {
+    if (!plain(branch) || Object.keys(branch).length !== 1) return null;
+    const key = relation ?? 'category';
+    if (!(key in branch)) return null;
+    let category = branch[key];
+    if (relation) {
+      if (!plain(category) || Object.keys(category).length !== 1 || !('category' in category)) return null;
+      category = category.category;
+    }
+    if (!plain(category) || Object.keys(category).length !== 1) return null;
+    if (category._null === true) return 'null';
+    if (plain(category.status) && Object.keys(category.status).length === 1 && category.status._eq === 'published' && Object.keys(category).length === 1) return 'published';
+    return null;
+  });
+  return kinds.includes('null') && kinds.includes('published');
+}
+
 function decodeFilter(raw, collection) {
   if (raw === undefined || raw === null || raw === '') return {};
   if (typeof raw !== 'string' || raw.length > 16384) throw new Error('filter');
@@ -64,6 +83,12 @@ function decodeFilter(raw, collection) {
       if (['products','pages'].includes(collection) && term._or.length === 2 && term._or.every(item => plain(item) && Object.keys(item).length === 1 && plain(item.is_indexable) && Object.keys(item.is_indexable).length === 1) &&
           term._or.some(item => item.is_indexable._null === true) && term._or.some(item => item.is_indexable._eq === true)) {
         result._or = [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }]; continue;
+      }
+      if (collection === 'products' && hasCategoryVisibilityBranches(term._or)) {
+        result._or = [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]; continue;
+      }
+      if (['product_images','product_documents'].includes(collection) && hasCategoryVisibilityBranches(term._or, 'product')) {
+        result._or = [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }]; continue;
       }
       if (collection === 'categories' && term._or.length === 3 && term._or.every(item => plain(item) && Object.keys(item).length === 1)) {
         const branches = term._or.map(item => { const [key, value] = Object.entries(item)[0]; if (!['image','icon','og_image'].includes(key) || !plain(value) || !UUID.test(value._eq ?? '') || Object.keys(value).length !== 1) throw new Error('filter'); return { [key]: { _eq: value._eq } }; });
