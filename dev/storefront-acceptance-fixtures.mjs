@@ -12,7 +12,7 @@ export const COLLECTIONS = Object.freeze([
 ]);
 const GUARDED_DELETE_COLLECTIONS = new Set([
   'categories', 'products', 'product_codes', 'products_analogs', 'product_images',
-  'product_specifications', 'product_documents', 'pages', 'page_sections', 'navigation_items',
+  'product_specifications', 'product_documents', 'pages', 'page_sections',
 ]);
 
 const slug = value => String(value).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -50,6 +50,7 @@ export function createFixturePlan({ runId = randomUUID(), random = randomUUID } 
       title: variant ? `Synthetic fixture assembly ${'extended '.repeat(22)}wide model — ${index + 1}` : `Synthetic test part ${String(index + 1).padStart(2, '0')}`,
       sku: variant ? `FX-${runId.slice(0, 8)}-VARIANT-LONG-SKU-0003` : `FX-${runId.slice(0, 8)}-${String(index + 1).padStart(4, '0')}`,
       brand: brands[index % brands.length], category: categories[index % categories.length].id,
+      mpn: `MPN-FX-${runId.slice(0, 8)}-${String(index + 1).padStart(4, '0')}`,
       currency: 'RUB', status: 'published', price_status: ['fixed', 'on_request', 'hidden'][index % 3],
       availability_status: ['in_stock', 'on_request', 'out_of_stock'][index % 3],
       price: index % 3 === 0 ? 1234.5 + index : null,
@@ -64,15 +65,16 @@ export function createFixturePlan({ runId = randomUUID(), random = randomUUID } 
     title: `Synthetic draft parent ${index + 1}`, sku: `FX-${runId.slice(0, 8)}-DRAFT-${index + 1}`,
     brand: brands[index], currency: 'RUB', price_status: 'hidden', availability_status: 'on_request', status: 'draft',
   }));
-  const children = drafts.map(parent => ({
+  const draftImageId = random();
+  const children = drafts.map((parent, index) => ({
     parent: parent.id,
     specification: { id: random(), name: 'Draft-only fixture field', value: 'must remain private', status: 'draft', sort_order: 1 },
-    image: { id: random(), image: null, alt_text: 'Draft-only generated image', status: 'draft', sort_order: 1 },
+    image: { id: random(), image: draftImageId, alt_text: 'Draft-only generated image', status: index === 0 ? 'published' : 'draft', sort_order: 1 },
   }));
   const page = { id: random(), slug: `acceptance-${runId.slice(0, 8)}-content-page`, title: 'Synthetic acceptance page', h1: 'Synthetic test page', page_type: 'standard', status: 'published' };
   const sections = [{ id: random(), page: page.id, section_type: 'text', title: 'Fixture section', text: 'Synthetic acceptance content.', status: 'published', is_visible: true, sort_order: 1 }];
   const navigation = ['header', 'footer', 'legal'].map((location, index) => ({ id: random(), label: `Synthetic ${location} link`, url: page.slug, location, status: 'published', is_visible: true, sort_order: index + 1 }));
-  return { runId, brands, categories, products, drafts, children, page, sections, navigation, assets: ['fixture-gallery.png', 'fixture-private.pdf', 'fixture-home.png', 'fixture-document.html'] };
+  return { runId, brands, categories, products, drafts, children, page, sections, navigation, assets: ['fixture-gallery.png', 'fixture-home.png', 'fixture-draft-only.png', 'fixture-unreferenced.png', 'fixture-document.html', 'fixture-public.pdf', 'fixture-private.pdf'] };
 }
 
 export function makeOwnershipManifest(runId, target = LOCAL_URL) {
@@ -82,15 +84,22 @@ export function makeOwnershipManifest(runId, target = LOCAL_URL) {
     target: assertLocalTarget(target),
     createdAt: new Date().toISOString(),
     created: Object.fromEntries(COLLECTIONS.map(name => [name, []])),
+    pending: Object.fromEntries(COLLECTIONS.map(name => [name, {}])),
+    ownership: Object.fromEntries(COLLECTIONS.map(name => [name, {}])),
     namedRefs: {
       primaryProductId: null,
       primaryProductSlug: null,
       galleryFileIds: [],
       documentId: null,
       documentFileId: null,
+      publicDocumentFileId: null,
+      draftReferencedAssetId: null,
+      unreferencedAssetId: null,
       htmlDocumentId: null,
       htmlFileId: null,
       privateAssetId: null,
+      privateFolderId: null,
+      privateDocumentId: null,
       draftProductIds: [],
       nonIndexableProductId: null,
       nonIndexableProductSlug: null,
@@ -119,25 +128,43 @@ export function appendOwnedId(manifest, collection, id) {
   return manifest;
 }
 
-export function guardedDeleteRequest(collection, id) {
+export function guardedDeleteRequest(collection, id, expected = { id }) {
   if (!GUARDED_DELETE_COLLECTIONS.has(collection) || !uuidPattern.test(String(id))) throw new Error('Refusing unguarded or invalid content deletion');
   return {
     path: `/commerce/mutations/${collection}/${encodeURIComponent(id)}`,
-    options: { method: 'POST', body: JSON.stringify({ expected: { id }, action: 'delete' }) },
+    options: { method: 'POST', body: JSON.stringify({ expected: { ...expected, id }, action: 'delete' }) },
   };
 }
 
-export function casRestorePatch(snapshot, current, allowedFields) {
-  const patch = {};
+export function ownershipFields(collection, data) {
+  const fieldMap = {
+    directus_folders: ['name'], directus_files: ['folder', 'filename_download'],
+    directus_policies: ['name'], directus_roles: ['name'], directus_users: ['email', 'role', 'status'],
+    directus_access: ['role', 'policy'], categories: ['slug', 'title'],
+    products: ['slug', 'sku', 'mpn', 'brand', 'status'], product_codes: ['product', 'code', 'source_name'],
+    products_analogs: ['product_from', 'product_to', 'relation_type', 'canonical_key'],
+    product_images: ['product', 'image', 'alt_text', 'status'],
+    product_specifications: ['product', 'name', 'value', 'status'],
+    product_documents: ['product', 'file', 'title', 'status'],
+    pages: ['slug', 'title', 'status'], page_sections: ['page', 'section_type', 'title', 'status'],
+    navigation_items: ['label', 'url', 'location', 'status'],
+  };
+  return Object.fromEntries(['id', ...(fieldMap[collection] ?? [])].filter(key => Object.hasOwn(data, key)).map(key => [key, data[key]]));
+}
+
+export function casRestorePatch(snapshot, current, allowedFields, expected = snapshot) {
+  let alreadyRestored = true;
   for (const field of allowedFields) {
-    if (!Object.hasOwn(snapshot, field) || !Object.hasOwn(current, field)) continue;
-    const expected = snapshot[field];
-    if (stableJson(current[field]) !== stableJson(expected)) {
+    if (!Object.hasOwn(snapshot, field)) continue;
+    if (!Object.hasOwn(current, field)) throw new Error(`Refusing restore because ${field} is missing`);
+    if (stableJson(current[field]) === stableJson(snapshot[field])) continue;
+    alreadyRestored = false;
+    if (!Object.hasOwn(expected, field) || stableJson(current[field]) !== stableJson(expected[field])) {
       throw new Error(`Refusing restore because ${field} changed after fixture provisioning`);
     }
-    patch[field] = expected;
   }
-  return patch;
+  if (alreadyRestored) return {};
+  return Object.fromEntries(allowedFields.filter(field => Object.hasOwn(snapshot, field)).map(field => [field, snapshot[field]]));
 }
 
 function stableJson(value) {

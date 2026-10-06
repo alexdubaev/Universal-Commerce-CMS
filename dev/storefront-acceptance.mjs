@@ -6,7 +6,7 @@ import { DirectusAdminClient } from '../directus/schema/apply-schema.mjs';
 import {
   COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget,
   casRestorePatch, createFixturePlan, makeOwnershipManifest, newServiceToken,
-  guardedDeleteRequest, productAnalogKey, redactSummary, safeManifestDirectory,
+  guardedDeleteRequest, ownershipFields, productAnalogKey, redactSummary, safeManifestDirectory,
 } from './storefront-acceptance-fixtures.mjs';
 
 // Run with the original checkout's ignored admin env file, while pointing all
@@ -84,10 +84,21 @@ async function readManifest(path) {
   const value = JSON.parse(await readFile(path, 'utf8'));
   if (value.schema !== FIXTURE_SCHEMA || !value.created || !value.original) throw new Error('Invalid private fixture manifest');
   const defaults = makeOwnershipManifest(value.runId, value.target);
+  value.pending ??= defaults.pending;
+  value.ownership ??= defaults.ownership;
+  for (const collection of COLLECTIONS) {
+    value.pending[collection] ??= {};
+    value.ownership[collection] ??= {};
+  }
   value.namedRefs = { ...defaults.namedRefs, ...(value.namedRefs ?? {}) };
   if (value.namedRefs.childProbeProductId && !value.namedRefs.childProbeSpecificationId) value.namedRefs.childProbeSpecificationId = value.created.product_specifications?.[0] ?? null;
   value.service ??= defaults.service;
   if (value.sectionProbeOutcome?.status === 'verified') value.sectionProbeOutcome.httpStatus = null;
+  const suffix = value.runId.slice(0, 8);
+  if (value.namedRefs.childProbeProductId) value.ownership.products[value.namedRefs.childProbeProductId] ??= { id: value.namedRefs.childProbeProductId, slug: `acceptance-${suffix}-tx-probe`, sku: `FX-${suffix}-TX-PROBE`, brand: 'Fixture Works', status: 'draft' };
+  if (value.namedRefs.childProbeSpecificationId && value.namedRefs.childProbeProductId) value.ownership.product_specifications[value.namedRefs.childProbeSpecificationId] ??= { id: value.namedRefs.childProbeSpecificationId, product: value.namedRefs.childProbeProductId, name: 'Transaction probe', value: 'synthetic', status: 'draft' };
+  if (value.namedRefs.sectionProbePageId) value.ownership.pages[value.namedRefs.sectionProbePageId] ??= { id: value.namedRefs.sectionProbePageId, slug: `acceptance-${suffix}-page`, title: 'Synthetic acceptance page', status: 'published' };
+  if (value.namedRefs.sectionProbeId && value.namedRefs.sectionProbePageId) value.ownership.page_sections[value.namedRefs.sectionProbeId] ??= { id: value.namedRefs.sectionProbeId, page: value.namedRefs.sectionProbePageId, section_type: 'text', title: 'Fixture section', status: 'published' };
   return value;
 }
 
@@ -102,13 +113,56 @@ async function saveManifest(path, manifest) {
 const post = (client, collection, data) => client.request(`/items/${collection}`, { method: 'POST', body: JSON.stringify(data) });
 const patch = (client, collection, id, data) => client.request(`/items/${collection}/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
 
+function nestedOwnedChildren(collection, data) {
+  if (collection !== 'products') return [];
+  return [
+    ...(data.image_items ?? []).map(row => ['product_images', { ...row, product: data.id }]),
+    ...(data.specification_items ?? []).map(row => ['product_specifications', { ...row, product: data.id }]),
+    ...(data.document_items ?? []).map(row => ['product_documents', { ...row, product: data.id }]),
+  ];
+}
+
+async function prepareOwned(client, manifest, path, collection, data) {
+  const row = { ...data, id: String(data.id ?? randomUUID()) };
+  for (const [targetCollection, target] of [[collection, row], ...nestedOwnedChildren(collection, row)]) {
+    target.id = String(target.id ?? randomUUID());
+    const query = new URLSearchParams({ 'filter[id][_eq]': target.id, limit: '1', fields: 'id' });
+    if ((await client.request(`/items/${targetCollection}?${query}`)).length) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
+    const expected = ownershipFields(targetCollection, target);
+    manifest.pending[targetCollection][target.id] = expected;
+    manifest.ownership[targetCollection][target.id] = expected;
+  }
+  await saveManifest(path, manifest);
+  return row;
+}
+
+function markOwnedCreated(manifest, collection, id, expected) {
+  const key = String(id);
+  appendOwnedId(manifest, collection, key);
+  manifest.ownership[collection][key] = expected;
+  delete manifest.pending[collection][key];
+}
+
 async function createOwned(client, manifest, path, collection, data) {
+  const row = await prepareOwned(client, manifest, path, collection, data);
   const systemPath = { directus_folders: '/folders' }[collection];
   const created = systemPath
-    ? await client.request(systemPath, { method: 'POST', body: JSON.stringify(data) })
-    : await post(client, collection, data);
+    ? await client.request(systemPath, { method: 'POST', body: JSON.stringify(row) })
+    : await post(client, collection, row);
   if (!created?.id) throw new Error('Directus create did not return its record id');
-  appendOwnedId(manifest, collection, String(created.id));
+  markOwnedCreated(manifest, collection, String(created.id), ownershipFields(collection, { ...row, id: String(created.id) }));
+  delete manifest.pending[collection][row.id];
+  for (const [childCollection, child] of nestedOwnedChildren(collection, row)) markOwnedCreated(manifest, childCollection, child.id, ownershipFields(childCollection, child));
+  await saveManifest(path, manifest);
+  return created;
+}
+
+async function createSystemOwned(client, manifest, path, collection, endpoint, data) {
+  const row = await prepareOwned(client, manifest, path, collection, data);
+  const created = await client.request(endpoint, { method: 'POST', body: JSON.stringify(row) });
+  if (!created?.id) throw new Error('Directus create did not return its record id');
+  markOwnedCreated(manifest, collection, String(created.id), ownershipFields(collection, { ...row, id: String(created.id) }));
+  delete manifest.pending[collection][row.id];
   await saveManifest(path, manifest);
   return created;
 }
@@ -193,13 +247,22 @@ async function verifyNativeNestedChildCreate(client, manifest, path) {
 async function provision(client, manifest, path, plan) {
   const publicFolder = await createOwned(client, manifest, path, 'directus_folders', { name: `Acceptance Public ${manifest.runId.slice(0, 8)}` });
   const privateFolder = await createOwned(client, manifest, path, 'directus_folders', { name: `Acceptance Private ${manifest.runId.slice(0, 8)}` });
-  manifest.publicFolderId = publicFolder.id; await saveManifest(path, manifest);
+  manifest.publicFolderId = publicFolder.id;
+  manifest.namedRefs.privateFolderId = privateFolder.id;
+  await saveManifest(path, manifest);
   const gallery = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-gallery.png', pngBytes);
   const homeImage = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-home.png', pngBytes);
+  const draftImage = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-draft-only.png', pngBytes);
+  const unreferencedImage = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-unreferenced.png', pngBytes);
   const htmlFile = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-document.html', htmlBytes);
+  const publicPdf = await uploadAsset(client, manifest, path, publicFolder.id, 'fixture-public.pdf', pdfBytes);
   const privateFile = await uploadAsset(client, manifest, path, privateFolder.id, 'fixture-private.pdf', pdfBytes);
   manifest.namedRefs.galleryFileIds = [gallery.id, homeImage.id];
   manifest.namedRefs.privateAssetId = privateFile.id;
+  manifest.namedRefs.publicDocumentFileId = publicPdf.id;
+  manifest.namedRefs.documentFileId = publicPdf.id;
+  manifest.namedRefs.draftReferencedAssetId = draftImage.id;
+  manifest.namedRefs.unreferencedAssetId = unreferencedImage.id;
   manifest.namedRefs.homeImageId = homeImage.id;
   manifest.namedRefs.htmlFileId = htmlFile.id;
   await saveManifest(path, manifest);
@@ -217,11 +280,12 @@ async function provision(client, manifest, path, plan) {
       ],
       specification_items: [{ id: randomUUID(), group_name: 'Synthetic', name: 'Fixture dimension', value: '12 mm', status: 'published', sort_order: 1 }],
       document_items: [
-        { id: randomUUID(), file: privateFile.id, title: 'Synthetic fixture PDF', status: 'published', sort_order: 1 },
+        { id: randomUUID(), file: publicPdf.id, title: 'Synthetic public fixture PDF', status: 'published', sort_order: 1 },
         { id: randomUUID(), file: htmlFile.id, title: 'Synthetic fixture HTML', status: 'published', sort_order: 2 },
+        { id: randomUUID(), file: privateFile.id, title: 'Synthetic private fixture PDF', status: 'published', sort_order: 3 },
       ],
       specifications: { 'Fixture dimension': '12 mm' },
-      documents: [{ title: 'Synthetic fixture PDF', file: privateFile.id }],
+      documents: [{ title: 'Synthetic public fixture PDF', file: publicPdf.id }],
     });
     if (i === 1) Object.assign(row, { main_image: privateFile.id, image_alt: 'Intentionally private file reference' });
     const created = await createOwned(client, manifest, path, 'products', row);
@@ -229,8 +293,9 @@ async function provision(client, manifest, path, plan) {
       manifest.namedRefs.primaryProductId = created.id;
       manifest.namedRefs.primaryProductSlug = row.slug;
       manifest.namedRefs.documentId = row.document_items?.[0]?.id ?? null;
-      manifest.namedRefs.documentFileId = privateFile.id;
+      manifest.namedRefs.documentFileId = publicPdf.id;
       manifest.namedRefs.htmlDocumentId = row.document_items?.[1]?.id ?? null;
+      manifest.namedRefs.privateDocumentId = row.document_items?.[2]?.id ?? null;
     }
     if (i === plan.products.length - 1) {
       manifest.namedRefs.nonIndexableProductId = created.id;
@@ -251,10 +316,11 @@ async function provision(client, manifest, path, plan) {
     const payload = {
       ...draft,
       specification_items: [child.specification],
-      image_items: [child.image],
+      image_items: [{ ...child.image, image: draftImage.id, status: index === 0 ? 'published' : 'draft' }],
     };
     const created = await createOwned(client, manifest, path, 'products', payload);
     manifest.namedRefs.draftProductIds.push(created.id);
+    if (index === 0) manifest.namedRefs.draftReferencedAssetId = draftImage.id;
     appendOwnedId(manifest, 'product_specifications', child.specification.id);
     appendOwnedId(manifest, 'product_images', child.image.id);
     await saveManifest(path, manifest);
@@ -272,23 +338,22 @@ async function provision(client, manifest, path, plan) {
 
 async function provisionServiceIdentity(client, manifest, path) {
   const suffix = manifest.runId.slice(0, 8);
-  const policy = await client.request('/policies', { method: 'POST', body: JSON.stringify({ name: `Synthetic Storefront ${suffix}`, icon: 'lock', description: 'Synthetic local zero-grant gateway identity', app_access: false, admin_access: false }) });
-  appendOwnedId(manifest, 'directus_policies', String(policy.id));
+  const policy = await createSystemOwned(client, manifest, path, 'directus_policies', '/policies', { id: randomUUID(), name: `Synthetic Storefront ${suffix}`, icon: 'lock', description: 'Synthetic local zero-grant gateway identity', app_access: false, admin_access: false });
   manifest.service.policyId = policy.id;
   await saveManifest(path, manifest);
-  const role = await client.request('/roles', { method: 'POST', body: JSON.stringify({ name: `Synthetic Storefront ${suffix}`, icon: 'lock', description: 'Synthetic local zero-grant gateway identity' }) });
-  appendOwnedId(manifest, 'directus_roles', String(role.id));
+  const role = await createSystemOwned(client, manifest, path, 'directus_roles', '/roles', { id: randomUUID(), name: `Synthetic Storefront ${suffix}`, icon: 'lock', description: 'Synthetic local zero-grant gateway identity' });
   manifest.service.roleId = role.id;
   await saveManifest(path, manifest);
-  const access = await client.request('/access', { method: 'POST', body: JSON.stringify({ role: role.id, policy: policy.id }) });
-  appendOwnedId(manifest, 'directus_access', String(access.id));
+  const access = await createSystemOwned(client, manifest, path, 'directus_access', '/access', { id: randomUUID(), role: role.id, policy: policy.id });
   await saveManifest(path, manifest);
   const permissions = await client.request(`/permissions?filter[policy][_eq]=${encodeURIComponent(policy.id)}&limit=1&fields=id`);
   if (permissions.length) throw new Error('The storefront service policy unexpectedly has native permissions');
   const token = newServiceToken();
-  const user = await client.request('/users', { method: 'POST', body: JSON.stringify({ email: `storefront-${suffix}@example.invalid`, first_name: 'Synthetic', last_name: 'Storefront', status: 'active', role: role.id, token }) });
-  appendOwnedId(manifest, 'directus_users', String(user.id));
-  manifest.service = { token, userId: user.id, roleId: role.id, policyId: policy.id };
+  const userId = randomUUID();
+  manifest.service = { token, userId, roleId: role.id, policyId: policy.id };
+  await saveManifest(path, manifest);
+  const user = await createSystemOwned(client, manifest, path, 'directus_users', '/users', { id: userId, email: `storefront-${suffix}@example.invalid`, first_name: 'Synthetic', last_name: 'Storefront', status: 'active', role: role.id, token });
+  manifest.service.userId = user.id;
   await saveManifest(path, manifest);
   await writeLocalGatewayEnv(manifest);
 }
@@ -351,15 +416,30 @@ const pdfBytes = Buffer.from('%PDF-1.4\n1 0 obj<< /Type /Catalog /Pages 2 0 R >>
 const htmlBytes = Buffer.from('<!doctype html><title>Synthetic fixture</title><p>Generated synthetic acceptance document.</p>');
 
 async function uploadAsset(client, manifest, path, folderId, filename, bytes) {
+  const extensionAt = filename.lastIndexOf('.');
+  const runLabel = manifest.runId.slice(0, 8);
+  const generatedName = `${filename.slice(0, extensionAt)}-${runLabel}${filename.slice(extensionAt)}`;
+  const duplicate = await client.request(`/items/directus_files?${new URLSearchParams({ 'filter[folder][_eq]': folderId, 'filter[filename_download][_eq]': generatedName, limit: '1', fields: 'id' })}`);
+  if (duplicate.length) throw new Error('A generated file name is already in the fixture folder; refusing to overwrite it');
+  const id = randomUUID();
+  const idCollision = await client.request(`/items/directus_files?${new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: 'id' })}`);
+  if (idCollision.length) throw new Error('A generated file UUID is already in use; refusing to overwrite it');
+  const expected = { id, folder: folderId, filename_download: generatedName };
+  manifest.pending.directus_files[id] = expected;
+  manifest.ownership.directus_files[id] = expected;
+  await saveManifest(path, manifest);
   const form = new FormData();
+  form.append('id', id);
   form.append('folder', folderId);
   form.append('title', 'Generated synthetic acceptance fixture');
-  form.append('file', new Blob([bytes]), filename);
+  form.append('file', new Blob([bytes]), generatedName);
   const response = await fetch(`${client.baseUrl}/files`, { method: 'POST', headers: { authorization: `Bearer ${client.token}` }, body: form });
   if (!response.ok) throw new Error(`Generated asset upload failed with HTTP ${response.status}`);
   const record = (await response.json()).data;
   if (!record?.id) throw new Error('Asset upload did not return an owned file id');
-  appendOwnedId(manifest, 'directus_files', String(record.id)); await saveManifest(path, manifest);
+  markOwnedCreated(manifest, 'directus_files', String(record.id), { id: String(record.id), folder: folderId, filename_download: generatedName });
+  delete manifest.pending.directus_files[id];
+  await saveManifest(path, manifest);
   return record;
 }
 
@@ -372,7 +452,11 @@ async function cleanup(client, manifest, path) {
       COMMERCE_STOREFRONT_USER_ID: String(manifest.service.userId),
       COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID: String(manifest.publicFolderId),
     };
-    for (const [key, value] of Object.entries(expected)) if (envValue(text, key) !== value) throw new Error(`Refusing environment restore because ${key} changed after fixture provisioning`);
+    for (const [key, value] of Object.entries(expected)) {
+      const current = envValue(text, key);
+      const original = manifest.original.env[key];
+      if (current !== value && current !== original) throw new Error(`Refusing environment restore because ${key} changed after fixture provisioning`);
+    }
     let restored = text;
     for (const [key, value] of Object.entries(manifest.original.env)) restored = value === null ? restored.split(/\r?\n/u).filter(line => !line.startsWith(`${key}=`)).join('\n') : setEnvValue(restored, key, value);
     await writeFile(envPath, restored, { mode: 0o600 });
@@ -386,8 +470,8 @@ async function cleanup(client, manifest, path) {
     const expected = collection === 'home_page' ? saved.expectedValues : { commerce_profile: saved.expectedCommerceProfile };
     const fields = Object.keys(snapshot);
     const current = currentRows[0];
-    casRestorePatch(expected, Object.fromEntries(fields.map(field => [field, current[field]])), fields);
-    await patch(client, collection, saved.id, snapshot);
+    const restore = casRestorePatch(snapshot, Object.fromEntries(fields.map(field => [field, current[field]])), fields, expected);
+    if (Object.keys(restore).length) await patch(client, collection, saved.id, restore);
   }
   const order = [
     'directus_users', 'directus_access', 'directus_roles', 'directus_policies',
@@ -396,11 +480,20 @@ async function cleanup(client, manifest, path) {
     'categories', 'directus_files', 'directus_folders',
   ];
   for (const collection of order) {
-    const ids = [...(manifest.created[collection] ?? [])].reverse();
+    const ids = [...new Set([...(manifest.created[collection] ?? []), ...Object.keys(manifest.pending[collection] ?? {})])].reverse();
     for (const id of ids) {
       try {
-        if (['navigation_items', 'page_sections', 'pages', 'products_analogs', 'product_codes', 'product_documents', 'product_specifications', 'product_images', 'products', 'categories'].includes(collection)) {
-          const request = guardedDeleteRequest(collection, id);
+        const query = new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: '*' });
+        const rows = await client.request(`/items/${collection}?${query}`);
+        if (!rows.length) { appendCleanupAbsent(manifest, collection, id); continue; }
+        const expected = manifest.ownership[collection]?.[id] ?? manifest.pending[collection]?.[id];
+        if (!expected || Object.entries(expected).some(([field, value]) => JSON.stringify(rows[0][field]) !== JSON.stringify(value))) {
+          throw new Error('record no longer matches the fixture ownership snapshot');
+        }
+        if (collection === 'navigation_items') {
+          await client.request(`/items/navigation_items/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        } else if (['page_sections', 'pages', 'products_analogs', 'product_codes', 'product_documents', 'product_specifications', 'product_images', 'products', 'categories'].includes(collection)) {
+          const request = guardedDeleteRequest(collection, id, expected);
           await client.request(request.path, request.options);
         } else {
           const systemPath = {
@@ -409,11 +502,18 @@ async function cleanup(client, manifest, path) {
           }[collection] ?? `/items/${collection}`;
           await client.request(`${systemPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         }
+        appendCleanupAbsent(manifest, collection, id);
       }
-      catch (error) { if (!/HTTP 404/u.test(String(error?.message))) throw new Error(`Owned cleanup stopped at ${collection}; run status and retain manifest`); }
+      catch { throw new Error(`Owned cleanup stopped at ${collection}; run status and retain manifest`); }
     }
   }
   manifest.phase = 'cleaned'; await saveManifest(path, manifest);
+}
+
+function appendCleanupAbsent(manifest, collection, id) {
+  manifest.created[collection] = (manifest.created[collection] ?? []).filter(value => value !== id);
+  delete manifest.pending[collection]?.[id];
+  delete manifest.ownership[collection]?.[id];
 }
 
 if (fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '')) {

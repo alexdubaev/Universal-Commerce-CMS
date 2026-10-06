@@ -26,9 +26,12 @@ test('synthetic fixture plan covers the required public, variant, pricing, stock
   assert.deepEqual(new Set(plan.products.map(row => row.availability_status)), new Set(['in_stock', 'on_request', 'out_of_stock']));
   assert.equal(plan.products.at(-1).is_indexable, false);
   assert.equal(plan.drafts.length, 2);
-  assert.ok(plan.children.every(row => row.specification.status === 'draft' && row.image.status === 'draft'));
+  assert.ok(plan.children.every(row => row.specification.status === 'draft' && row.image.image));
+  assert.equal(plan.children[0].image.status, 'published');
+  assert.equal(plan.children[1].image.status, 'draft');
+  assert.ok(plan.products.every(row => row.mpn.startsWith('MPN-FX-')));
   assert.ok(plan.products.some(row => row.gallery && row.specifications && row.documents));
-  assert.deepEqual(plan.assets, ['fixture-gallery.png', 'fixture-private.pdf', 'fixture-home.png', 'fixture-document.html']);
+  assert.deepEqual(plan.assets, ['fixture-gallery.png', 'fixture-home.png', 'fixture-draft-only.png', 'fixture-unreferenced.png', 'fixture-document.html', 'fixture-public.pdf', 'fixture-private.pdf']);
 });
 
 test('manifest ownership is exact, UUID-only, and summaries redact identifiers', () => {
@@ -59,10 +62,13 @@ test('live fixture workflow gates child writes on verified native REST probes', 
   assert.equal(Object.hasOwn(summary, 'namedRefs'), false);
 });
 
-test('CAS restore only returns unchanged fixture-overridden fields', () => {
+test('CAS restore allows original or fixture state and refuses third-party changes', () => {
   const snapshot = { commerce_profile: { currency: 'RUB', features: { cart: false, parts_request: false } }, title: 'old' };
-  assert.deepEqual(casRestorePatch(snapshot, { ...snapshot }, ['commerce_profile']), { commerce_profile: snapshot.commerce_profile });
-  assert.throws(() => casRestorePatch(snapshot, { ...snapshot, commerce_profile: { currency: 'RUB', features: { cart: false, parts_request: true } } }, ['commerce_profile']), /changed after/u);
+  const original = { ...snapshot };
+  const fixture = { ...snapshot, commerce_profile: { currency: 'RUB', features: { cart: false, parts_request: true } } };
+  assert.deepEqual(casRestorePatch(snapshot, original, ['commerce_profile'], fixture), {});
+  assert.deepEqual(casRestorePatch(snapshot, fixture, ['commerce_profile'], fixture), { commerce_profile: snapshot.commerce_profile });
+  assert.throws(() => casRestorePatch(snapshot, { ...snapshot, commerce_profile: { currency: 'USD', features: { cart: true, parts_request: true } } }, ['commerce_profile'], fixture), /changed after/u);
 });
 
 test('analog keys are stable for symmetric and directional relation types', () => {
@@ -70,9 +76,10 @@ test('analog keys are stable for symmetric and directional relation types', () =
   assert.notEqual(productAnalogKey('b', 'a', 'superseded_by'), productAnalogKey('a', 'b', 'superseded_by'));
 });
 
-test('owned child cleanup uses the transaction-aware guarded mutation route', () => {
+test('owned child cleanup uses guarded mutations while navigation stays on native REST', () => {
   const request = guardedDeleteRequest('page_sections', id);
   assert.equal(request.path, `/commerce/mutations/page_sections/${id}`);
   assert.deepEqual(JSON.parse(request.options.body), { expected: { id }, action: 'delete' });
+  assert.throws(() => guardedDeleteRequest('navigation_items', id), /unguarded/u);
   assert.throws(() => guardedDeleteRequest('directus_users', id), /unguarded/u);
 });
