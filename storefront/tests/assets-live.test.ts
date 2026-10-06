@@ -28,7 +28,42 @@ describe("live storefront asset authorization", () => {
     ).resolves.toBe(true);
     expect(mocks.directusFetch).toHaveBeenCalledTimes(1);
     expect(String(mocks.directusFetch.mock.calls[0][0])).toContain("/items/products?");
+    const productFilter = JSON.parse(
+      new URL(String(mocks.directusFetch.mock.calls[0][0]), "http://localhost").searchParams.get("filter")!,
+    );
+    expect(productFilter._and).toContainEqual({
+      _or: [
+        { category: { _null: true } },
+        { category: { status: { _eq: "published" } } },
+      ],
+    });
     expect(mocks.directusFetch.mock.calls[0][1]).toEqual({ revalidate: 0 });
+  });
+
+  it.each([
+    ["product_images", "image"],
+    ["product_documents", "file"],
+  ])("requires a published or absent product category for %s references", async (collection, referenceField) => {
+    mocks.directusFetch.mockResolvedValueOnce({ data: [] });
+    if (collection === "product_documents") mocks.directusFetch.mockResolvedValueOnce({ data: [] });
+    mocks.directusFetch.mockResolvedValueOnce({ data: [{ id: "child-1" }] });
+
+    await expect(
+      isStorefrontAssetAllowed("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"),
+    ).resolves.toBe(true);
+    const callIndex = collection === "product_images" ? 1 : 2;
+    expect(mocks.directusFetch).toHaveBeenCalledTimes(callIndex + 1);
+    const [url] = mocks.directusFetch.mock.calls[callIndex];
+    expect(String(url)).toContain(`/items/${collection}?`);
+    const filter = JSON.parse(new URL(String(url), "http://localhost").searchParams.get("filter")!);
+    expect(filter._and).toContainEqual({ [referenceField]: { _eq: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" } });
+    expect(filter._and).toContainEqual({ product: { status: { _eq: "published" } } });
+    expect(filter._and).toContainEqual({
+      _or: [
+        { product: { category: { _null: true } } },
+        { product: { category: { status: { _eq: "published" } } } },
+      ],
+    });
   });
 
   it("forces potentially active document types to download", () => {

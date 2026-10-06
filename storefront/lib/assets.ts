@@ -59,13 +59,28 @@ export async function isStorefrontAssetAllowed(id: string) {
   // terminate on the first query instead of firing every authorization query.
   const checks: Array<[string, Record<string, unknown>]> = [
     ["products", {
-      _and: [{ status: { _eq: "published" } }, { main_image: { _eq: id } }],
+      _and: [
+        { status: { _eq: "published" } },
+        { main_image: { _eq: id } },
+        {
+          _or: [
+            { category: { _null: true } },
+            { category: { status: { _eq: "published" } } },
+          ],
+        },
+      ],
     }],
     ["product_images", {
       _and: [
         { status: { _eq: "published" } },
         { image: { _eq: id } },
         { product: { status: { _eq: "published" } } },
+        {
+          _or: [
+            { product: { category: { _null: true } } },
+            { product: { category: { status: { _eq: "published" } } } },
+          ],
+        },
       ],
     }],
     ["product_documents", {
@@ -73,6 +88,12 @@ export async function isStorefrontAssetAllowed(id: string) {
         { status: { _eq: "published" } },
         { file: { _eq: id } },
         { product: { status: { _eq: "published" } } },
+        {
+          _or: [
+            { product: { category: { _null: true } } },
+            { product: { category: { status: { _eq: "published" } } } },
+          ],
+        },
       ],
     }],
     ["categories", {
