@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { brands } from "@/lib/catalog";
+
+export const metadata: Metadata = {
+  title: "Бренды запчастей",
+  description: "Каталог брендов запчастей для спецтехники: Caterpillar, Komatsu, JCB, John Deere и другие.",
+  alternates: { canonical: "/brands" },
+};
 
 export default function BrandsPage() {
   return (

@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "О компании",
+  description: "СМ ТЕХНО — поставка запчастей для спецтехники и сельскохозяйственной техники.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (

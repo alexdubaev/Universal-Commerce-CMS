@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Оплата",
+  description: "Условия оплаты B2B-заказов запчастей для юридических лиц.",
+  alternates: { canonical: "/payment" },
+};
 
 export default function PaymentPage() {
   return (

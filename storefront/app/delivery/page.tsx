@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Доставка запчастей",
+  description: "Условия доставки B2B-заказов запчастей для спецтехники по России.",
+  alternates: { canonical: "/delivery" },
+};
 
 export default function DeliveryPage() {
   return (

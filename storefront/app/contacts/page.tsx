@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { QuickLeadForm } from "@/components/QuickLeadForm";
 import { getSiteSettings } from "@/lib/catalog";
+
+export const metadata: Metadata = {
+  title: "Контакты",
+  description: "Контакты СМ ТЕХНО для заявок и подбора запчастей для спецтехники.",
+  alternates: { canonical: "/contacts" },
+};
 
 export default async function ContactsPage() {
   const settings = await getSiteSettings();
