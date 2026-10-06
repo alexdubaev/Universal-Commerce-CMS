@@ -48,6 +48,10 @@ jobs:
           node-version: 22
       - name: Install
         run: npm install
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Critical dependency audit including dev tools
+        run: npm audit --audit-level=critical
       - name: Unit / TDD regression tests
         run: npm test
       - name: TypeScript
