@@ -25,8 +25,8 @@ async function readManifest() {
     || typeof manifest.namedRefs?.nonIndexableProductSlug !== "string") {
     throw new Error("Live acceptance manifest is incomplete or targets an unsupported instance.");
   }
-  if (action === "start" && manifest.phase !== "active") {
-    throw new Error("Live acceptance fixtures are not active; the runtime suite must wait for fixture and gateway review.");
+  if (manifest.phase !== "active") {
+    throw new Error("Live build and start require active reviewed synthetic fixtures.");
   }
   return manifest;
 }

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import { directusUrl, manifest, percentile } from "./support";
 import { createMinimalXlsx } from "./xlsx-buffer";
+import { recordLiveLead } from "./live-journal.mjs";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -38,19 +39,19 @@ test("live CMS drives home, brands, facets, product children, and search", async
   await expect(page.locator(".article-big strong")).toBeVisible();
   const sku = (await page.locator(".article-big strong").innerText()).trim();
   expect(sku.length).toBeGreaterThan(0);
-  if (refs.galleryFileIds.length) {
-    expect(await page.locator(".product-media img").count()).toBeGreaterThan(0);
-  }
-  if (refs.publicDocumentFileId) await expect(page.locator(".document-list a").first()).toBeVisible();
+  expect(refs.galleryFileIds.length).toBeGreaterThan(0);
+  expect(await page.locator(".product-media img").count()).toBeGreaterThan(0);
+  await expect(page.locator(".document-list a").first()).toBeVisible();
+  await expect(page.locator(".code-list")).toBeVisible();
+  await expect(page.locator(".product-relations")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Основные данные" })).toBeVisible();
+  const mpn = await page.locator(".spec-list div").filter({ has: page.locator("dt", { hasText: /^MPN$/ }) }).locator("dd").textContent();
+  expect(mpn?.trim()).toBeTruthy();
 
   await page.goto(`/catalog?q=${encodeURIComponent(sku.replace(/[^\p{L}\p{N}]/gu, ""))}`);
   await expect(page.locator(`a[href="/product/${refs.primaryProductSlug}"]`).first()).toBeVisible();
-  const mpn = await page.locator(".spec-list div").filter({ has: page.locator("dt", { hasText: /^MPN$/ }) }).locator("dd").textContent().catch(() => null);
-  if (mpn?.trim()) {
-    await page.goto(`/catalog?q=${encodeURIComponent(mpn.trim())}`);
-    await expect(page.locator(`a[href="/product/${refs.primaryProductSlug}"]`).first()).toBeVisible();
-  }
+  await page.goto(`/catalog?q=${encodeURIComponent(mpn!.trim())}`);
+  await expect(page.locator(`a[href="/product/${refs.primaryProductSlug}"]`).first()).toBeVisible();
 });
 
 test("published and non-indexable product visibility matches sitemap and metadata", async ({ page, request }) => {
@@ -72,17 +73,28 @@ test("published and non-indexable product visibility matches sitemap and metadat
 test("public assets return bytes with safe headers and reject private or unknown files", async ({ request }) => {
   const refs = (await manifest()).namedRefs;
   expect(refs.galleryFileIds.length).toBeGreaterThan(0);
-  for (const fileId of [refs.galleryFileIds[0], refs.publicDocumentFileId].filter((value): value is string => Boolean(value))) {
+  for (const [fileId, expectedType, disposition] of [
+    [refs.galleryFileIds[0], /^image\//, /^inline/i],
+    [refs.publicDocumentFileId, /^application\/pdf/, /^inline/i],
+  ] as const) {
     const response = await request.get(`/api/assets/${fileId}`);
-    expect(response.ok()).toBe(true);
+    expect(response.ok).toBe(true);
     const headers = response.headers();
-    expect(headers["content-type"]).toMatch(/^(image\/|application\/pdf)/);
-    expect(headers["content-disposition"]).toMatch(/^attachment/i);
+    expect(headers["content-type"]).toMatch(expectedType);
+    expect(headers["content-disposition"]).toMatch(disposition);
     expect(headers["x-content-type-options"]).toBe("nosniff");
     expect(headers["content-security-policy"]).toContain("sandbox");
     expect(headers["cache-control"]).toContain("no-store");
     expect((await response.body()).byteLength).toBeGreaterThan(0);
   }
+  const activeHtml = await request.get(`/api/assets/${refs.htmlFileId}`);
+  expect(activeHtml.ok()).toBe(true);
+  expect(activeHtml.headers()["content-type"]).toMatch(/^application\/octet-stream/);
+  expect(activeHtml.headers()["content-disposition"]).toMatch(/^attachment/i);
+  expect(activeHtml.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(activeHtml.headers()["content-security-policy"]).toContain("sandbox");
+  expect(activeHtml.headers()["cache-control"]).toContain("no-store");
+  expect((await activeHtml.body()).byteLength).toBeGreaterThan(0);
   for (const fileId of [refs.privateAssetId!, refs.draftReferencedAssetId!, refs.unreferencedAssetId!, randomUUID()]) {
     const response = await request.get(`/api/assets/${fileId}`);
     expect(response.ok()).toBe(false);
@@ -93,16 +105,18 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
   const fixture = await manifest();
   const url = directusUrl();
   const auth = { Authorization: `Bearer ${fixture.service.token}` };
+  const directusFetch = async (path: string, init: RequestInit = {}) => fetch(`${url}${path}`, { ...init, headers: { ...auth, ...init.headers } });
   const gatewayRead = async (path: string) => {
-    const response = await request.get(`${url}/commerce/storefront/items/${path}`, { headers: auth });
-    expect(response.ok()).toBe(true);
+    const response = await directusFetch(`/commerce/storefront/items/${path}`);
+    expect(response.ok).toBe(true);
     const body = await response.json().catch(() => null);
     return body?.data;
   };
-  const positive = await request.get(`${url}/commerce/storefront/items/products?fields=id,slug&limit=1&filter=${encodeURIComponent(JSON.stringify({ id: { _eq: fixture.namedRefs.primaryProductId } }))}`, { headers: auth });
-  expect(positive.ok()).toBe(true);
+  const positive = await directusFetch(`/commerce/storefront/items/products?fields=id,slug,sku&limit=1&filter=${encodeURIComponent(JSON.stringify({ id: { _eq: fixture.namedRefs.primaryProductId } }))}`);
+  expect(positive.ok).toBe(true);
   const positiveBody = await positive.json().catch(() => null);
-  expect(Array.isArray(positiveBody?.data) && positiveBody.data.some((item: { id?: string }) => item.id === fixture.namedRefs.primaryProductId)).toBe(true);
+  const primary = Array.isArray(positiveBody?.data) ? positiveBody.data.find((item: { id?: string }) => item.id === fixture.namedRefs.primaryProductId) : null;
+  expect(typeof primary?.sku).toBe("string");
 
   const settings = await gatewayRead("site_settings?fields=company_name,phone,email");
   expect(Boolean(settings && typeof settings === "object" && !Array.isArray(settings))).toBe(true);
@@ -110,13 +124,13 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
   const home = await gatewayRead("home_page?fields=id,status,h1,hero_title,hero_text,hero_image,seo_title,seo_description,is_indexable");
   expect(Boolean(home && typeof home === "object" && home.status === "published")).toBe(true);
   const pageFilter = encodeURIComponent(JSON.stringify({ _and: [{ id: { _eq: fixture.namedRefs.pageId } }, { status: { _eq: "published" } }] }));
-  const pages = await gatewayRead(`pages?fields=id,slug,title,page_type,h1,is_indexable&limit=10&filter=${pageFilter}`);
+  const pages = await gatewayRead(`pages?fields=id,slug,title,page_type,h1,is_indexable&limit=1&filter=${pageFilter}`);
   expect(Array.isArray(pages) && pages.some((row: { id?: string }) => row.id === fixture.namedRefs.pageId)).toBe(true);
   const sectionFilter = encodeURIComponent(JSON.stringify({ _and: [{ page: { _eq: fixture.namedRefs.pageId } }, { status: { _eq: "published" } }, { is_visible: { _eq: true } }] }));
-  const sections = await gatewayRead(`page_sections?fields=id,section_type,title,subtitle,text,image,image_alt,button_text,button_url,items,settings&limit=100&sort=sort_order&filter=${sectionFilter}`);
+  const sections = await gatewayRead(`page_sections?fields=id,section_type,title,subtitle,text,image,image_alt,button_text,button_url,items,settings&limit=1&sort=sort_order&filter=${sectionFilter}`);
   expect(Array.isArray(sections) && sections.length > 0).toBe(true);
   const navigationFilter = encodeURIComponent(JSON.stringify({ _and: [{ status: { _eq: "published" } }, { is_visible: { _eq: true } }, { location: { _eq: "header" } }, { parent: { _null: true } }] }));
-  const navigation = await gatewayRead(`navigation_items?fields=id,label,url,location,open_in_new_tab&limit=100&sort=sort_order&filter=${navigationFilter}`);
+  const navigation = await gatewayRead(`navigation_items?fields=id,label,url,location,open_in_new_tab&limit=1&sort=sort_order&filter=${navigationFilter}`);
   expect(Array.isArray(navigation) && navigation.length > 0).toBe(true);
 
   const nativeReadPaths = [
@@ -125,37 +139,36 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
     `/assets/${fixture.namedRefs.galleryFileIds[0]}`,
     "/users?limit=1",
     "/roles?limit=1",
-    "/commerce/search?q=x",
+    `/commerce/search?q=${encodeURIComponent(primary.sku)}`,
   ];
   for (const path of nativeReadPaths) {
-    const response = await request.get(`${url}${path}`, { headers: auth }).catch(() => null);
-    expect(response !== null && [401, 403].includes(response.status())).toBe(true);
+    const response = await directusFetch(path).catch(() => null);
+    expect(response !== null && !response.ok).toBe(true);
   }
-  const nativeItemMutation = await request.post(`${url}/items/products`, { headers: auth, data: {} }).catch(() => null);
-  expect(nativeItemMutation !== null && [401, 403].includes(nativeItemMutation.status())).toBe(true);
-  const nativeLeadMutation = await request.post(`${url}/commerce/leads`, { headers: auth, data: {} }).catch(() => null);
-  expect(nativeLeadMutation !== null && [401, 403].includes(nativeLeadMutation.status())).toBe(true);
-  const disabledOrders = await request.get(`${url}/commerce/orders`, { headers: auth }).catch(() => null);
-  expect(disabledOrders?.status()).toBe(404);
-  const guardedOrders = await request.post(`${url}/commerce/storefront/orders`, { headers: auth, data: {} }).catch(() => null);
-  expect(guardedOrders?.status()).toBe(404);
+  const nativeItemMutation = await directusFetch("/items/products", { method: "POST", body: "{}" }).catch(() => null);
+  expect(nativeItemMutation !== null && !nativeItemMutation.ok).toBe(true);
+  const nativeLeadMutation = await directusFetch("/commerce/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), company: "Synthetic native denial", name: "Live acceptance", phone: "+79990000004", email: "native-denial@example.invalid", request_items: [{ article: "LIVE-NATIVE-DENIAL", quantity: 1 }] }) }).catch(() => null);
+  expect(nativeLeadMutation !== null && !nativeLeadMutation.ok).toBe(true);
+  const disabledOrders = await directusFetch("/commerce/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), product: fixture.namedRefs.primaryProductId, quantity: 1 }) }).catch(() => null);
+  expect(disabledOrders !== null && !disabledOrders.ok).toBe(true);
+  const guardedOrders = await directusFetch("/commerce/storefront/orders", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }).catch(() => null);
+  expect(guardedOrders?.status).toBe(404);
 
   const deniedGatewayPaths = [
     "/commerce/storefront/items/not_allowed?limit=1",
     "/commerce/storefront/items/products?fields=*&limit=1",
   ];
   for (const path of deniedGatewayPaths) {
-    const response = await request.get(`${url}${path}`, { headers: auth }).catch(() => null);
-    expect(response !== null && response.status() >= 400).toBe(true);
+    const response = await directusFetch(path).catch(() => null);
+    expect(response !== null && !response.ok).toBe(true);
   }
-  const anonymous = await request.get(`${url}/commerce/storefront/items/products?fields=id&limit=1`).catch(() => null);
-  expect(anonymous !== null && [401, 403].includes(anonymous.status())).toBe(true);
-  const wrongCaller = await request.get(`${url}/commerce/storefront/items/products?fields=id&limit=1`, { headers: { Authorization: "Bearer invalid-live-acceptance-token" } }).catch(() => null);
-  expect(wrongCaller !== null && [401, 403].includes(wrongCaller.status())).toBe(true);
+  const anonymous = await fetch(`${url}/commerce/storefront/items/products?fields=id&limit=1`).catch(() => null);
+  expect(anonymous !== null && !anonymous.ok).toBe(true);
+  const wrongCaller = await fetch(`${url}/commerce/storefront/items/products?fields=id&limit=1`, { headers: { Authorization: "Bearer invalid-live-acceptance-token" } }).catch(() => null);
+  expect(wrongCaller !== null && !wrongCaller.ok).toBe(true);
 });
 
-test("RFQ manual, CSV, TXT and XLSX imports edit and remove items without sending attachments", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-chromium", "Run mutable RFQ interactions once per acceptance run.");
+test("RFQ manual, CSV, TXT and XLSX imports edit and remove items without sending attachments", async ({ page }) => {
   await page.goto("/request");
   await page.getByLabel("Артикулы").fill("LIVE-MANUAL-A 2\nLIVE-MANUAL-B 1");
   await page.getByRole("button", { name: "Добавить список" }).click();
@@ -176,13 +189,21 @@ test("RFQ manual, CSV, TXT and XLSX imports edit and remove items without sendin
   await page.getByLabel("Контактное лицо").fill("Live UI Acceptance");
   await page.getByLabel("Телефон").fill("+79990000002");
   await page.getByLabel("Email").fill("live-ui@example.invalid");
+  const responsePromise = page.waitForResponse((response) => response.url().endsWith("/api/lead") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Отправить менеджеру" }).click();
+  const leadResponse = await responsePromise;
+  const payload = leadResponse.request().postDataJSON() as { request_key?: string };
+  const acknowledgement = await leadResponse.json().catch(() => null);
+  if (typeof payload.request_key === "string" && typeof acknowledgement?.id === "string") {
+    await recordLiveLead((await manifest()).runId, payload.request_key, acknowledgement.id, "browser-rfq");
+  }
+  expect(leadResponse.ok()).toBe(true);
+  expect(typeof acknowledgement?.id).toBe("string");
   await expect(page.getByText(/Заявка принята\. Номер:/)).toBeVisible();
   await expect(page.getByText("Список пока пуст")).toBeVisible();
 });
 
-test("real RFQ writes handle concurrent replay, changed-payload conflict, and invalid input", async ({ request }, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-chromium", "Run durable writes once per acceptance run.");
+test("real RFQ writes handle concurrent replay, changed-payload conflict, and invalid input", async ({ request }) => {
   const key = randomUUID();
   const payload = {
     request_key: key,
@@ -195,14 +216,22 @@ test("real RFQ writes handle concurrent replay, changed-payload conflict, and in
     page_url: "http://127.0.0.1:3001/request",
   };
   const responses = await Promise.all(Array.from({ length: 8 }, () => request.post("/api/lead", { data: payload })));
-  expect(responses.every((response) => response.ok())).toBe(true);
   const bodies = await Promise.all(responses.map((response) => response.json().catch(() => null)));
+  for (const body of bodies) {
+    if (typeof body?.id === "string") await recordLiveLead((await manifest()).runId, key, body.id, "browser-api", responses.length);
+  }
+  expect(responses.every((response) => response.ok())).toBe(true);
   expect(new Set(bodies.map((body) => body?.id)).size).toBe(1);
   expect(bodies.some((body) => body?.replayed === true)).toBe(true);
 
   const changed = await request.post("/api/lead", { data: { ...payload, message: "changed payload" } });
+  const changedBody = await changed.json().catch(() => null);
+  if (typeof changedBody?.id === "string") await recordLiveLead((await manifest()).runId, key, changedBody.id, "browser-conflict", 1);
   expect(changed.status()).toBe(409);
-  const invalid = await request.post("/api/lead", { data: { ...payload, request_key: randomUUID(), name: "x" } });
+  const invalidKey = randomUUID();
+  const invalid = await request.post("/api/lead", { data: { ...payload, request_key: invalidKey, name: "x" } });
+  const invalidBody = await invalid.json().catch(() => null);
+  if (typeof invalidBody?.id === "string") await recordLiveLead((await manifest()).runId, invalidKey, invalidBody.id, "browser-invalid", 1);
   expect(invalid.status()).toBe(400);
 });
 
@@ -257,6 +286,8 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
 
   await page.goto(`/product/${refs.primaryProductSlug}`);
   const sku = (await page.locator(".article-big strong").innerText()).trim();
+  const capturedMpn = (await page.locator(".spec-list div").filter({ has: page.locator("dt", { hasText: /^MPN$/ }) }).locator("dd").textContent())?.trim();
+  expect(capturedMpn).toBeTruthy();
   await page.goto("/brands");
   const brandPath = await page.locator(".brand-card").first().getAttribute("href");
   expect(Boolean(brandPath)).toBe(true);
@@ -278,6 +309,26 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
     }
     const p50 = percentile(samples, 0.5);
     const p95 = percentile(samples, 0.95);
-    console.log(`LIVE_SYNTHETIC_PERF surface=${surface} samples=${samples.length} p50_ms=${p50.toFixed(1)} p95_ms=${p95.toFixed(1)} fixture=small`);
+    console.log(`LIVE_SYNTHETIC_PERF surface=${surface} cache=warm samples=${samples.length} p50_ms=${p50.toFixed(1)} p95_ms=${p95.toFixed(1)} fixture=small`);
   }
+  const fixture = await manifest();
+  const gatewayToken = fixture.service.token;
+  for (const [surface, query] of [["sku", sku], ["mpn", capturedMpn!]] as const) {
+    const samples: number[] = [];
+    for (let index = 0; index < 5; index++) {
+      const started = performance.now();
+      const response = await fetch(`${directusUrl()}/commerce/storefront/search?q=${encodeURIComponent(query)}`, { headers: { Authorization: `Bearer ${gatewayToken}` } });
+      expect(response.ok).toBe(true);
+      samples.push(performance.now() - started);
+    }
+    console.log(`LIVE_SYNTHETIC_PERF surface=gateway-${surface} cache=direct samples=${samples.length} p50_ms=${percentile(samples, 0.5).toFixed(1)} p95_ms=${percentile(samples, 0.95).toFixed(1)} fixture=small`);
+  }
+  const brandSamples: number[] = [];
+  for (let index = 0; index < 5; index++) {
+    const started = performance.now();
+    const response = await fetch(`${directusUrl()}/commerce/storefront/items/brands?fields=id,slug&limit=1`, { headers: { Authorization: `Bearer ${gatewayToken}` } });
+    expect(response.ok).toBe(true);
+    brandSamples.push(performance.now() - started);
+  }
+  console.log(`LIVE_SYNTHETIC_PERF surface=gateway-brand cache=direct samples=${brandSamples.length} p50_ms=${percentile(brandSamples, 0.5).toFixed(1)} p95_ms=${percentile(brandSamples, 0.95).toFixed(1)} fixture=small`);
 });

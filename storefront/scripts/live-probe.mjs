@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:net";
 import { spawn } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,7 @@ const localOrigin = "http://127.0.0.1";
 const storefrontRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repoRoot = path.resolve(storefrontRoot, "..");
 const manifestPath = path.join(repoRoot, "dev", ".storefront-acceptance", "manifest.json");
+const journalPath = path.join(repoRoot, "dev", ".storefront-acceptance", "live-results.json");
 const nextCli = path.join(storefrontRoot, "node_modules", "next", "dist", "bin", "next");
 const args = new Set(process.argv.slice(2));
 
@@ -130,6 +131,29 @@ async function postLead(origin, payload) {
   return { response, body };
 }
 
+async function readJournal(manifest) {
+  let journal;
+  try { journal = JSON.parse(await readFile(journalPath, "utf8")); } catch { journal = { runId: manifest.runId, leads: [] }; }
+  if (journal.runId !== manifest.runId || !Array.isArray(journal.leads)) fail("Private lead journal does not match active fixtures.");
+  return journal;
+}
+
+async function adminLeadRows(token, requestKey) {
+  const filter = encodeURIComponent(JSON.stringify({ request_key: { _eq: requestKey } }));
+  const response = await adminFetch(token, `/items/leads?filter=${filter}&fields=id,request_key,user_created&limit=2`);
+  const rows = response.ok ? (await response.json().catch(() => null))?.data : null;
+  if (!Array.isArray(rows)) fail("Read-only observer could not inspect synthetic RFQ persistence.");
+  return rows;
+}
+
+async function verifyLeadRow(token, manifest, requestKey, id, expectedCount) {
+  const rows = await adminLeadRows(token, requestKey);
+  if (rows.length !== expectedCount) fail("Synthetic RFQ persistence count did not match the exact request key.");
+  if (expectedCount === 1 && (rows[0]?.id !== id || rows[0]?.request_key !== requestKey || rows[0]?.user_created !== manifest.service.userId)) {
+    fail("Synthetic RFQ owner or acknowledgement ID did not match the persisted row.");
+  }
+}
+
 async function restartDurabilityProbe(manifest) {
   const port = await unusedPort();
   const origin = `${localOrigin}:${port}`;
@@ -144,25 +168,51 @@ async function restartDurabilityProbe(manifest) {
     page_url: `${origin}/request`,
   };
   let child = await startNext(manifest, port);
+  const token = await adminToken();
   try {
     const first = await postLead(origin, payload);
+    if (typeof first.body?.id === "string") await recordProbeLead(manifest, payload.request_key, first.body.id, "restart-probe", 1);
     if (!first.response.ok || typeof first.body?.id !== "string" || first.body.replayed !== false) {
       fail("The first synthetic RFQ was not acknowledged as a new durable lead.");
     }
+    await verifyLeadRow(token, manifest, payload.request_key, first.body.id, 1);
     await stopNext(child);
     child = null;
     child = await startNext(manifest, port);
     const retry = await postLead(origin, payload);
+    if (typeof retry.body?.id === "string") await recordProbeLead(manifest, payload.request_key, retry.body.id, "restart-retry", 2);
     if (!retry.response.ok || retry.body?.id !== first.body.id || retry.body?.replayed !== true) {
       fail("Same-key RFQ replay did not return the persisted acknowledgement after process restart.");
     }
+    await verifyLeadRow(token, manifest, payload.request_key, first.body.id, 1);
     const conflict = await postLead(origin, { ...payload, message: "changed synthetic payload" });
     if (conflict.response.status !== 409) fail("Changed same-key RFQ payload did not conflict.");
-    const invalid = await postLead(origin, { ...payload, request_key: randomUUID(), name: "x" });
+    await verifyLeadRow(token, manifest, payload.request_key, first.body.id, 1);
+    const invalidKey = randomUUID();
+    const invalid = await postLead(origin, { ...payload, request_key: invalidKey, name: "x" });
     if (invalid.response.status !== 400) fail("Invalid synthetic RFQ was not rejected before persistence.");
+    await verifyLeadRow(token, manifest, invalidKey, null, 0);
+    await verifyJournaledLeads(token, manifest);
   } finally {
     if (child) await stopNext(child);
   }
+}
+
+async function recordProbeLead(manifest, requestKey, id, source, attempts) {
+  const journal = await readJournal(manifest);
+  const existing = journal.leads.find((lead) => lead.requestKey === requestKey && lead.id === id);
+  if (existing) {
+    existing.attempts = Math.max(existing.attempts || 1, attempts);
+    if (!existing.sources.includes(source)) existing.sources.push(source);
+  } else journal.leads.push({ requestKey, id, sources: [source], attempts });
+  const temporary = `${journalPath}.${process.pid}.tmp`;
+  await writeFile(temporary, `${JSON.stringify({ schema: "universal-cms/storefront-acceptance-results/v1", runId: manifest.runId, leads: journal.leads }, null, 2)}\n`, { mode: 0o600 });
+  await rename(temporary, journalPath);
+}
+
+async function verifyJournaledLeads(token, manifest) {
+  const journal = await readJournal(manifest);
+  for (const lead of journal.leads) await verifyLeadRow(token, manifest, lead.requestKey, lead.id, 1);
 }
 
 async function failClosedProbe(manifest) {
@@ -223,14 +273,14 @@ function pendingContains(manifest, collection, id) {
 }
 
 async function setDocumentStatus(token, documentId, from, to, fileId, productId, title) {
-  const filter = encodeURIComponent(JSON.stringify(ownedDocumentFilter(documentId, from, fileId, productId, title)));
-  const response = await adminFetch(token, `/items/product_documents?filter=${filter}`, {
-    method: "PATCH",
-    body: JSON.stringify({ status: to }),
+  const response = await adminFetch(token, `/commerce/mutations/product_documents/${encodeURIComponent(documentId)}`, {
+    method: "POST",
+    body: JSON.stringify({ expected: { id: documentId, status: from, file: fileId, product: productId, title }, changes: { status: to } }),
   });
-  if (!response.ok) fail("CAS document status update was rejected.");
-  const body = await response.json().catch(() => null);
-  if (!Array.isArray(body?.data) || body.data.length !== 1 || body.data[0]?.id !== documentId || body.data[0]?.status !== to) {
+  if (!response.ok) fail("Transactional CAS document status update was rejected.");
+  const readback = await adminFetch(token, `/items/product_documents/${encodeURIComponent(documentId)}?fields=id,status,file,product,title`);
+  const row = readback.ok ? (await readback.json().catch(() => null))?.data : null;
+  if (row?.id !== documentId || row?.status !== to || row?.file !== fileId || row?.product !== productId || row?.title !== title) {
     fail("CAS document update did not affect exactly the owned fixture record.");
   }
 }

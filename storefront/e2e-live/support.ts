@@ -12,6 +12,8 @@ export type FixtureManifest = {
     primaryProductSlug: string;
     galleryFileIds: string[];
     publicDocumentFileId: string;
+    htmlFileId: string;
+    htmlDocumentId: string;
     draftReferencedAssetId: string;
     unreferencedAssetId: string;
     privateAssetId: string;
@@ -46,6 +48,7 @@ export async function manifest(): Promise<FixtureManifest> {
     || !value.service.userId || !value.namedRefs?.primaryProductId
     || !value.namedRefs.primaryProductSlug || !value.namedRefs.nonIndexableProductSlug
     || !value.namedRefs.nonIndexableProductId || !value.namedRefs.publicDocumentFileId
+    || !value.namedRefs.htmlFileId || !value.namedRefs.htmlDocumentId
     || !value.namedRefs.draftReferencedAssetId || !value.namedRefs.privateAssetId
     || !value.namedRefs.unreferencedAssetId
     || !Array.isArray(value.namedRefs.galleryFileIds) || !Array.isArray(value.namedRefs.draftProductIds)) {
