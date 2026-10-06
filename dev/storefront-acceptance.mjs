@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { DirectusAdminClient } from '../directus/schema/apply-schema.mjs';
 import {
   COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget,
-  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows,
+  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows, serviceEmailForRun,
   guardedDeleteRequest, ownershipFields, productAnalogKey, redactSummary, safeManifestDirectory,
 } from './storefront-acceptance-fixtures.mjs';
 
@@ -184,7 +184,7 @@ async function assertNoGeneratedNameCollisions(client, manifest) {
     ['directus_folders', 'name', `Acceptance Private ${suffix}`],
     ['directus_policies', 'name', `Synthetic Storefront ${suffix}`],
     ['directus_roles', 'name', `Synthetic Storefront ${suffix}`],
-    ['directus_users', 'email', `storefront-${suffix}@example.invalid`],
+    ['directus_users', 'email', serviceEmailForRun(manifest.runId)],
   ];
   for (const [collection, field, value] of checks) {
     const params = new URLSearchParams({ [`filter[${field}][_eq]`]: value, limit: '1', fields: 'id' });
@@ -352,7 +352,7 @@ async function provisionServiceIdentity(client, manifest, path) {
   const userId = randomUUID();
   manifest.service = { token, userId, roleId: role.id, policyId: policy.id };
   await saveManifest(path, manifest);
-  const user = await createSystemOwned(client, manifest, path, 'directus_users', '/users', { id: userId, email: `storefront-${suffix}@example.invalid`, first_name: 'Synthetic', last_name: 'Storefront', status: 'active', role: role.id, token });
+  const user = await createSystemOwned(client, manifest, path, 'directus_users', '/users', { id: userId, email: serviceEmailForRun(manifest.runId), first_name: 'Synthetic', last_name: 'Storefront', status: 'active', role: role.id, token });
   manifest.service.userId = user.id;
   await saveManifest(path, manifest);
   await writeLocalGatewayEnv(manifest);

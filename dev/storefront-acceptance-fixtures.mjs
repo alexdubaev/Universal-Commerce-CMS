@@ -184,7 +184,7 @@ export function redactSummary(manifest) {
     childCreateVerified: Boolean(manifest.childCreateVerified),
     sectionCreateVerified: manifest.sectionCreateVerified,
     sectionProbeStatus: manifest.sectionProbeOutcome?.status ?? null,
-    serviceConfigured: Boolean(manifest.service?.userId && manifest.service?.token),
+    serviceConfigured: manifest.phase === 'active' && Boolean(manifest.service?.userId && manifest.service?.token && manifest.created?.directus_users?.includes(manifest.service.userId)),
   };
 }
 
@@ -194,3 +194,8 @@ export function productAnalogKey(fromId, toId, relationType) {
 }
 
 export function newServiceToken() { return randomBytes(48).toString('base64url'); }
+
+export function serviceEmailForRun(runId) {
+  if (!uuidPattern.test(runId)) throw new Error('runId must be a UUID');
+  return `storefront-${runId.slice(0, 8)}@example.com`;
+}

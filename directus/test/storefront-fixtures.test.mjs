@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casRestorePatch,
-  collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, redactSummary,
+  collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, redactSummary, serviceEmailForRun,
   safeManifestDirectory,
 } from '../../dev/storefront-acceptance-fixtures.mjs';
 
@@ -50,8 +50,12 @@ test('manifest ownership is exact, UUID-only, and summaries redact identifiers',
   assert.deepEqual(manifest.created.products, [id]);
   assert.throws(() => appendOwnedId(manifest, 'products', 'baseline-row'), /invalid ownership/u);
   assert.deepEqual(redactSummary({ ...manifest, service: { userId: id, token: 'secret' } }), {
-    status: 'planned', counts: { ...Object.fromEntries(Object.keys(manifest.created).map(key => [key, 0])), products: 1 }, childCreateVerified: false, sectionCreateVerified: null, sectionProbeStatus: null, serviceConfigured: true,
+    status: 'planned', counts: { ...Object.fromEntries(Object.keys(manifest.created).map(key => [key, 0])), products: 1 }, childCreateVerified: false, sectionCreateVerified: null, sectionProbeStatus: null, serviceConfigured: false,
   });
+  manifest.phase = 'active';
+  manifest.created.directus_users.push(id);
+  assert.equal(redactSummary({ ...manifest, service: { userId: id, token: 'secret' } }).serviceConfigured, true);
+  assert.match(serviceEmailForRun(id), /^[a-z0-9-]+@example\.com$/u);
   assert.match(safeManifestDirectory('D:/site-copy'), /[\\/]dev[\\/]\.storefront-acceptance$/u);
 });
 
