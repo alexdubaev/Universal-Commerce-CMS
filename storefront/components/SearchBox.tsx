@@ -26,7 +26,7 @@ function saveHistory(query: string) {
 export function SearchBox({
   compact = false,
   initial = "",
-  placeholder = "Введите артикул, OEM, название или бренд",
+  placeholder = "Введите артикул или OEM-номер",
   buttonLabel = "Найти",
 }: {
   compact?: boolean;

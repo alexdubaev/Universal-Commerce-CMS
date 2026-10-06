@@ -33,7 +33,7 @@ export default async function HomePage() {
   const primaryHref = safeContentHref(home?.hero_primary_button_url);
   const secondaryHref = safeContentHref(home?.hero_secondary_button_url);
   const heroTitle = home?.hero_title || "Движение вашего бизнеса зависит от деталей";
-  const heroText = home?.hero_text || "Ищите по артикулу, OEM-номеру, бренду или названию. Оригинальные запчасти и проверенные аналоги.";
+  const heroText = home?.hero_text || "Ищите по артикулу или OEM-номеру. Оригинальные запчасти и совместимые варианты собраны в одном мультибрендовом каталоге.";
 
   return (
     <>
@@ -48,7 +48,7 @@ export default async function HomePage() {
             )}
             <p>{heroText}</p>
             <SearchBox
-              placeholder={home?.hero_search_placeholder || "Введите артикул, OEM, название или бренд"}
+              placeholder={home?.hero_search_placeholder || "Введите артикул или OEM-номер"}
               buttonLabel={home?.hero_search_button_text || "Найти"}
             />
             <div className="search-example">Например: 1R-1808, RE568158, DZ121294, 320/04542</div>

@@ -180,11 +180,25 @@ test("API guard rails reject invalid public requests and keep order retries stab
   expect((await first.json()).id).toBe((await second.json()).id);
 });
 
+
+test("keyboard skip link reaches the main content", async ({ page }) => {
+  await page.goto("/");
+  await page.keyboard.press("Tab");
+  await expect(page.locator(".skip-link")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+});
+
 test("mobile menu works and key routes never overflow horizontally", async ({ page }, testInfo) => {
   if (testInfo.project.name === "mobile-chromium") {
     await page.goto("/");
-    await page.getByRole("button", { name: "Открыть меню" }).click();
+    const toggle = page.getByRole("button", { name: "Открыть меню" });
+    await toggle.click();
     await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeHidden();
+    await expect(page.getByRole("button", { name: "Открыть меню" })).toBeFocused();
+    await page.getByRole("button", { name: "Открыть меню" }).click();
     await page.getByRole("navigation", { name: "Основная навигация" }).getByRole("link", { name: "Каталог" }).click();
     await expect(page).toHaveURL(/\/catalog/);
   }

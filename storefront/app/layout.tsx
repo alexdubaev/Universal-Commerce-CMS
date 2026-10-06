@@ -44,8 +44,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="ru">
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(organization) }} />
+        <a className="skip-link" href="#main-content">К основному содержимому</a>
         <Header settings={settings} navigation={headerNav} />
-        <main>{children}</main>
+        <main id="main-content" tabIndex={-1}>{children}</main>
         <Footer settings={settings} navigation={footerNav} legal={legalNav} />
       </body>
     </html>

@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "Заявка по списку",
   description: "Отправьте список артикулов запчастей: вручную, CSV или XLSX.",
   alternates: { canonical: "/request" },
+  robots: { index: false, follow: true },
   robots: { index: false, follow: false },
 };
 

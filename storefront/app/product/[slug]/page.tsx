@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AddToRequest } from "@/components/AddToRequest";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductGallery } from "@/components/ProductGallery";
 import { getProductDetail, getRelatedProducts } from "@/lib/catalog";
 import { slugifyBrand } from "@/lib/brands";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
@@ -83,8 +84,6 @@ export default async function ProductPage({ params }: Props) {
     ],
   };
 
-  const primaryImage = product.images[0]?.image || product.main_image;
-
   return (
     <div className="shell page-shell">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd) }} />
@@ -99,18 +98,13 @@ export default async function ProductPage({ params }: Props) {
 
       <section className="product-page panel">
         <div className="product-media">
-          {primaryImage
-            ? <img src={`/api/assets/${primaryImage}`} alt={product.images[0]?.alt_text || product.title} />
-            : <div className="product-placeholder"><span>{product.brand}</span><strong>{product.sku}</strong></div>}
-          {product.images.length > 1 && (
-            <div className="product-thumbs" aria-label="Галерея товара">
-              {product.images.slice(0, 6).map((image, index) => (
-                <a href={`/api/assets/${image.image}`} target="_blank" rel="noreferrer" key={`${image.image}-${index}`}>
-                  <img src={`/api/assets/${image.image}`} alt={image.alt_text || `${product.title}, изображение ${index + 1}`} />
-                </a>
-              ))}
-            </div>
-          )}
+          <ProductGallery
+            title={product.title}
+            brand={product.brand}
+            sku={product.sku}
+            mainImage={product.main_image}
+            images={product.images}
+          />
         </div>
 
         <div className="product-info">

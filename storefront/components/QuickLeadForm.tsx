@@ -56,7 +56,7 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
       <button className="button primary wide" type="submit" disabled={state === "sending"}>
         {state === "sending" ? "Отправляем..." : "Отправить"}
       </button>
-      {message && <p className={state === "error" ? "form-message error" : "form-message"}>{message}</p>}
+      {message && <p role={state === "error" ? "alert" : "status"} className={state === "error" ? "form-message error" : "form-message"}>{message}</p>}
     </form>
   );
 }

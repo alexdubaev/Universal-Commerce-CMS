@@ -121,7 +121,7 @@ export function RequestClient() {
         <button className="button primary wide" type="submit" disabled={status === "sending"}>
           {status === "sending" ? "Отправляем..." : "Отправить менеджеру"}
         </button>
-        {message && <p className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
+        {message && <p role={status === "error" ? "alert" : "status"} className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
         <small className="form-hint">Повторная отправка не должна создавать дублирующую заявку.</small>
       </form>
     </div>

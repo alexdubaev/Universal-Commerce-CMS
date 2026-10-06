@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { NavigationItem, SiteSettings } from "@/lib/types";
 
 function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void }) {
@@ -15,6 +15,7 @@ function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void
 export function Header({ settings, navigation }: { settings: SiteSettings; navigation: NavigationItem[] }) {
   const [open, setOpen] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const read = () => {
@@ -34,6 +35,17 @@ export function Header({ settings, navigation }: { settings: SiteSettings; navig
     };
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setOpen(false);
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
   const close = () => setOpen(false);
 
   return (
@@ -48,6 +60,7 @@ export function Header({ settings, navigation }: { settings: SiteSettings; navig
         </Link>
 
         <button
+          ref={menuButtonRef}
           className="menu-toggle"
           type="button"
           aria-expanded={open}

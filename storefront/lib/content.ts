@@ -130,13 +130,18 @@ export async function getNavigation(location: "header" | "footer" | "legal"): Pr
       { revalidate: 120 },
     );
 
-    const items = (result.data ?? []).map((row): NavigationItem => ({
-      id: String(row.id ?? row.url ?? row.label ?? ""),
-      label: String(row.label ?? ""),
-      url: safeContentHref(String(row.url ?? "/")) ?? "/",
-      location,
-      open_in_new_tab: row.open_in_new_tab === true,
-    })).filter((item) => item.label && item.url);
+    const items = (result.data ?? []).flatMap((row): NavigationItem[] => {
+      const label = String(row.label ?? "").trim();
+      const url = safeContentHref(String(row.url ?? ""));
+      if (!label || !url) return [];
+      return [{
+        id: String(row.id ?? row.url ?? row.label ?? ""),
+        label,
+        url,
+        location,
+        open_in_new_tab: row.open_in_new_tab === true,
+      }];
+    });
 
     return items.length ? items : fallback;
   } catch {
