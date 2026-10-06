@@ -350,19 +350,28 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
   const refs = (await manifest()).namedRefs;
   const token = (await manifest()).service.token;
   const requestTokenLeaks: boolean[] = [];
-  const responseTokenLeaks: Promise<boolean>[] = [];
+  const responseBodyChecks: Promise<boolean>[] = [];
+  let responseBodyContainsToken = false;
   page.on("request", (browserRequest) => {
     const headers = browserRequest.headers();
     requestTokenLeaks.push(Object.values(headers).some((value) => value.includes(token))
       || Boolean(browserRequest.postData()?.includes(token)));
   });
-  page.on("response", (browserResponse) => {
-    const resourceType = browserResponse.request().resourceType();
+  page.on("requestfinished", (browserRequest) => {
+    const resourceType = browserRequest.resourceType();
     if (!["document", "script", "xhr", "fetch"].includes(resourceType)) return;
-    responseTokenLeaks.push((async () => {
-      try { return (await browserResponse.text()).includes(token); } catch { return false; }
+    responseBodyChecks.push((async () => {
+      const browserResponse = await browserRequest.response();
+      if (!browserResponse) return false;
+      return (await browserResponse.body()).includes(Buffer.from(token));
     })());
   });
+  const inspectCompletedResponses = async () => {
+    while (responseBodyChecks.length) {
+      const batch = responseBodyChecks.splice(0);
+      if ((await Promise.all(batch)).some(Boolean)) responseBodyContainsToken = true;
+    }
+  };
   await page.goto("/");
   if (testInfo.project.name.startsWith("mobile-")) {
     const toggle = page.getByRole("button", { name: "Открыть меню" });
@@ -378,11 +387,13 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
   for (const route of ["/", "/catalog", "/brands", `/product/${refs.primaryProductSlug}`, "/request"]) {
     const response = await page.goto(route);
     expect(response?.ok()).toBe(true);
+    await inspectCompletedResponses();
     const dimensions = await page.evaluate(() => ({ width: document.documentElement.scrollWidth, viewport: window.innerWidth }));
     expect(dimensions.width <= dimensions.viewport + 1).toBe(true);
   }
   const missing = await page.goto(`/live-acceptance-missing-${randomUUID()}`);
   expect(missing?.status()).toBe(404);
+  await inspectCompletedResponses();
 
   const html = await page.content();
   expect(html.includes(token)).toBe(false);
@@ -392,7 +403,8 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
     if (!response?.ok()) continue;
     expect((await response.text()).includes(token)).toBe(false);
   }
-  expect([...requestTokenLeaks, ...(await Promise.all(responseTokenLeaks))].some(Boolean)).toBe(false);
+  await inspectCompletedResponses();
+  expect([...requestTokenLeaks, responseBodyContainsToken].some(Boolean)).toBe(false);
 
   await page.goto(`/product/${refs.primaryProductSlug}`);
   const sku = (await page.locator(".article-big strong").innerText()).trim();
