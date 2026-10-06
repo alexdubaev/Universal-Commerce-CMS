@@ -153,7 +153,7 @@ export function ownershipFields(collection, data) {
     product_specifications: ['product', 'name', 'value', 'status'],
     product_documents: ['product', 'file', 'title', 'status'],
     pages: ['slug', 'title', 'status'], page_sections: ['page', 'section_type', 'title', 'status'],
-    home_page: ['source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt', 'status', 'is_indexable'],
+    home_page: ['source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt', 'hero_search_label', 'hero_search_placeholder', 'hero_search_button_text', 'hero_bulk_prompt', 'hero_bulk_link_text', 'hero_bulk_link_url', 'hero_excel_link_text', 'hero_excel_link_url', 'hero_photo_link_text', 'hero_photo_link_url', 'status', 'is_indexable'],
     navigation_items: ['label', 'url', 'location', 'status'],
   };
   return Object.fromEntries(['id', ...(fieldMap[collection] ?? [])].filter(key => Object.hasOwn(data, key)).map(key => [key, data[key]]));

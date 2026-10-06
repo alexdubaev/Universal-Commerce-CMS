@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertHomeSingletonAbsent, cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime, resumePendingHomeCreate } from '../../dev/storefront-acceptance.mjs';
+import { assertHomeSingletonAbsent, cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime, resumePendingHomeCreate, syntheticHomeValues, upgradePendingHomeExpected } from '../../dev/storefront-acceptance.mjs';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casApplyPatch, casRestorePatch, directusRows,
   collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, reconcileLegacySectionPage, redactSummary, serviceEmailForRun,
@@ -72,6 +72,21 @@ test('pending home create retries collection PATCH with its already-journaled UU
   assert.equal(calls[2].options.method, 'PATCH');
   assert.deepEqual(JSON.parse(calls[2].options.body), expected);
   await assert.rejects(resumePendingHomeCreate({ request: async () => ({ id: '8b8b8b8b-8b8b-48b8-88b8-8b8b8b8b8b8b' }) }, id, expected), /different singleton/u);
+});
+
+test('absent synthetic home fixture supplies every required neutral hero value and upgrades only its journaled UUID', () => {
+  const pageId = '9c9c9c9c-9c9c-49c9-89c9-9c9c9c9c9c9c';
+  const imageId = '8d8d8d8d-8d8d-48d8-88d8-8d8d8d8d8d8d';
+  const values = syntheticHomeValues(pageId, imageId);
+  for (const field of ['source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt', 'hero_search_label', 'hero_search_placeholder', 'hero_search_button_text', 'hero_bulk_prompt', 'hero_bulk_link_text', 'hero_bulk_link_url', 'hero_excel_link_text', 'hero_excel_link_url', 'hero_photo_link_text', 'hero_photo_link_url']) assert.ok(values[field], `missing home_page.${field}`);
+  assert.ok([values.hero_bulk_link_url, values.hero_excel_link_url, values.hero_photo_link_url].every(url => url.startsWith('/')));
+  const oldExpected = { id, ...Object.fromEntries(['status', 'source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt', 'is_indexable'].map(field => [field, values[field]])) };
+  const manifest = { namedRefs: { pageId, homeImageId: imageId }, created: { pages: [pageId], directus_files: [imageId] } };
+  const upgraded = upgradePendingHomeExpected(manifest, id, oldExpected);
+  assert.equal(upgraded.id, id);
+  assert.equal(upgraded.hero_search_label, values.hero_search_label);
+  assert.equal(upgraded.hero_photo_link_url, values.hero_photo_link_url);
+  assert.throws(() => upgradePendingHomeExpected(manifest, id, { ...oldExpected, h1: 'Other content' }), /unrecognized/u);
 });
 
 test('owned file MIME repair requires exact ownership and byte-identical generated content', async () => {

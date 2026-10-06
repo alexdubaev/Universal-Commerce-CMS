@@ -127,12 +127,26 @@ async function readExactOwned(client, manifest, collection, id) {
 }
 
 async function verifyOwnedManifest(client, manifest, path) {
+  for (const collection of COLLECTIONS) {
+    for (const id of manifest.created[collection] ?? []) await readExactOwned(client, manifest, collection, id);
+  }
   for (const [collection, records] of Object.entries(manifest.pending ?? {})) {
     for (const [id, expected] of Object.entries(records)) {
       if (collection !== 'home_page') throw new Error('resume-config refuses a manifest with unresolved pending creates');
-      const row = await resumePendingHomeCreate(client, id, expected);
-      if (!recordMatchesOwnership(row, expected)) throw new Error('resume-config refuses an unresolved home singleton create');
-      markOwnedCreated(manifest, collection, id, expected);
+      const singleton = (await readSingletonRows(client, 'home_page', ['*']))[0];
+      if (singleton?.id != null && String(singleton.id) !== id) throw new Error('resume-config refuses a pending home create because a different singleton already exists');
+      let ownedExpected = expected;
+      if (singleton?.id == null) {
+        ownedExpected = upgradePendingHomeExpected(manifest, id, expected);
+        manifest.pending.home_page[id] = ownedExpected;
+        manifest.ownership.home_page[id] = ownedExpected;
+        manifest.namedRefs.homePageId = id;
+        await saveManifest(path, manifest);
+      }
+      if (singleton?.id != null && !recordMatchesOwnership(singleton, ownedExpected)) throw new Error('resume-config refuses a changed pending home singleton');
+      const row = singleton?.id != null ? singleton : await resumePendingHomeCreate(client, id, ownedExpected);
+      if (!recordMatchesOwnership(row, ownedExpected)) throw new Error('resume-config refuses an unresolved home singleton create');
+      markOwnedCreated(manifest, collection, id, ownedExpected);
     }
   }
   for (const collection of COLLECTIONS) {
@@ -149,6 +163,32 @@ export async function resumePendingHomeCreate(client, id, expected) {
   const created = await client.request('/items/home_page', { method: 'PATCH', body: JSON.stringify(expected) });
   if (!recordMatchesOwnership(created, expected)) throw new Error('Pending home singleton retry did not return its journaled identity');
   return created;
+}
+
+export function syntheticHomeValues(sourcePageId, heroImageId) {
+  return {
+    status: 'published', source_page: sourcePageId, h1: 'Synthetic acceptance home',
+    hero_title: 'Synthetic parts catalog', hero_text: 'Neutral local integration content.',
+    hero_image: heroImageId, hero_image_alt: 'Generated synthetic test image', is_indexable: true,
+    hero_search_label: 'Search synthetic parts', hero_search_placeholder: 'Enter a synthetic part number',
+    hero_search_button_text: 'Search', hero_bulk_prompt: 'Looking for several synthetic items?',
+    hero_bulk_link_text: 'Send a request', hero_bulk_link_url: '/request',
+    hero_excel_link_text: 'Request a spreadsheet lookup', hero_excel_link_url: '/request?source=spreadsheet',
+    hero_photo_link_text: 'Request by photo', hero_photo_link_url: '/request?source=photo',
+  };
+}
+
+export function upgradePendingHomeExpected(manifest, id, expected) {
+  const { pageId, homeImageId } = manifest.namedRefs ?? {};
+  if (id !== expected?.id || !pageId || !homeImageId || !(manifest.created.pages ?? []).includes(pageId) || !(manifest.created.directus_files ?? []).includes(homeImageId)) {
+    throw new Error('Refusing to upgrade pending home create without its exact owned page and image references');
+  }
+  const values = syntheticHomeValues(pageId, homeImageId);
+  for (const [field, value] of Object.entries(expected)) {
+    if (field !== 'id' && (!Object.hasOwn(values, field) || JSON.stringify(value) !== JSON.stringify(values[field]))) throw new Error('Refusing to upgrade an unrecognized pending home create');
+  }
+  if (expected.id !== id) throw new Error('Refusing to upgrade an unrecognized pending home create');
+  return ownershipFields('home_page', { id, ...values });
 }
 
 async function readManifest(path) {
@@ -506,7 +546,9 @@ async function overrideSingletons(client, manifest, path, { page, homeImage }) {
   const home = homeRows[0];
   const homeSnapshot = manifest.original.home_page;
   if (homeSnapshot && String(homeSnapshot.id) !== String(home.id)) throw new Error('home_page singleton identity changed after fixture start');
-  const values = homeSnapshot?.expectedValues ?? { status: 'published', source_page: page.id, h1: 'Synthetic acceptance home', hero_title: 'Synthetic parts catalog', hero_text: 'Neutral local integration content.', hero_image: homeImage.id, hero_image_alt: 'Generated synthetic test image' };
+  const values = homeSnapshot?.expectedValues ?? (home.id == null
+    ? syntheticHomeValues(page.id, homeImage.id)
+    : { status: 'published', source_page: page.id, h1: 'Synthetic acceptance home', hero_title: 'Synthetic parts catalog', hero_text: 'Neutral local integration content.', hero_image: homeImage.id, hero_image_alt: 'Generated synthetic test image' });
   if (home.id == null) {
     const created = await createOwned(client, manifest, path, 'home_page', { id: randomUUID(), ...values, is_indexable: true });
     manifest.namedRefs.homePageId = created.id;
