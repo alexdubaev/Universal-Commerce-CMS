@@ -9,7 +9,8 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setState("sending");
     setMessage("");
     requestKey.current ??= crypto.randomUUID();
@@ -34,7 +35,7 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
       setState("success");
       setMessage(`Заявка принята: ${payload.id}`);
       requestKey.current = null;
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setState("error");
       setMessage(error instanceof Error ? error.message : "Ошибка отправки");

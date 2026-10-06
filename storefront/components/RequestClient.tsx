@@ -38,7 +38,7 @@ export function RequestClient() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;\n    const form = new FormData(formElement);
     setStatus("sending");
     setMessage("");
     requestKey.current ??= crypto.randomUUID();
@@ -64,7 +64,7 @@ export function RequestClient() {
       setMessage(`Заявка принята. Номер: ${payload.id}`);
       requestKey.current = null;
       persist([]);
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Ошибка отправки");
