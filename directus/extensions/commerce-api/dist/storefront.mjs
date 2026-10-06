@@ -136,7 +136,7 @@ function queryParams(req, collection) {
   const hasIdWindow = collection === 'products' && Array.isArray(filters.id?._in);
   const productSitemap = collection === 'products' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'id';
   const pageSitemap = collection === 'pages' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'slug';
-  const maxLimit = aggregate ? 500 : productSitemap || pageSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
+  const maxLimit = aggregate ? 500 : productSitemap ? 1000 : pageSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
   const limit = Number(query.limit ?? (['home_page','site_settings'].includes(collection) ? 1 : collection === 'categories' ? 200 : 24));
   const page = Number(query.page ?? 1);
   if (!Number.isInteger(limit) || limit < 1 || limit > maxLimit || !Number.isInteger(page) || page < 1 || page > 1000) throw new Error('query');

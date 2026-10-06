@@ -94,14 +94,14 @@ test('SEO sitemap null-or-true indexability remains bounded and publication is s
     { status: { _eq: 'published' } },
     { _or: [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }] },
   ] });
-  for (const [collection, fields, sort] of [
-    ['products', 'slug,updated_at,is_indexable', 'id'],
-    ['pages', 'slug,updated_at,is_indexable', 'slug'],
+  for (const [collection, fields, sort, limit] of [
+    ['products', 'slug,updated_at,is_indexable', 'id', '1000'],
+    ['pages', 'slug,updated_at,is_indexable', 'slug', '500'],
   ]) {
-    const result = await h.invoke('/storefront/items/:collection', { params: { collection }, query: { fields, limit: '500', offset: '0', sort, filter } });
+    const result = await h.invoke('/storefront/items/:collection', { params: { collection }, query: { fields, limit, offset: '0', sort, filter } });
     assert.equal(result.statusCode, 200, `${collection} sitemap rows accepted`);
     const sent = h.calls.filter(call => call.collection === collection && call.query).at(-1).query;
-    assert.equal(sent.limit, 500); assert.equal(sent.filter.status._eq, 'published');
+    assert.equal(sent.limit, Number(limit)); assert.equal(sent.filter.status._eq, 'published');
     const seoPredicate = collection === 'products' ? sent.filter._and[0]._or : sent.filter._or;
     assert.deepEqual(seoPredicate, [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }]);
   }
