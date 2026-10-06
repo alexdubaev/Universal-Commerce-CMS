@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { parseDelimitedText, rowsToRequestItems } from "@/lib/request-import";
 import { MAX_REQUEST_ITEMS, mergeRequestItems, readRequestItems, writeRequestItems } from "@/lib/request-store";
 import type { ImportRow } from "@/lib/request-import";
@@ -9,6 +9,9 @@ import type { ImportRow } from "@/lib/request-import";
 export function BulkRequestImport() {
   const [manual, setManual] = useState("");
   const [message, setMessage] = useState("");
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => setHydrated(true), []);
 
   function append(items: ReturnType<typeof parseDelimitedText>, source: string) {
     const current = readRequestItems();
@@ -21,6 +24,7 @@ export function BulkRequestImport() {
   }
 
   function addManual() {
+    if (!hydrated) return;
     const parsed = parseDelimitedText(manual);
     if (!parsed.length) {
       setMessage("Не удалось найти артикулы. Используйте: артикул + количество, по одной позиции в строке.");
@@ -31,6 +35,7 @@ export function BulkRequestImport() {
   }
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
+    if (!hydrated) return;
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
@@ -63,20 +68,21 @@ export function BulkRequestImport() {
         <div className="bulk-paste">
           <label htmlFor="bulk-parts">Артикулы</label>
           <textarea
+            disabled={!hydrated}
             id="bulk-parts"
             rows={7}
             value={manual}
             onChange={(event) => setManual(event.target.value)}
             placeholder={"RE568158 2\n1R-1808 4\n320/04542 1"}
           />
-          <button className="button secondary" type="button" onClick={addManual}>Добавить список</button>
+          <button className="button secondary" type="button" onClick={addManual} disabled={!hydrated}>Добавить список</button>
         </div>
         <div className="bulk-file">
           <strong>XLSX / CSV / TXT</strong>
           <p>До 5 МБ. В одну заявку можно добавить до 100 позиций.</p>
           <label className="button primary file-button">
             Выбрать файл
-            <input type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain" onChange={upload} />
+            <input type="file" accept=".xlsx,.csv,.txt,text/csv,text/plain" onChange={upload} disabled={!hydrated} />
           </label>
           <a
             className="template-link"

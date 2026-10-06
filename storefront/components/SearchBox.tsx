@@ -39,10 +39,12 @@ export function SearchBox({
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const [history, setHistory] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const controller = useRef<AbortController | null>(null);
 
   useEffect(() => {
     setHistory(readHistory());
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -71,6 +73,7 @@ export function SearchBox({
   }, [query]);
 
   function go(value: string) {
+    if (!hydrated) return;
     const clean = value.trim();
     if (!clean) {
       router.push("/catalog");
@@ -84,6 +87,7 @@ export function SearchBox({
 
   function submit(event: FormEvent) {
     event.preventDefault();
+    if (!hydrated) return;
     go(query);
   }
 
@@ -95,6 +99,7 @@ export function SearchBox({
       <form className={compact ? "search-box compact" : "search-box"} onSubmit={submit} role="search">
         <span className="search-icon" aria-hidden="true">⌕</span>
         <input
+          disabled={!hydrated}
           value={query}
           onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
           onFocus={() => { setOpen(true); setHistory(readHistory()); }}
@@ -104,7 +109,7 @@ export function SearchBox({
           aria-expanded={showHistory || showSuggestions}
           autoComplete="off"
         />
-        <button type="submit">{buttonLabel}</button>
+        <button type="submit" disabled={!hydrated}>{buttonLabel}</button>
       </form>
 
       {(showHistory || showSuggestions) && (
