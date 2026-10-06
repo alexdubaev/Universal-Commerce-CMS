@@ -77,7 +77,13 @@ test('current adapter filter shapes stay inside collection and parent visibility
   const sectionRead = h.calls.find(call => call.collection === 'page_sections' && call.query)?.query;
   assert.equal(sectionRead.filter.page.status._eq, 'published');
   const codeRead = h.calls.find(call => call.collection === 'product_codes' && call.query)?.query;
-  assert.deepEqual(codeRead.filter._and, [{ product: { _eq: sectionId } }, { product: { status: { _eq: 'published' } } }]);
+  assert.deepEqual(codeRead.filter._and, [
+    { product: { _eq: sectionId } },
+    { product: { _and: [
+      { status: { _eq: 'published' } },
+      { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
+    ] } },
+  ]);
   const analogId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   const analog = await h.invoke('/storefront/items/:collection', { params: { collection: 'products_analogs' }, query: { limit: '100', fields: 'relation_type,product_from.id,product_from.status,product_from.slug,product_from.title,product_from.sku,product_from.mpn,product_from.brand,product_from.price,product_from.currency,product_from.price_status,product_from.availability_status,product_from.part_type,product_from.main_image,product_from.category.id,product_from.category.slug,product_from.category.title,product_to.id,product_to.status,product_to.slug,product_to.title,product_to.sku,product_to.mpn,product_to.brand,product_to.price,product_to.currency,product_to.price_status,product_to.availability_status,product_to.part_type,product_to.main_image,product_to.category.id,product_to.category.slug,product_to.category.title', filter: JSON.stringify({ _or: [{ product_from: { _eq: analogId } }, { product_to: { _eq: analogId } }] }) } });
   assert.equal(analog.statusCode, 200);
@@ -169,7 +175,10 @@ test('asset gate checks configured folder before references and enforces publish
   assert.equal(fileLookup.query.filter.folder._eq, FOLDER);
   const imageProbe = calls.find(call => call.collection === 'product_images');
   assert.equal(imageProbe.query.filter.status._eq, 'published');
-  assert.equal(imageProbe.query.filter.product.status._eq, 'published');
+  assert.equal(imageProbe.query.filter.product._and[0].status._eq, 'published');
+  assert.deepEqual(imageProbe.query.filter.product._and[1]._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
+  const productProbe = calls.find(call => call.collection === 'products');
+  assert.deepEqual(productProbe.query.filter._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
 
   const privateCalls = [];
   class PrivateFileItems extends FileGateItems {

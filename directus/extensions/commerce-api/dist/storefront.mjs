@@ -191,7 +191,10 @@ function makeItemsHandler(context) {
           delete otherFilters.product;
           otherFilters._and = [
             ...(requestedProduct?._eq ? [{ product: { _eq: requestedProduct._eq } }] : []),
-            { product: { status: { _eq: 'published' } } },
+            { product: { _and: [
+              { status: { _eq: 'published' } },
+              { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
+            ] } },
           ];
           filter = otherFilters;
         }
@@ -227,8 +230,8 @@ function makeAssetHandler(context) {
       const file = (await files.readByQuery({ filter: { id: { _eq: id }, folder: { _eq: config.folderId } }, fields: ['id','folder','type','filesize','filename_download'], limit: 1 }))[0];
       if (!file) return error(res, 404);
       const refs = [
-        ['products', 'main_image', { status: { _eq: 'published' } }], ['product_images', 'image', { status: { _eq: 'published' }, product: { status: { _eq: 'published' } } }],
-        ['product_documents', 'file', { status: { _eq: 'published' }, product: { status: { _eq: 'published' } } }], ['categories', 'image', { status: { _eq: 'published' } }], ['categories', 'icon', { status: { _eq: 'published' } }], ['categories', 'og_image', { status: { _eq: 'published' } }],
+        ['products', 'main_image', { status: { _eq: 'published' }, _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }], ['product_images', 'image', { status: { _eq: 'published' }, product: { _and: [{ status: { _eq: 'published' } }, { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }] } }],
+        ['product_documents', 'file', { status: { _eq: 'published' }, product: { _and: [{ status: { _eq: 'published' } }, { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }] } }], ['categories', 'image', { status: { _eq: 'published' } }], ['categories', 'icon', { status: { _eq: 'published' } }], ['categories', 'og_image', { status: { _eq: 'published' } }],
         ['pages', 'og_image', { status: { _eq: 'published' } }], ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, page: { status: { _eq: 'published' } } }],
         ['home_page', 'hero_image', { status: { _eq: 'published' } }], ['home_page', 'og_image', { status: { _eq: 'published' } }], ['site_settings', 'logo', {}], ['site_settings', 'favicon', {}], ['site_settings', 'default_og_image', {}], ['site_settings', 'company_image', {}],
         ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, home_page: { status: { _eq: 'published' } } }],
