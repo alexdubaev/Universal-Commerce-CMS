@@ -117,11 +117,13 @@ function decodeFilter(raw, collection) {
 function queryParams(req, collection) {
   const query = req.query ?? {};
   const allowedParams = new Set(['fields','limit','page','sort','meta','filter','aggregate[count]','groupBy[]','aggregate','groupBy','offset']);
-  const aggregateValue = query['aggregate[count]'] ?? (plain(query.aggregate) && Object.keys(query.aggregate).length === 1 ? query.aggregate.count : undefined);
-  const groupRaw = query['groupBy[]'] ?? query.groupBy;
+  const aggregateObjectKey = plain(query.aggregate) && Object.keys(query.aggregate).length === 1 ? Object.keys(query.aggregate)[0] : undefined;
+  const aggregateValue = query['aggregate[count]'] ?? (['count','[count]'].includes(aggregateObjectKey) ? query.aggregate[aggregateObjectKey] : undefined);
+  const groupedArrayKey = plain(query.groupBy) && Object.keys(query.groupBy).length === 1 && Object.keys(query.groupBy)[0] === '[]';
+  const groupRaw = query['groupBy[]'] ?? (groupedArrayKey ? query.groupBy['[]'] : query.groupBy);
   const groupValue = Array.isArray(groupRaw) && groupRaw.length === 1 ? groupRaw[0] : groupRaw;
   const aggregate = aggregateValue !== undefined || groupValue !== undefined;
-  if (('aggregate' in query && (!plain(query.aggregate) || Object.keys(query.aggregate).length !== 1 || !('count' in query.aggregate))) ||
+  if (('aggregate' in query && (!plain(query.aggregate) || Object.keys(query.aggregate).length !== 1 || !['count','[count]'].includes(aggregateObjectKey))) ||
       ('groupBy' in query && groupValue !== 'brand') || ('groupBy[]' in query && groupValue !== 'brand') ||
       ('aggregate' in query && 'aggregate[count]' in query) || ('groupBy' in query && 'groupBy[]' in query)) throw new Error('query');
   if (aggregate && (collection !== 'products' || aggregateValue !== '*' || groupValue !== 'brand' || Object.keys(query).some(key => !['aggregate[count]','groupBy[]','aggregate','groupBy','limit','filter'].includes(key)))) throw new Error('query');

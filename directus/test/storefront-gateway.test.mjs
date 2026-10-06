@@ -59,6 +59,32 @@ test('collection handler pins publication and fields and rejects unknown collect
   assert.ok(sent.fields.every(field => !field.includes('*'))); assert.equal(sent.limit, 12);
 });
 
+test('brand aggregate accepts Directus depth-limited query parsing and rejects unknown nested keys', async () => {
+  const h = harness();
+  const response = await h.invoke('/storefront/items/:collection', {
+    params: { collection: 'products' },
+    query: {
+      aggregate: { '[count]': '*' },
+      groupBy: { '[]': 'brand' },
+      limit: '500',
+      filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { brand: { _nnull: true } }] }),
+    },
+  });
+  assert.equal(response.statusCode, 200);
+  const sent = h.calls.find(call => call.query)?.query;
+  assert.deepEqual(sent.aggregate, { count: ['*'] });
+  assert.deepEqual(sent.groupBy, ['brand']);
+  assert.equal(sent.filter.status._eq, 'published');
+
+  const invalid = harness();
+  const rejected = await invalid.invoke('/storefront/items/:collection', {
+    params: { collection: 'products' },
+    query: { aggregate: { '[total]': '*' }, groupBy: { '[]': 'brand' }, limit: '500' },
+  });
+  assert.equal(rejected.statusCode, 400);
+  assert.equal(invalid.calls.length, 0);
+});
+
 test('current adapter filter shapes stay inside collection and parent visibility allowlists', async () => {
   const h = harness();
   const sectionId = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
