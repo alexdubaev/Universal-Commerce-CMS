@@ -4,6 +4,8 @@
 
 The storefront is now a substantially complete frontend shell. It runs end-to-end in mock mode and is wired to the current Universal Commerce CMS contracts.
 
+Final review details and fixed findings are recorded in `FINAL-REVIEW.md`.
+
 Directus schema, database, roles/permissions, Docker and deployment remain intentionally untouched.
 
 ## Route matrix
@@ -66,7 +68,7 @@ Missing/unauthorized optional child collections degrade to empty sections, not f
 
 The exact SKU/OEM path keeps using `GET /commerce/search`. Search suggestions call the storefront `/api/search` proxy.
 
-The existing backend search has a bounded candidate window. A dedicated full-text engine for broad natural-language search is still a later performance/search-quality decision, not faked here.
+The existing backend search has a bounded candidate window of 200 candidates. When search is combined with catalog filters or explicit sorting, the storefront now evaluates the whole bounded candidate set before pagination/sorting. A dedicated full-text engine for broad natural-language search is still a later performance/search-quality decision, not faked here.
 
 ### RFQ / parts list
 
@@ -85,6 +87,8 @@ File attachment upload to Directus is deliberately separate from XLSX parsing. T
 ### Public asset proxy
 
 `/api/assets/:id` accepts only UUID file IDs and checks that the file is referenced by published products, published product child records, published categories, or storefront site settings before proxying it with the server token.
+
+Authorization checks short-circuit in expected-use order so normal product images do not fan out across every possible CMS reference check. Potentially active non-image/non-PDF document types are forced to download instead of rendering inline.
 
 This is defense-in-depth. Production still requires least-privilege Directus file permissions.
 
@@ -140,8 +144,9 @@ CI covers:
 - production dependency audit;
 - server-token client-bundle leak canary;
 - public asset-id validation and API guard-rail tests;
-- Playwright desktop;
-- Playwright 390px mobile;
+- Playwright desktop Chromium;
+- Playwright 390px mobile Chromium;
+- Playwright 390px mobile WebKit;
 - route overflow checks;
 - search;
 - brands/categories;
@@ -157,3 +162,8 @@ CI covers:
 Read `AGENTS.md` and `DESIGN-CONTRACT.md` before redesign work.
 
 A visual-only redesign must not rewrite catalog/search/API/RFQ contracts. One theme system feeds every route, with intentional desktop/tablet/mobile layouts.
+
+
+## Review handoff
+
+See `FINAL-REVIEW.md` for the final P0/P1/P2 review, fixes, exact automated acceptance results and remaining non-frontend production work.
