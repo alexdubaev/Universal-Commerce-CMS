@@ -3,6 +3,29 @@ import { expect, test } from "@playwright/test";
 import { directusUrl, manifest, percentile } from "./support";
 import { createMinimalXlsx } from "./xlsx-buffer";
 import { recordLiveLead } from "./live-journal.mjs";
+import { slugifyBrand } from "../lib/brands";
+// @ts-expect-error The fixture oracle is a Node ESM helper outside the storefront TS project.
+import { createFixturePlan } from "../../dev/storefront-acceptance-fixtures.mjs";
+
+type FixtureOracleProduct = {
+  slug: string; sku: string; mpn: string; brand: string; category: string;
+  availability_status: string; part_type: string; price: number | null; status: string;
+  is_indexable: boolean;
+};
+type FixtureOracle = {
+  brands: string[];
+  categories: Array<{ id: string; slug: string; title: string }>;
+  products: FixtureOracleProduct[];
+};
+
+async function fixtureOracle(runId: string): Promise<FixtureOracle> {
+  let sequence = 0;
+  return createFixturePlan({ runId, random: () => `00000000-0000-4000-8000-${String(++sequence).padStart(12, "0")}` }) as FixtureOracle;
+}
+
+function cardSlugs(page: import("@playwright/test").Page) {
+  return page.locator(".product-card .product-title").evaluateAll((links) => links.map((link) => new URL((link as HTMLAnchorElement).href).pathname.split("/").at(-1) ?? ""));
+}
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -11,7 +34,25 @@ test.beforeEach(async () => {
 });
 
 test("live CMS drives home, brands, facets, product children, and search", async ({ page }, testInfo) => {
-  const refs = (await manifest()).namedRefs;
+  const fixture = await manifest();
+  const refs = fixture.namedRefs;
+  const oracle = await fixtureOracle(fixture.runId);
+  const ownedProducts = fixture.created.products.map((id) => fixture.ownership.products[id]).filter((row): row is NonNullable<typeof row> => Boolean(row));
+  const ownedCategories = fixture.created.categories.map((id) => fixture.ownership.categories[id]).filter((row): row is NonNullable<typeof row> => Boolean(row));
+  const ownedBySlug = new Map(ownedProducts.map((row) => [row.slug, row]));
+  for (const expected of oracle.products) {
+    const actual = ownedBySlug.get(expected.slug);
+    expect(actual, `owned fixture product ${expected.sku}`).toBeTruthy();
+    expect(actual).toMatchObject({ sku: expected.sku, mpn: expected.mpn, brand: expected.brand, status: expected.status });
+  }
+  expect(fixture.ownership.products[refs.primaryProductId]?.slug).toBe(refs.primaryProductSlug);
+  expect(oracle.products[0]?.slug).toBe(refs.primaryProductSlug);
+  const categoryBySlug = new Map(ownedCategories.map((row) => [row.slug, row]));
+  const expectedCategories = oracle.categories.map((category) => {
+    const actual = categoryBySlug.get(category.slug);
+    expect(actual, `owned fixture category ${category.slug}`).toMatchObject({ slug: category.slug, title: category.title });
+    return { ...category, id: actual!.id };
+  });
   const home = await page.goto("/");
   expect(home?.ok()).toBe(true);
   await expect(page.locator(".site-header")).toBeVisible();
@@ -22,20 +63,51 @@ test("live CMS drives home, brands, facets, product children, and search", async
   await expect(headerNav).toBeVisible();
 
   await page.goto("/brands");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  expect(await page.locator(".brand-card").count()).toBeGreaterThanOrEqual(3);
+  await expect(page.getByRole("heading", { name: "Бренды техники" })).toBeVisible();
+  for (const brand of oracle.brands) {
+    const slug = slugifyBrand(brand);
+    const brandCard = page.locator(`.brand-card[href="/brand/${slug}"]`);
+    await expect(brandCard).toBeVisible();
+    await brandCard.click();
+    await expect(page.getByRole("heading", { level: 1, name: brand })).toBeVisible();
+    const expectedSlugs = oracle.products.filter((product) => product.brand === brand).map((product) => product.slug);
+    const displayed = await cardSlugs(page);
+    for (const slug of expectedSlugs) expect(displayed).toContain(slug);
+    await page.goto("/brands");
+  }
 
   await page.goto("/catalog");
   await expect(page.getByRole("heading", { name: "Каталог запчастей" })).toBeVisible();
   expect(await page.locator(".product-card").count()).toBeGreaterThan(0);
-  const categoryOptions = page.locator('select[name="category"] option');
-  expect(await categoryOptions.count()).toBeGreaterThanOrEqual(4);
-  const categorySlug = await categoryOptions.nth(1).getAttribute("value");
-  expect(Boolean(categorySlug)).toBe(true);
-  await page.goto(`/catalog?category=${encodeURIComponent(categorySlug!)}&availability=in_stock&partType=original&sort=price_asc`);
-  await expect(page.locator('select[name="category"]')).toHaveValue(categorySlug!);
-  await expect(page.locator('select[name="availability"]')).toHaveValue("in_stock");
-  await expect(page.locator('select[name="partType"]')).toHaveValue("original");
+  for (const category of expectedCategories) {
+    await page.goto(`/category/${category.slug}`);
+    await expect(page.getByRole("heading", { name: category.title })).toBeVisible();
+    const expectedSlugs = oracle.products.filter((product) => product.category === oracle.categories.find((item) => item.slug === category.slug)?.id).map((product) => product.slug);
+    const displayed = await cardSlugs(page);
+    for (const slug of expectedSlugs) expect(displayed).toContain(slug);
+    await page.goto("/catalog");
+    await expect(page.locator(`select[name="category"] option[value="${category.slug}"]`)).toHaveCount(1);
+  }
+
+  const categoryZero = expectedCategories[0];
+  const groupProducts = oracle.products.filter((product) => product.category === oracle.categories[0].id && product.status === "published");
+  const facet = groupProducts[0];
+  const filteredUrl = `/catalog?brand=${encodeURIComponent(slugifyBrand(facet.brand))}&category=${encodeURIComponent(categoryZero.slug)}&availability=${facet.availability_status}&partType=${facet.part_type}&sort=price_asc`;
+  await page.goto(filteredUrl);
+  await expect(page.locator('select[name="category"]')).toHaveValue(categoryZero.slug);
+  await expect(page.locator('select[name="availability"]')).toHaveValue(facet.availability_status);
+  await expect(page.locator('select[name="partType"]')).toHaveValue(facet.part_type);
+  const sortedSlugs = await cardSlugs(page);
+  const sortedExpected = groupProducts
+    .filter((product) => product.brand === facet.brand && product.availability_status === facet.availability_status && product.part_type === facet.part_type)
+    .sort((left, right) => (left.price ?? Number.POSITIVE_INFINITY) - (right.price ?? Number.POSITIVE_INFINITY))
+    .map((product) => product.slug);
+  expect(sortedSlugs).toEqual(sortedExpected);
+  const normalizedSku = facet.sku.replace(/[^\p{L}\p{N}]/gu, "");
+  await page.goto(`${filteredUrl}&q=${encodeURIComponent(normalizedSku)}`);
+  await expect(page.locator(`a[href="/product/${facet.slug}"]`).first()).toBeVisible();
+  await page.goto(`${filteredUrl}&q=${encodeURIComponent(facet.mpn)}`);
+  await expect(page.locator(`a[href="/product/${facet.slug}"]`).first()).toBeVisible();
   await page.goto("/catalog?page=2&sort=price_asc");
   await expect(page.locator(".product-card").first()).toBeVisible();
 
@@ -45,6 +117,14 @@ test("live CMS drives home, brands, facets, product children, and search", async
   expect(sku.length).toBeGreaterThan(0);
   expect(refs.galleryFileIds.length).toBeGreaterThan(0);
   expect(await page.locator(".product-media img").count()).toBeGreaterThan(0);
+  const mainGalleryImage = page.locator(".product-main-image");
+  const initialGallerySrc = await mainGalleryImage.getAttribute("src");
+  const secondThumbnail = page.getByRole("button", { name: "Показать изображение 2" });
+  await expect(secondThumbnail).toBeVisible();
+  const selectedGallerySrc = await secondThumbnail.locator("img").getAttribute("src");
+  await secondThumbnail.click();
+  await expect(mainGalleryImage).toHaveAttribute("src", selectedGallerySrc!);
+  expect(selectedGallerySrc).not.toBe(initialGallerySrc);
   await expect(page.locator(".document-list a").first()).toBeVisible();
   await expect(page.locator(".code-list")).toBeVisible();
   await expect(page.locator(".product-relations")).toBeVisible();
@@ -107,12 +187,13 @@ test("public assets return bytes with safe headers and reject private or unknown
 
 test("service identity reaches only guarded read/write gateway surfaces", async ({ request }) => {
   const fixture = await manifest();
+  const oracle = await fixtureOracle(fixture.runId);
   const url = directusUrl();
   const auth = { Authorization: `Bearer ${fixture.service.token}` };
   const directusFetch = async (path: string, init: RequestInit = {}) => fetch(`${url}${path}`, { ...init, headers: { ...auth, ...init.headers } });
   const gatewayRead = async (path: string) => {
     const response = await directusFetch(`/commerce/storefront/items/${path}`);
-    expect(response.ok).toBe(true);
+    expect(response.ok, `Guarded gateway ${path} returned HTTP ${response.status}.`).toBe(true);
     const body = await response.json().catch(() => null);
     return body?.data;
   };
@@ -121,6 +202,29 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
   const positiveBody = await positive.json().catch(() => null);
   const primary = Array.isArray(positiveBody?.data) ? positiveBody.data.find((item: { id?: string }) => item.id === fixture.namedRefs.primaryProductId) : null;
   expect(typeof primary?.sku).toBe("string");
+
+  const aggregateQuery = new URLSearchParams({
+    "aggregate[count]": "*",
+    "groupBy[]": "brand",
+    limit: "500",
+    filter: JSON.stringify({ _and: [{ status: { _eq: "published" } }, { brand: { _nnull: true } }] }),
+  });
+  const aggregateResponse = await directusFetch(`/commerce/storefront/items/products?${aggregateQuery}`);
+  expect(aggregateResponse.ok, `Guarded brand aggregate returned HTTP ${aggregateResponse.status}.`).toBe(true);
+  const aggregateBody = await aggregateResponse.json().catch(() => null);
+  expect(Array.isArray(aggregateBody?.data)).toBe(true);
+  const aggregateRows = aggregateBody.data as Array<{ brand?: unknown; count?: unknown }>;
+  for (const brand of oracle.brands) {
+    const row = aggregateRows.find((candidate) => candidate.brand === brand);
+    expect(row, `brand aggregate row for ${brand}`).toBeTruthy();
+    const countValue = row?.count;
+    const numericCount = typeof countValue === "number" || typeof countValue === "string"
+      ? Number(countValue)
+      : countValue && typeof countValue === "object"
+        ? Number(Object.values(countValue as Record<string, unknown>)[0])
+        : Number.NaN;
+    expect(Number.isFinite(numericCount) && numericCount >= 5, `brand aggregate count for ${brand}`).toBe(true);
+  }
 
   const settings = await gatewayRead("site_settings?fields=company_name,phone,email");
   expect(Boolean(settings && typeof settings === "object" && !Array.isArray(settings))).toBe(true);
@@ -147,7 +251,7 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
   ];
   for (const path of nativeReadPaths) {
     const response = await directusFetch(path).catch(() => null);
-    expect(response !== null && response.status === 403).toBe(true);
+    expect(response !== null && response.status === 403, `Native service-token read ${path} expected permission denial; received HTTP ${response?.status ?? "network-error"}.`).toBe(true);
   }
   const nativeLeadKey = randomUUID();
   const nativeLeadMutation = await directusFetch("/commerce/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: nativeLeadKey, lead: { name: "Synthetic native denial", phone: "+79990000004", email: "native-denial@example.invalid", product: fixture.namedRefs.primaryProductId, request_items: [{ article: "LIVE-NATIVE-DENIAL", quantity: 1 }], page_url: "http://127.0.0.1:3001/request" } }) }).catch(() => null);
@@ -155,9 +259,9 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
     const body = await nativeLeadMutation.json().catch(() => null);
     if (typeof body?.data?.id === "string") await recordLiveLead(fixture.runId, nativeLeadKey, body.data.id, "native-denial-regression");
   }
-  expect(nativeLeadMutation?.status).toBe(403);
+  expect(nativeLeadMutation?.status, `Native lead write expected permission denial; received HTTP ${nativeLeadMutation?.status ?? "network-error"}.`).toBe(403);
   const disabledOrders = await directusFetch("/commerce/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), order: { customer_name: "Synthetic native denial", phone: "+79990000004", page_url: "http://127.0.0.1:3001/request", currency: "RUB" }, items: [{ product: fixture.namedRefs.primaryProductId, quantity: 1, unit_price: 1 }] }) }).catch(() => null);
-  expect(disabledOrders?.status).toBe(403);
+  expect(disabledOrders?.status, `Native order write expected permission denial; received HTTP ${disabledOrders?.status ?? "network-error"}.`).toBe(403);
   const guardedOrders = await directusFetch("/commerce/storefront/orders", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }).catch(() => null);
   expect(guardedOrders?.status).toBe(404);
 
@@ -325,16 +429,22 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
     for (let index = 0; index < 5; index++) {
       const started = performance.now();
       const response = await fetch(`${directusUrl()}/commerce/storefront/search?q=${encodeURIComponent(query)}`, { headers: { Authorization: `Bearer ${gatewayToken}` } });
-      expect(response.ok).toBe(true);
+      expect(response.ok, `Direct gateway ${surface} returned HTTP ${response.status}.`).toBe(true);
       samples.push(performance.now() - started);
     }
     console.log(`LIVE_SYNTHETIC_PERF surface=gateway-${surface} cache=direct samples=${samples.length} p50_ms=${percentile(samples, 0.5).toFixed(1)} p95_ms=${percentile(samples, 0.95).toFixed(1)} fixture=small`);
   }
   const brandSamples: number[] = [];
+  const brandAggregateQuery = new URLSearchParams({
+    "aggregate[count]": "*",
+    "groupBy[]": "brand",
+    limit: "500",
+    filter: JSON.stringify({ _and: [{ status: { _eq: "published" } }, { brand: { _nnull: true } }] }),
+  });
   for (let index = 0; index < 5; index++) {
     const started = performance.now();
-    const response = await fetch(`${directusUrl()}/commerce/storefront/items/brands?fields=id,slug&limit=1`, { headers: { Authorization: `Bearer ${gatewayToken}` } });
-    expect(response.ok).toBe(true);
+    const response = await fetch(`${directusUrl()}/commerce/storefront/items/products?${brandAggregateQuery}`, { headers: { Authorization: `Bearer ${gatewayToken}` } });
+    expect(response.ok, `Direct gateway brand aggregate returned HTTP ${response.status}.`).toBe(true);
     brandSamples.push(performance.now() - started);
   }
   console.log(`LIVE_SYNTHETIC_PERF surface=gateway-brand cache=direct samples=${brandSamples.length} p50_ms=${percentile(brandSamples, 0.5).toFixed(1)} p95_ms=${percentile(brandSamples, 0.95).toFixed(1)} fixture=small`);

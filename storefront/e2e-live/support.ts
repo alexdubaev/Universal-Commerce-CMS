@@ -25,6 +25,11 @@ export type FixtureManifest = {
   };
   service: { token: string; userId: string; roleId: string; policyId: string };
   publicFolderId: string;
+  created: { products: string[]; categories: string[] };
+  ownership: {
+    products: Record<string, { id: string; slug: string; sku: string; mpn: string; brand: string; status: string }>;
+    categories: Record<string, { id: string; slug: string; title: string }>;
+  };
 };
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -51,7 +56,9 @@ export async function manifest(): Promise<FixtureManifest> {
     || !value.namedRefs.htmlFileId || !value.namedRefs.htmlDocumentId
     || !value.namedRefs.draftReferencedAssetId || !value.namedRefs.privateAssetId
     || !value.namedRefs.unreferencedAssetId
-    || !Array.isArray(value.namedRefs.galleryFileIds) || !Array.isArray(value.namedRefs.draftProductIds)) {
+    || !Array.isArray(value.namedRefs.galleryFileIds) || !Array.isArray(value.namedRefs.draftProductIds)
+    || !Array.isArray(value.created?.products) || !Array.isArray(value.created?.categories)
+    || !value.ownership?.products || !value.ownership?.categories) {
     throw new Error("Live acceptance manifest is incomplete or targets an unsupported instance.");
   }
   cached = value;
