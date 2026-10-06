@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DirectusRequestError, directusFetch, isMockMode } from "@/lib/directus";
+import { DirectusRequestError, directusFetch, isMockMode } from "../../../lib/directus";
+import { readBoundedJson } from "../../../lib/bounded-json";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 512_000;
 
 export async function POST(request: NextRequest) {
-  const contentLength = Number(request.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "Заказ слишком большой." }, { status: 413 });
-  }
-
   try {
-    const body = await request.json() as { request_key?: string; order?: unknown; items?: unknown[] };
-    if (JSON.stringify(body).length > MAX_BODY_BYTES) {
+    const parsed = await readBoundedJson(request, MAX_BODY_BYTES);
+    if (!parsed.ok && parsed.reason === "too-large") {
       return NextResponse.json({ error: "Заказ слишком большой." }, { status: 413 });
     }
+    if (!parsed.ok || !parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Проверьте состав заказа." }, { status: 400 });
+    }
+    const body = parsed.value as { request_key?: string; order?: unknown; items?: unknown[] };
     if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 100) {
       return NextResponse.json({ error: "Проверьте состав заказа." }, { status: 400 });
     }

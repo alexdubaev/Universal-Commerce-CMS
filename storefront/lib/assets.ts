@@ -15,6 +15,18 @@ export function storefrontAssetResponsePolicy(contentType: string | null) {
   };
 }
 
+export function storefrontAssetResponseHeaders(contentType: string | null) {
+  const policy = storefrontAssetResponsePolicy(contentType);
+  return {
+    "content-type": policy.contentType,
+    "content-disposition": policy.contentDisposition,
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
+    "cross-origin-resource-policy": "same-origin",
+    "content-security-policy": "sandbox; default-src 'none'",
+  };
+}
+
 async function collectionHasReference(collection: string, filter: Record<string, unknown>) {
   try {
     const params = new URLSearchParams({
@@ -24,7 +36,7 @@ async function collectionHasReference(collection: string, filter: Record<string,
     });
     const result = await directusFetch<{ data: unknown[] }>(
       `/items/${collection}?${params.toString()}`,
-      { revalidate: 300 },
+      { revalidate: 0 },
     );
     return Array.isArray(result.data) && result.data.length > 0;
   } catch {
@@ -102,7 +114,7 @@ export async function isStorefrontAssetAllowed(id: string) {
 
   const homeResult = await directusFetch<{ data: unknown }>(
     "/items/home_page?fields=status,hero_image,og_image",
-    { revalidate: 300 },
+    { revalidate: 0 },
   ).catch(() => ({ data: null }));
   const home = singletonRow(homeResult.data);
   if (home?.status === "published" && ["hero_image", "og_image"].some((field) => String(home[field] ?? "") === id)) {
@@ -111,7 +123,7 @@ export async function isStorefrontAssetAllowed(id: string) {
 
   const settingsResult = await directusFetch<{ data: unknown }>(
     "/items/site_settings?fields=logo,favicon,default_og_image,company_image",
-    { revalidate: 300 },
+    { revalidate: 0 },
   ).catch(() => ({ data: null }));
   const settings = singletonRow(settingsResult.data);
   if (!settings) return false;

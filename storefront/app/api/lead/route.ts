@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { DirectusRequestError, directusFetch, isMockMode } from "@/lib/directus";
+import { DirectusRequestError, directusFetch, isMockMode } from "../../../lib/directus";
+import { readBoundedJson } from "../../../lib/bounded-json";
 
 type Body = {
   request_key?: string;
@@ -26,16 +27,15 @@ function publicDirectusError(error: DirectusRequestError) {
 }
 
 export async function POST(request: NextRequest) {
-  const contentLength = Number(request.headers.get("content-length") ?? 0);
-  if (contentLength > MAX_BODY_BYTES) {
-    return NextResponse.json({ error: "Заявка слишком большая." }, { status: 413 });
-  }
-
   try {
-    const body = await request.json() as Body;
-    if (JSON.stringify(body).length > MAX_BODY_BYTES) {
+    const parsed = await readBoundedJson(request, MAX_BODY_BYTES);
+    if (!parsed.ok && parsed.reason === "too-large") {
       return NextResponse.json({ error: "Заявка слишком большая." }, { status: 413 });
     }
+    if (!parsed.ok || !parsed.value || typeof parsed.value !== "object" || Array.isArray(parsed.value)) {
+      return NextResponse.json({ error: "Проверьте данные заявки." }, { status: 400 });
+    }
+    const body = parsed.value as Body;
 
     const company = String(body.company ?? "").trim();
     const message = [company ? `Компания: ${company}` : "", String(body.message ?? "").trim()]

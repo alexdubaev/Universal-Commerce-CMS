@@ -11,6 +11,7 @@ vi.mock("../lib/directus", () => ({
 
 import {
   isStorefrontAssetAllowed,
+  storefrontAssetResponseHeaders,
   storefrontAssetResponsePolicy,
 } from "../lib/assets";
 
@@ -27,6 +28,7 @@ describe("live storefront asset authorization", () => {
     ).resolves.toBe(true);
     expect(mocks.directusFetch).toHaveBeenCalledTimes(1);
     expect(String(mocks.directusFetch.mock.calls[0][0])).toContain("/items/products?");
+    expect(mocks.directusFetch.mock.calls[0][1]).toEqual({ revalidate: 0 });
   });
 
   it("forces potentially active document types to download", () => {
@@ -52,6 +54,17 @@ describe("live storefront asset authorization", () => {
     expect(storefrontAssetResponsePolicy("application/pdf")).toEqual({
       contentType: "application/pdf",
       contentDisposition: "inline",
+    });
+  });
+
+  it("requires fresh authorization and sets no-store with existing safety headers", () => {
+    expect(storefrontAssetResponseHeaders("image/png")).toEqual({
+      "content-type": "image/png",
+      "content-disposition": "inline",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-origin",
+      "content-security-policy": "sandbox; default-src 'none'",
     });
   });
 });
