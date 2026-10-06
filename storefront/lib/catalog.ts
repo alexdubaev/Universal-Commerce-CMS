@@ -111,6 +111,7 @@ function mapProduct(item: Record<string, unknown>): Product {
     delivery_status: item.delivery_status ? String(item.delivery_status) : null,
     seo_title: item.seo_title ? String(item.seo_title) : null,
     seo_description: item.seo_description ? String(item.seo_description) : null,
+    is_indexable: item.is_indexable !== false,
     date_updated: item.updated_at == null ? null : String(item.updated_at),
   };
 }
@@ -118,7 +119,7 @@ function mapProduct(item: Record<string, unknown>): Product {
 const productFields = [
   "id","slug","title","sku","mpn","brand","short_description","full_description",
   "price","currency","price_status","availability_status","part_type","main_image",
-  "specifications","delivery_status","seo_title","seo_description","updated_at",
+  "specifications","delivery_status","seo_title","seo_description","is_indexable","updated_at",
   "category.id","category.slug","category.title","category.description","category.h1",
   "category.intro","category.image","category.seo_title","category.seo_description","category.is_indexable",
 ].join(",");
@@ -506,16 +507,42 @@ export async function getProductCount() {
   }
 }
 
+function sitemapProductFilter() {
+  return {
+    _and: [
+      { status: { _eq: "published" } },
+      { _or: [{ is_indexable: { _eq: true } }, { is_indexable: { _null: true } }] },
+    ],
+  };
+}
+
+export async function getSitemapProductCount() {
+  if (isMockMode()) return mockProducts.length;
+  const params = new URLSearchParams({
+    limit: "1",
+    fields: "id",
+    meta: "filter_count",
+    filter: JSON.stringify(sitemapProductFilter()),
+  });
+  const result = await directusFetch<{ data: unknown[]; meta?: { filter_count?: number } }>(
+    `/items/products?${params.toString()}`,
+    { revalidate: 300 },
+  );
+  return Number(result.meta?.filter_count ?? result.data.length);
+}
+
 export async function getProductsForSitemap(offset: number, limit: number) {
   if (isMockMode()) {
-    return mockProducts.slice(offset, offset + limit).map(({ slug, date_updated }) => ({ slug, date_updated }));
+    return mockProducts.slice(offset, offset + limit)
+      .filter((product) => product.is_indexable !== false)
+      .map(({ slug, date_updated }) => ({ slug, date_updated }));
   }
   const params = new URLSearchParams({
-    fields: "slug,updated_at",
+    fields: "slug,updated_at,is_indexable",
     limit: String(limit),
     offset: String(offset),
     sort: "id",
-    filter: JSON.stringify({ status: { _eq: "published" } }),
+    filter: JSON.stringify(sitemapProductFilter()),
   });
   const result = await directusFetch<{ data: Array<{ slug: string; updated_at?: string | null }> }>(
     `/items/products?${params.toString()}`,

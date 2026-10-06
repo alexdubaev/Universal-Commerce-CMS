@@ -1,10 +1,10 @@
-import { getProductCount } from "@/lib/catalog";
+import { getSitemapProductCount } from "@/lib/catalog";
 import { absoluteUrl, escapeXml } from "@/lib/seo";
 
 const PRODUCT_CHUNK = 1000;
 
 export async function GET() {
-  const count = await getProductCount();
+  const count = await getSitemapProductCount();
   const chunks = Math.ceil(count / PRODUCT_CHUNK);
   const maps = [
     absoluteUrl("/sitemaps/static.xml"),

@@ -59,6 +59,7 @@ export type Product = {
   delivery_status?: string | null;
   seo_title?: string | null;
   seo_description?: string | null;
+  is_indexable?: boolean;
   date_updated?: string | null;
 };
 

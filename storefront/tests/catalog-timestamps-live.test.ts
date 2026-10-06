@@ -11,7 +11,7 @@ vi.mock("../lib/directus", () => ({
   directusFetch: mocks.directusFetch,
 }));
 
-import { getProductDetail, getProducts, getProductsForSitemap } from "../lib/catalog";
+import { getProductDetail, getProducts, getProductsForSitemap, getSitemapProductCount } from "../lib/catalog";
 
 const schemaBlueprintSource = readFileSync(new URL("../../directus/schema/blueprint.mjs", import.meta.url), "utf8");
 
@@ -45,7 +45,7 @@ describe("live product timestamp adapter", () => {
     mocks.directusFetch.mockImplementation(async (request: string) => {
       if (!request.startsWith("/items/products?")) return { data: [] };
       const url = assertValidProductFieldQuery(request);
-      if (url.searchParams.get("fields") === "slug,updated_at") {
+      if (url.searchParams.get("fields") === "slug,updated_at,is_indexable") {
         return { data: [{ slug: "part-one", updated_at: "2026-10-05T12:00:00.000Z" }] };
       }
       return { data: [productRow()], meta: { filter_count: 1 } };
@@ -61,6 +61,7 @@ describe("live product timestamp adapter", () => {
 
     const detail = await getProductDetail("part-one");
     expect(detail?.date_updated).toBe("2026-10-05T12:00:00.000Z");
+    expect(detail?.is_indexable).toBe(true);
     const detailUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
     expect(detailUrl.searchParams.get("fields")).toContain("updated_at");
   });
@@ -69,7 +70,7 @@ describe("live product timestamp adapter", () => {
     mocks.directusFetch.mockImplementation(async (request: string) => {
       if (!request.startsWith("/items/products?")) return { data: [] };
       const url = assertValidProductFieldQuery(request);
-      if (url.searchParams.get("fields") === "slug,updated_at") {
+      if (url.searchParams.get("fields") === "slug,updated_at,is_indexable") {
         return { data: [
           { slug: "dated", updated_at: "2026-10-05T12:00:00.000Z" },
           { slug: "null-date", updated_at: null },
@@ -89,6 +90,33 @@ describe("live product timestamp adapter", () => {
       { slug: "missing-date", date_updated: null },
     ]);
     const sitemapUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
-    expect(sitemapUrl.searchParams.get("fields")).toBe("slug,updated_at");
+    expect(sitemapUrl.searchParams.get("fields")).toBe("slug,updated_at,is_indexable");
+    expect(JSON.parse(sitemapUrl.searchParams.get("filter") ?? "{}")).toEqual({
+      _and: [
+        { status: { _eq: "published" } },
+        { _or: [{ is_indexable: { _eq: true } }, { is_indexable: { _null: true } }] },
+      ],
+    });
+  });
+
+  it("uses the same published and indexable filter for sitemap count and chunks", async () => {
+    mocks.directusFetch.mockImplementation(async (request: string) => {
+      const url = assertValidProductFieldQuery(request);
+      return url.searchParams.has("meta")
+        ? { data: [], meta: { filter_count: 2 } }
+        : { data: [{ slug: "indexable" }, { slug: "legacy-null" }] };
+    });
+
+    expect(await getSitemapProductCount()).toBe(2);
+    await getProductsForSitemap(0, 1000);
+    const countFilter = JSON.parse(new URL(String(mocks.directusFetch.mock.calls[0][0]), "https://store.test").searchParams.get("filter") ?? "{}");
+    const chunkUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
+    expect(JSON.parse(chunkUrl.searchParams.get("filter") ?? "{}")).toEqual(countFilter);
+  });
+
+  it("maps false indexability for product metadata", async () => {
+    mocks.directusFetch.mockImplementation(async () => ({ data: [productRow({ is_indexable: false })] }));
+    const detail = await getProductDetail("part-one");
+    expect(detail?.is_indexable).toBe(false);
   });
 });

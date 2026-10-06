@@ -23,6 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    robots: product.is_indexable === false ? { index: false, follow: true } : undefined,
     alternates: { canonical: `/product/${product.slug}` },
     openGraph: {
       type: "website",
