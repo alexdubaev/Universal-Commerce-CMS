@@ -1,18 +1,19 @@
 PHASE: Wave 2 implementation
 STATUS: IN PROGRESS
 
-CURRENT HEAD: 4b3897f (latest implementation; subsequent documentation commits may follow)
+CURRENT HEAD: c32d06d (latest implementation; subsequent documentation commits may follow)
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
 - Required handoff/contracts/ADR read; PR fetched and isolated worktree created.
 - Runtime baseline and all seven audit reports recorded; isolated implementation worktrees active.
 - Timestamp, explicit-live mode, byte-bounded bodies, asset revocation, brand labels, transport and hydration fixes integrated.
-- Storefront 57 unit tests, TypeScript, mock production build and unchanged 30/30 browser tests PASS; client canary absent.
+- Storefront 60 unit tests and TypeScript PASS after SEO; prior mock production build and unchanged 30/30 browser tests PASS; client canary absent.
+- Indexability count/chunk/metadata correction integrated; native nested child-create probe PASS.
 - User selected synthetic acceptance records in the existing local CMS; real catalog later.
 
 IN PROGRESS:
-- Backend gateway, fixture/provisioning tooling and indexability correction in parallel.
+- Backend gateway, fixture/provisioning tooling and separate live acceptance tooling in parallel.
 - Live E2E follows reviewed gateway/fixtures.
 
 BLOCKERS:

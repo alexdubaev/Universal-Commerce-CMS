@@ -34,6 +34,8 @@ Minimum reads have distinct prerequisite records: `site_settings` must exist for
 
 ## Fixture blockers to resolve before writing
 
+Update after the audit: on 2026-10-07 the authorized local probe created an owned synthetic product with nested `specification_items` through native `POST /items/products`. Read-back confirmed one correctly linked specification. Both IDs were immediately recorded in the ignored ownership manifest. This proves the transaction-aware nested-create route for that child; it does not establish standalone child update/delete safety. Full media/section variants still require their own apply/read-back evidence.
+
 1. Confirm the authorized insertion route can create/update synthetic parent records with the current service identity. A create hook derives identity fields, but the `/commerce/mutations/:collection/:id` guarded route is an update/delete contract for an existing UUID and does not expose create. Avoid Administrator as storefront identity.
 2. For product_codes and products_analogs, determine whether their parent/derived fields can be created through a supported transaction-aware route. Codes require normalized_code and a unique composite; analogs require canonical_key matching edge type/direction and unique physical constraint. Integrity hooks normalize codes but do not derive analog canonical keys.
 3. For product_images/specifications/documents/page_sections, integrity requires `database.isTransaction===true`; identify an already supported atomic path for creation or keep these child-based scenarios out of acceptance. Direct REST writes are not established as safe.
