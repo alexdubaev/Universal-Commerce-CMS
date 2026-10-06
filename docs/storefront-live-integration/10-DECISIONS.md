@@ -37,3 +37,9 @@ D017 — Allow the small Vitest alias configuration needed to import actual pres
 D018 — Honor existing product `is_indexable` in sitemap counts/chunks while keeping non-indexable published products browsable. Verify count/chunk consistency; no CMS migration is needed.
 
 D019 — Owner clarified that the sole human CMS operator is the Administrator. Do not provision staff/content-manager/sales roles or run the generic access blueprint. Keep only the technical zero-grant storefront identity needed for server integration, separate from human administration.
+
+D020 — Directus relation predicates use boolean groups at filter root with relation-path leaves. Installed 12.1.1 silently ignores relation-nested `_and`; protect all child/analog/reference paths and verify negative cases against actual CMS.
+
+D021 — Remove the root loading boundary so CMS `notFound()` can produce HTTP404 before streaming. Keep the existing 404 UI and strict status assertion; no duplicate query/proxy preflight.
+
+D022 — Native and gateway asset reference queries both require published-or-absent product categories. Gateway accepts only the exact flat category predicate shapes needed by the adapter and always forces its own visibility gates.

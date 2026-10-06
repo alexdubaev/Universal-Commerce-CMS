@@ -1,3 +1,5 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
 # Storefront permission matrix
 
 Scope: map the current adapter and commerce endpoints to the Directus permissions they use, and record a safe Core-compatible path. This report changes no runtime, identity, permissions, schema, or extension code. The present local Core instance has only Administrator and no storefront policy. Do not use Administrator as the storefront identity.

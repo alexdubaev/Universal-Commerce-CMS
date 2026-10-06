@@ -1,3 +1,5 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
 # Storefront ↔ Directus contract matrix
 
 Scope: field and endpoint selectors currently used by the storefront adapters and API proxies. This is a source-derived integration contract, not evidence that a runtime instance grants these permissions or that live acceptance passed. It does not authorize schema, access, credential, or data changes.

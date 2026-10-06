@@ -1,3 +1,5 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
 # Search and performance audit
 
 Status: REPORT COMPLETE; synthetic live acceptance and 100k performance NOT RUN.

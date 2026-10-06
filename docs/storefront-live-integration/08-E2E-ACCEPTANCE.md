@@ -1,3 +1,5 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
 # E2E acceptance and Windows WebKit diagnosis
 
 Date: 2026-10-07. Baseline: `0f883b26e5003cb00bfad1ed7dc2586268182052`; work branch: `feat/storefront-directus-acceptance`.

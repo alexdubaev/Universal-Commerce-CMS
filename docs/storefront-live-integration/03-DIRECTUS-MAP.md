@@ -1,3 +1,5 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
 # Directus map for synthetic storefront acceptance
 
 Scope: map the checked-in schema, commerce endpoints, integrity hooks, and storefront reads needed to create and verify synthetic acceptance records. This report does not authorize schema, access, database, or runtime changes. The source Deereshop environment and its data remain excluded.
