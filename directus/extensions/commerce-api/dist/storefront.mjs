@@ -204,7 +204,7 @@ function makeItemsHandler(context) {
       }
       const requestedFields = parsed.aggregate ? ['brand'] : req.query?.fields ? req.query.fields.split(',') : (fields[collection] ?? fixedFields[collection]);
       const readQuery = { filter, fields: requestedFields, limit: parsed.limit, page: parsed.page, ...(req.query?.offset !== undefined ? { offset: parsed.offset } : {}), ...(parsed.sort.length ? { sort: parsed.sort } : {}), meta: ['filter_count'] };
-      if (parsed.aggregate) { readQuery.aggregate = { count: ['*'] }; readQuery.groupBy = ['brand']; }
+      if (parsed.aggregate) { readQuery.aggregate = { count: ['*'] }; readQuery.group = ['brand']; }
       if (collection === 'home_page' || collection === 'site_settings') readQuery.limit = 1;
       const rows = await service.readByQuery(readQuery);
       const result = Array.isArray(rows) ? rows : rows?.data ?? [];

@@ -73,7 +73,7 @@ test('brand aggregate accepts Directus depth-limited query parsing and rejects u
   assert.equal(response.statusCode, 200);
   const sent = h.calls.find(call => call.query)?.query;
   assert.deepEqual(sent.aggregate, { count: ['*'] });
-  assert.deepEqual(sent.groupBy, ['brand']);
+  assert.deepEqual(sent.group, ['brand']);
   assert.equal(sent.filter.status._eq, 'published');
 
   const invalid = harness();
@@ -99,7 +99,7 @@ test('brand aggregate accepts the installed Directus qs parser output shape', as
   assert.equal(response.statusCode, 200);
   const sent = h.calls.find(call => call.query)?.query;
   assert.deepEqual(sent.aggregate, { count: ['*'] });
-  assert.deepEqual(sent.groupBy, ['brand']);
+  assert.deepEqual(sent.group, ['brand']);
 });
 
 test('brand aggregate accepts Directus singleton-array count normalization and rejects ambiguity', async () => {
@@ -112,7 +112,9 @@ test('brand aggregate accepts Directus singleton-array count normalization and r
   };
   const response = await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query });
   assert.equal(response.statusCode, 200);
-  assert.deepEqual(h.calls.find(call => call.query)?.query.aggregate, { count: ['*'] });
+  const aggregateQuery = h.calls.find(call => call.query)?.query;
+  assert.deepEqual(aggregateQuery.aggregate, { count: ['*'] });
+  assert.deepEqual(aggregateQuery.group, ['brand']);
 
   const invalid = harness();
   const rejected = await invalid.invoke('/storefront/items/:collection', {
@@ -138,6 +140,9 @@ test('current adapter filter shapes stay inside collection and parent visibility
     const response = await h.invoke('/storefront/items/:collection', { params: { collection }, query });
     assert.equal(response.statusCode, 200, `${collection} adapter request accepted`);
   }
+  const brandAggregate = h.calls.find(call => call.query?.aggregate)?.query;
+  assert.deepEqual(brandAggregate.aggregate, { count: ['*'] });
+  assert.deepEqual(brandAggregate.group, ['brand']);
   const sectionRead = h.calls.find(call => call.collection === 'page_sections' && call.query)?.query;
   assert.equal(sectionRead.filter.page.status._eq, 'published');
   const codeRead = h.calls.find(call => call.collection === 'product_codes' && call.query)?.query;
