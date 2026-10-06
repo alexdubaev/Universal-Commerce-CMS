@@ -8,7 +8,7 @@ D003 — Keep exact SKU/OEM `/commerce/search` and its 200-candidate ceiling; no
 
 D004 — Explicit live mode stays live if configuration is missing; fictional fallback remains disabled for integration/production.
 
-D005 — Reuse only the existing `universal-commerce-cms-dev` stack via the original checkout's `dev/compose.yml`. Do not replace Directus/PostgreSQL, networks or volumes. Source-site instances/content are read-only and excluded.
+D005 — Reuse only the existing `universal-commerce-cms-dev` stack. Activate the reviewed integration checkout's `dev/compose.yml` with its ignored local env, recreating only Directus to mount the reviewed extensions. Preserve project name, pinned images, PostgreSQL, networks, named volumes and loopback port. The original checkout remains unchanged. Source-site instances/content are read-only and excluded.
 
 D006 — User approved specially created synthetic fixtures in the local CMS on 2026-10-07. Real catalog/100k production acceptance remains a later stage. Label synthetic content and test results explicitly; no invented legal/company facts.
 

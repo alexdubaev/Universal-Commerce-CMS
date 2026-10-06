@@ -1,35 +1,29 @@
-PHASE: Integrated code review and local provisioning
+PHASE: Local fixture provisioning and live acceptance
 STATUS: IN PROGRESS
-
-CURRENT HEAD: 68f3f777da9cbc3c1c81726159b5d4ab13673aa9
+CURRENT HEAD: 700499e0cd36e28fe63466e99ada7e27b0dafb1f
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
-- Required handoff/contracts/ADR read; PR fetched and isolated worktree created.
-- Runtime baseline and all seven audit reports recorded; isolated implementation worktrees active.
-- Timestamp, explicit-live mode, byte-bounded bodies, asset revocation, brand labels, transport and hydration fixes integrated.
-- Storefront 60 unit tests and TypeScript PASS after SEO; prior mock production build and unchanged 30/30 browser tests PASS; client canary absent.
-- Indexability count/chunk/metadata correction integrated; native nested child-create probe PASS.
-- Guarded gateway and owned fixture tooling integrated; targeted gateway/races and fixture tests PASS.
-- Fresh reviewer found category-visibility isolation issue; fix integrated and independently tested.
-- User selected synthetic acceptance records in the existing local CMS; real catalog later.
+- Seven audits, isolated implementation and first independent review complete.
+- Storefront 60 unit tests/typecheck PASS; unchanged mock browsers 30/30 PASS.
+- Gateway, security/SEO corrections and exact-owned fixture tooling integrated.
+- Initial partial fixture attempt cleaned; fresh service identity and test records created.
+- Sole human operator is Administrator; no staff roles are provisioned.
 
 IN PROGRESS:
-- Fixture service-user creation failure diagnosis; exact partial ownership retained.
-- Live acceptance tooling completion; second fresh whole-change review follows final integration.
+- Diagnose final fixture singleton configuration stage; owned records retained.
+- Complete live test tooling and independent final review.
 
 BLOCKERS:
-- Full apply stopped at technical service-user creation after creating only owned files/folders/policy/role/access.
-- Gateway disabled in running stack; profiles/singletons and original env remain untouched by the failed apply.
+- Fixture manifest is partial; gateway activation awaits safe singleton configuration.
 
 P0:
 - None confirmed.
 P1:
-- None remaining in integrated adapter changes; whole-change review pending.
+- None remaining in integrated corrections; final review pending.
 P2:
-- Integrated fixes await browser/live acceptance and fresh whole-change review.
-- Live identity/asset/RFQ behavior awaits complete provisioning and runtime verification.
+- Live identity, assets and RFQ acceptance pending.
 
 NEXT:
-- Integrate reviewed logical commits with targeted tests; provision only the existing local test stack.
-- Verify native API denial, live synthetic E2E and bounded performance; retain Draft/no production approval.
+- Finish fixture provisioning, activate only existing local Directus service.
+- Run live browsers, durable retry/security probes and final verification.
