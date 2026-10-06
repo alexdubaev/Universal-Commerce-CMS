@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime } from '../../dev/storefront-acceptance.mjs';
+import { assertHomeSingletonAbsent, cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime } from '../../dev/storefront-acceptance.mjs';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casApplyPatch, casRestorePatch, directusRows,
   collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, reconcileLegacySectionPage, redactSummary, serviceEmailForRun,
@@ -45,12 +45,16 @@ test('singleton read and patch use collection-level Directus routes', async () =
   assert.throws(() => patchSingleton(client, 'products', { status: 'draft' }), /Unsupported/u);
 });
 
-test('home singleton ownership uses exact item reads and only treats confirmed 404 as absent', async () => {
+test('home singleton ownership reads its projection and matches only a persisted exact ID', async () => {
   const calls = [], client = { request: async path => { calls.push(path); return { id, status: 'published' }; } };
   assert.deepEqual(await readOwnedRecord(client, 'home_page', id), { id, status: 'published' });
-  assert.equal(calls[0], `/items/home_page/${id}`);
-  assert.equal(await readOwnedRecord({ request: async () => { throw Error('HTTP 404 missing'); } }, 'home_page', id), null);
+  assert.equal(calls[0], '/items/home_page?fields=*&limit=1');
+  assert.equal(await readOwnedRecord({ request: async () => ({ id: null, status: 'draft' }) }, 'home_page', id), null);
+  assert.equal(await readOwnedRecord({ request: async () => ({ id: '8b8b8b8b-8b8b-48b8-88b8-8b8b8b8b8b8b' }) }, 'home_page', id), null);
   await assert.rejects(readOwnedRecord({ request: async () => { throw Error('HTTP 403 denied'); } }, 'home_page', id), /HTTP 403/u);
+  await assertHomeSingletonAbsent({ request: async () => ({ id: null }) });
+  await assert.rejects(assertHomeSingletonAbsent({ request: async () => ({ id }) }), /already exists/u);
+  await assert.rejects(assertHomeSingletonAbsent({ request: async () => { throw Error('HTTP 403 denied'); } }), /HTTP 403/u);
 });
 
 test('owned file MIME repair requires exact ownership and byte-identical generated content', async () => {

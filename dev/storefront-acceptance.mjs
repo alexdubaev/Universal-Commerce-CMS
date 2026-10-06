@@ -103,11 +103,16 @@ export async function readSingletonRows(client, collection, fields) {
 
 export async function readOwnedRecord(client, collection, id) {
   if (collection === 'home_page') {
-    try { return await client.request(`/items/home_page/${encodeURIComponent(id)}`); }
-    catch (error) { if (/HTTP 404/u.test(String(error?.message))) return null; throw error; }
+    const singleton = (await readSingletonRows(client, 'home_page', ['*']))[0] ?? null;
+    return singleton?.id != null && String(singleton.id) === String(id) ? singleton : null;
   }
   const query = new URLSearchParams({ 'filter[id][_eq]': String(id), limit: '1', fields: '*' });
   return (await readCollectionRows(client, collection, query))[0] ?? null;
+}
+
+export async function assertHomeSingletonAbsent(client) {
+  const singleton = (await readSingletonRows(client, 'home_page', ['*']))[0];
+  if (singleton?.id != null) throw new Error('Refusing synthetic home creation because a home singleton already exists');
 }
 
 async function readExactOwned(client, manifest, collection, id) {
@@ -186,6 +191,9 @@ async function prepareOwned(client, manifest, path, collection, data) {
   const row = { ...data, id: String(data.id ?? randomUUID()) };
   for (const [targetCollection, target] of [[collection, row], ...nestedOwnedChildren(collection, row)]) {
     target.id = String(target.id ?? randomUUID());
+    if (targetCollection === 'home_page') {
+      await assertHomeSingletonAbsent(client);
+    }
     if (await readOwnedRecord(client, targetCollection, target.id)) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
     const expected = ownershipFields(targetCollection, target);
     manifest.pending[targetCollection][target.id] = expected;
