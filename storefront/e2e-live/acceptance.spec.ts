@@ -349,18 +349,17 @@ test("real RFQ writes handle concurrent replay, changed-payload conflict, and in
 test("navigation keyboard behavior, responsive routes, no token leakage, and bounded timings", async ({ page, request }, testInfo) => {
   const refs = (await manifest()).namedRefs;
   const token = (await manifest()).service.token;
-  const tokenLeaks: Promise<boolean>[] = [];
+  const requestTokenLeaks: boolean[] = [];
+  const responseTokenLeaks: Promise<boolean>[] = [];
   page.on("request", (browserRequest) => {
-    tokenLeaks.push((async () => {
-      const headers = await browserRequest.allHeaders();
-      return Object.values(headers).some((value) => value.includes(token))
-        || Boolean(browserRequest.postData()?.includes(token));
-    })());
+    const headers = browserRequest.headers();
+    requestTokenLeaks.push(Object.values(headers).some((value) => value.includes(token))
+      || Boolean(browserRequest.postData()?.includes(token)));
   });
   page.on("response", (browserResponse) => {
     const resourceType = browserResponse.request().resourceType();
     if (!["document", "script", "xhr", "fetch"].includes(resourceType)) return;
-    tokenLeaks.push((async () => {
+    responseTokenLeaks.push((async () => {
       try { return (await browserResponse.text()).includes(token); } catch { return false; }
     })());
   });
@@ -393,7 +392,7 @@ test("navigation keyboard behavior, responsive routes, no token leakage, and bou
     if (!response?.ok()) continue;
     expect((await response.text()).includes(token)).toBe(false);
   }
-  expect((await Promise.all(tokenLeaks)).some(Boolean)).toBe(false);
+  expect([...requestTokenLeaks, ...(await Promise.all(responseTokenLeaks))].some(Boolean)).toBe(false);
 
   await page.goto(`/product/${refs.primaryProductSlug}`);
   const sku = (await page.locator(".article-big strong").innerText()).trim();
