@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brands, getProducts } from "../lib/catalog";
+import { brands, getCategories, getProductDetail, getProducts } from "../lib/catalog";
 import { mockProducts } from "../lib/mock";
 
 const normalize = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9А-ЯЁ]+/g, "");
@@ -44,5 +44,37 @@ describe("mock catalog contract", () => {
     expect(second.items).toHaveLength(3);
     expect(first.items.map((item) => item.id)).not.toEqual(second.items.map((item) => item.id));
     expect(first.total).toBe(second.total);
+  });
+
+  it("applies category, availability, type and price sorting together", async () => {
+    const result = await getProducts({
+      category: "filters",
+      availability: "in_stock",
+      partType: "original",
+      sort: "price_asc",
+      limit: 24,
+    });
+    expect(result.items.length).toBeGreaterThan(1);
+    expect(result.items.every((item) =>
+      item.category?.slug === "filters"
+      && item.availability_status === "in_stock"
+      && item.part_type === "original"
+    )).toBe(true);
+    const prices = result.items.map((item) => item.price ?? Number.POSITIVE_INFINITY);
+    expect(prices).toEqual([...prices].sort((a, b) => a - b));
+  });
+
+  it("exposes unique indexable category routes", async () => {
+    const categories = await getCategories();
+    expect(categories.length).toBeGreaterThan(0);
+    expect(new Set(categories.map((category) => category.slug)).size).toBe(categories.length);
+    expect(categories.every((category) => category.is_indexable !== false)).toBe(true);
+  });
+
+  it("product detail exposes codes and compatible relations without cloning the current product", async () => {
+    const detail = await getProductDetail("jd-re568158");
+    expect(detail).not.toBeNull();
+    expect(detail?.codes.some((code) => code.code === "RE-568158")).toBe(true);
+    expect(detail?.relations.every((relation) => relation.product.id !== detail.id)).toBe(true);
   });
 });

@@ -1,90 +1,141 @@
 # Storefront integration handoff
 
-## Scope already completed
+## Current state
 
-This branch adds a new `storefront/` only. Existing Directus code, schema, Docker, credentials and permissions are intentionally untouched.
+The storefront is now a substantially complete frontend shell. It runs end-to-end in mock mode and is wired to the current Universal Commerce CMS contracts.
 
-The UI works without infrastructure in mock mode and is already wired to the current CMS contracts for a later real-data pass.
+Directus schema, database, roles/permissions, Docker and deployment remain intentionally untouched.
 
-## Expected route matrix
+## Route matrix
 
 - `/`
 - `/catalog`
 - `/catalog?q=RE568158`
 - `/catalog?brand=caterpillar`
+- `/catalog?category=filters&availability=in_stock&partType=original&sort=price_asc`
 - `/brands`
-- `/brand/caterpillar`
-- `/brand/komatsu`
-- `/brand/jcb`
-- `/brand/john-deere`
-- `/brand/cnh`
-- `/brand/claas`
-- `/brand/perkins`
-- `/brand/sany`
+- `/brand/[brand]`
+- `/category/[slug]`
 - `/product/[slug]`
 - `/request`
 - `/delivery`
 - `/payment`
 - `/about`
 - `/contacts`
+- `/robots.txt`
+- `/sitemap.xml`
+- `/sitemaps/static.xml`
+- `/sitemaps/products-[n].xml`
 - `/api/search`
 - `/api/lead`
 - `/api/order`
 - `/api/assets/[id]`
 - `/api/health`
 
-## Directus mapping
+## CMS mapping
 
-### Product listing
+### Catalog
 
-Reads published `products` fields already present in the CMS:
+Published `products` feed the catalog and product pages. Filtering supports brand, category, availability and part type. Sorting supports popularity, price ascending/descending and title.
 
-`id, slug, title, sku, mpn, brand, descriptions, price, currency, price_status, availability_status, part_type, main_image, specifications, delivery_status, category`.
+### Product detail
+
+The storefront reads the existing:
+
+- `product_codes`;
+- `product_images`;
+- `product_specifications`;
+- `product_documents`;
+- `products_analogs`.
+
+Missing/unauthorized optional child collections degrade to empty sections, not fictional live data.
 
 ### Search
 
-Uses the existing `GET /commerce/search` normalized SKU/OEM endpoint, then loads product card data from `products`.
+The exact SKU/OEM path keeps using `GET /commerce/search`. Search suggestions call the storefront `/api/search` proxy.
 
-For 100k+ general text search, this is intentionally not pretending to be Meilisearch/OpenSearch. Keep the exact article/OEM route and add a separate full-text search service only after performance acceptance.
+The existing backend search has a bounded candidate window. A dedicated full-text engine for broad natural-language search is still a later performance/search-quality decision, not faked here.
 
-### Lead / RFQ
+### RFQ / parts list
 
-`/api/lead` converts the storefront form into the existing `POST /commerce/leads` contract. Company name is currently prepended to `message` because the baseline lead schema has no company field.
+Users can:
 
-The active Directus commerce profile must set `features.parts_request=true` before list RFQs are accepted.
+- add product cards;
+- change quantity/remove items;
+- paste article lists;
+- load CSV/TXT;
+- load XLSX in the browser.
 
-File upload is not implemented in this storefront branch. The CMS already has a strict private attachment manifest contract; implement uploads only after the service-account/folder permission design is approved.
+The current commerce lead API permits at most 100 `request_items`, so the UI explicitly caps a request at 100 rather than silently sending an invalid payload.
 
-### Orders
+File attachment upload to Directus is deliberately separate from XLSX parsing. The CMS has a strict private attachment manifest contract; do not bypass it.
 
-`/api/order` is a thin server-side proxy for the current atomic `POST /commerce/orders` endpoint. The UI is RFQ-first and does not expose retail checkout yet.
+### SEO
 
-The active commerce profile must have `features.cart=true` and matching currency before the endpoint accepts an order.
+Implemented:
 
-### Media
+- dynamic product/brand/category metadata;
+- canonical URLs;
+- OpenGraph metadata;
+- Organization/Product/BreadcrumbList JSON-LD;
+- robots;
+- sitemap index;
+- product sitemap chunks of 1,000 URLs;
+- brand/category/static sitemap.
 
-Browser requests `/api/assets/:id`; the Next server adds `DIRECTUS_TOKEN` when talking to Directus. Review cache policy and file authorization before production.
+### Mock safety
 
-## Required work before production
+`STOREFRONT_MOCK_MODE=true` is development mode.
 
-1. Run `npm install`, `npm run typecheck`, `npm run build`.
-2. Review Next/React dependency versions against the deployment target and lock them.
-3. Create a least-privilege server identity for storefront reads and commerce writes.
-4. Configure the site commerce profile and real site settings.
-5. Verify asset permissions with real public/private files.
-6. Decide whether company/INN/KPP belong in the lead schema or a future B2B company model.
-7. Add real content for delivery/payment/about/contact pages from Directus page sections.
-8. Add catalog facets (availability, category, type) server-side; current disabled controls are intentional UI placeholders.
-9. Add production pagination/count behavior for search. The current CMS search has a bounded candidate window.
-10. Add inventory/warehouse model before displaying numeric stock.
-11. Add price lists before promising customer-specific B2B pricing.
-12. Add sitemap generation in chunks for large catalogs.
-13. Add browser E2E: desktop + 390px mobile, search, brand navigation, product, request.
-14. Add security review: token exposure, SSRF/path handling, rate limits, CSP, form abuse, request size limits.
-15. Add Docker/service wiring only in an explicitly scoped infrastructure task.
+When connecting live Directus use:
 
-## Design behavior
+```env
+STOREFRONT_MOCK_MODE=false
+STOREFRONT_ALLOW_MOCK_FALLBACK=false
+```
 
-One header is shared by every route. Desktop and mobile are responsive states of the same site, not separate implementations. At <=820px navigation becomes a drawer-like overlay; catalog and product layouts collapse; at <=520px search and forms become touch-oriented full-width controls.
+Do not enable mock fallback in production.
 
-The storefront uses no external UI framework, so the next agent can change visual tokens in `app/globals.css` without fighting a component library.
+## Remaining integration / production work
+
+1. Create and review a least-privilege server identity for storefront reads/writes.
+2. Configure the real site profile and contacts.
+3. Verify every collection/asset permission with real Directus.
+4. Set `commerce_profile.features.parts_request=true`.
+5. Decide whether Company / INN / KPP become first-class B2B entities.
+6. Move delivery/payment/about/contact body content to real Directus page sections.
+7. Verify production search behavior with the real large catalog; decide whether to add Meilisearch/OpenSearch.
+8. Add warehouse inventory before displaying numeric stock.
+9. Add price lists before customer-specific B2B pricing.
+10. Verify sitemap throughput against the real 100k+ catalog and Directus query limits.
+11. Add production rate limiting / abuse controls at the deployment edge for form/API routes.
+12. Add CSP/security headers after final deployment topology is known.
+13. Wire Docker/services/deployment only in a separately scoped infrastructure task.
+14. Run real-Directus E2E and performance/load tests before production acceptance.
+
+## Acceptance already automated
+
+CI covers:
+
+- storefront unit/TDD regression tests;
+- TypeScript;
+- production build;
+- production dependency audit;
+- server-token client-bundle leak canary;
+- Playwright desktop;
+- Playwright 390px mobile;
+- route overflow checks;
+- search;
+- brands/categories;
+- catalog facets;
+- RFQ add/edit/import/submit;
+- sitemap/robots;
+- concurrent retry behavior;
+- full existing Directus test suite;
+- explicit lead/order race tests.
+
+## Design contract
+
+Read `AGENTS.md` and `DESIGN-CONTRACT.md` before redesign work.
+
+A visual-only redesign must not rewrite catalog/search/API/RFQ contracts. One theme system feeds every route, with intentional desktop/tablet/mobile layouts.

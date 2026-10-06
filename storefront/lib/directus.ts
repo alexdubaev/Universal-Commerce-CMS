@@ -1,9 +1,14 @@
 const directusUrl = process.env.DIRECTUS_URL?.replace(/\/$/, "");
 const directusToken = process.env.DIRECTUS_TOKEN;
 const mockMode = process.env.STOREFRONT_MOCK_MODE === "true" || !directusUrl;
+const mockFallback = process.env.STOREFRONT_ALLOW_MOCK_FALLBACK === "true";
 
 export function isMockMode() {
   return mockMode;
+}
+
+export function allowMockFallback() {
+  return mockFallback;
 }
 
 type DirectusInit = RequestInit & { revalidate?: number };

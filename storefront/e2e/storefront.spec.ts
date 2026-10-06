@@ -14,13 +14,18 @@ const brands = [
   ["sany", "SANY"],
 ] as const;
 
-test("home, catalog and every brand route render", async ({ page }) => {
+test("home, catalog, categories and every brand route render", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Движение вашего бизнеса");
   await expect(page.locator(".site-header")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Категории запчастей" })).toBeVisible();
 
   await page.goto("/catalog");
   await expect(page.getByRole("heading", { name: "Каталог запчастей" })).toBeVisible();
+
+  const categoryResponse = await page.goto("/category/filters");
+  expect(categoryResponse?.ok()).toBe(true);
+  await expect(page.getByRole("heading", { level: 1, name: "Фильтры" })).toBeVisible();
 
   for (const [slug, name] of brands) {
     const response = await page.goto(`/brand/${slug}`);
@@ -29,9 +34,12 @@ test("home, catalog and every brand route render", async ({ page }) => {
   }
 });
 
-test("article search normalizes punctuation and reaches a product", async ({ page }) => {
+test("article search shows suggestions, normalizes punctuation and reaches a product", async ({ page }) => {
   await page.goto("/");
   const search = page.getByRole("search");
+  await search.getByRole("textbox").fill("RE-56");
+  await expect(page.locator(".suggestion-item").first()).toBeVisible();
+
   await search.getByRole("textbox").fill("RE-568158");
   await search.getByRole("button", { name: "Найти" }).click();
 
@@ -41,6 +49,29 @@ test("article search normalizes punctuation and reaches a product", async ({ pag
   await card.getByRole("link", { name: "Фильтр масляный" }).click();
   await expect(page).toHaveURL(/\/product\/jd-re568158/);
   await expect(page.getByText("RE568158", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("RE-568158", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Аналоги и совместимые позиции" })).toBeVisible();
+});
+
+test("catalog facets and price sort affect results", async ({ page }) => {
+  await page.goto("/catalog?category=filters&availability=in_stock&partType=original&sort=price_asc");
+  const cards = page.locator(".product-card");
+  await expect(cards.first()).toContainText("RE568158");
+  await expect(cards.first()).toContainText("3");
+  const count = await cards.count();
+  expect(count).toBeGreaterThan(1);
+  for (let index = 0; index < count; index++) {
+    await expect(cards.nth(index)).toContainText("В наличии");
+  }
+});
+
+test("bulk manual import updates the same RFQ list immediately", async ({ page }) => {
+  await page.goto("/request");
+  await page.getByLabel("Артикулы").fill("RE568158 2\n1R-1808 4");
+  await page.getByRole("button", { name: "Добавить список" }).click();
+  await expect(page.getByText(/Список: добавлено 2/)).toBeVisible();
+  await expect(page.locator(".request-line").filter({ hasText: "RE568158" })).toContainText("2");
+  await expect(page.locator(".request-line").filter({ hasText: "1R-1808" })).toContainText("4");
 });
 
 test("request flow survives add, quantity edit and mock submission", async ({ page }) => {
@@ -51,7 +82,7 @@ test("request flow survives add, quantity edit and mock submission", async ({ pa
   await page.goto("/request");
   const line = page.locator(".request-line").filter({ hasText: "RE568158" });
   await expect(line).toBeVisible();
-  await line.locator(".qty button").last().click();
+  await line.getByRole("button", { name: /Увеличить количество/ }).click();
   await expect(line.locator(".qty b")).toHaveText("2");
 
   await page.getByLabel("Компания").fill("ООО Тест");
@@ -86,6 +117,26 @@ test("lead API is stable under concurrent retries with one request key in mock m
   expect(new Set(bodies.map((body) => body.id)).size).toBe(1);
 });
 
+test("robots and chunked sitemap expose catalog URLs", async ({ request }) => {
+  const robots = await request.get("/robots.txt");
+  expect(robots.ok()).toBe(true);
+  expect(await robots.text()).toContain("/sitemap.xml");
+
+  const index = await request.get("/sitemap.xml");
+  expect(index.ok()).toBe(true);
+  expect(await index.text()).toContain("/sitemaps/products-0.xml");
+
+  const products = await request.get("/sitemaps/products-0.xml");
+  expect(products.ok()).toBe(true);
+  expect(await products.text()).toContain("/product/jd-re568158");
+
+  const statics = await request.get("/sitemaps/static.xml");
+  expect(statics.ok()).toBe(true);
+  const staticXml = await statics.text();
+  expect(staticXml).toContain("/brand/caterpillar");
+  expect(staticXml).toContain("/category/filters");
+});
+
 test("mobile menu works and key routes never overflow horizontally", async ({ page }, testInfo) => {
   if (testInfo.project.name === "mobile-chromium") {
     await page.goto("/");
@@ -95,7 +146,7 @@ test("mobile menu works and key routes never overflow horizontally", async ({ pa
     await expect(page).toHaveURL(/\/catalog/);
   }
 
-  for (const route of ["/", "/catalog", "/brand/caterpillar", "/product/jd-re568158", "/request", "/delivery", "/payment", "/about", "/contacts"]) {
+  for (const route of ["/", "/catalog", "/category/filters", "/brand/caterpillar", "/product/jd-re568158", "/request", "/delivery", "/payment", "/about", "/contacts"]) {
     await page.goto(route);
     const dimensions = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

@@ -2,21 +2,34 @@
 
 Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 
-## What is implemented
+## Implemented
 
-- desktop and mobile layouts from one codebase;
-- home page with search-first B2B UX;
-- catalog with brand filtering and pagination;
-- brand routes: `/brand/[brand]`;
-- product routes: `/product/[slug]`;
-- delivery, payment, about, contacts and request pages;
+- one responsive desktop/mobile codebase;
+- search-first B2B home page;
+- multi-brand catalog;
+- working brand, category, availability and part-type filters;
+- price/title/popularity sorting and pagination;
+- dynamic brand routes at `/brand/[brand]`;
+- dynamic category routes at `/category/[slug]`;
+- dynamic product routes at `/product/[slug]`;
+- search suggestions and local recent-search history;
+- product codes / OEM numbers, child specifications, documents, gallery and analog/supersession UI;
 - local RFQ list stored in the browser;
-- server-side Directus adapter with automatic mock fallback;
+- manual bulk article input;
+- XLSX / CSV / TXT request-list import;
+- delivery, payment, about, contacts and request pages;
+- dynamic SEO metadata for product/brand/category pages;
+- Organization, Product and BreadcrumbList JSON-LD;
+- robots.txt;
+- chunked product sitemap plus brand/category/static sitemap;
+- server-side Directus adapter;
+- explicit mock mode for development;
 - `/commerce/search` integration;
-- `/commerce/leads` proxy;
+- `/commerce/leads` proxy with durable request-key reuse;
 - `/commerce/orders` proxy prepared for later cart/account work;
-- Directus asset proxy, so a private server token never reaches the browser;
-- health endpoint.
+- Directus asset proxy, so the server token never reaches the browser;
+- health endpoint;
+- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
 
 The storefront does **not** change Directus schema, roles, permissions, Docker, database or deployment configuration.
 
@@ -41,37 +54,44 @@ Set:
 DIRECTUS_URL=http://127.0.0.1:18056
 DIRECTUS_TOKEN=<server-side service token>
 STOREFRONT_MOCK_MODE=false
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
+STOREFRONT_ALLOW_MOCK_FALLBACK=false
+NEXT_PUBLIC_SITE_URL=https://your-store.example
 ```
 
 The token is server-side only. Do not rename it to a `NEXT_PUBLIC_*` variable.
 
-The current Directus baseline keeps anonymous access closed. The next integration step should create/review a least-privilege storefront service account or another approved server-to-server access mechanism instead of using an Administrator token in production.
+When `STOREFRONT_MOCK_MODE=false`, catalog errors fail closed instead of silently substituting fictional products. `STOREFRONT_ALLOW_MOCK_FALLBACK=true` exists only for controlled development/testing.
+
+The current Directus baseline keeps anonymous access closed. Production should use a reviewed least-privilege storefront service identity rather than an Administrator token.
 
 ## Existing CMS contracts used
 
 - `GET /items/products`
+- `GET /items/categories`
+- `GET /items/product_codes`
+- `GET /items/product_images`
+- `GET /items/product_specifications`
+- `GET /items/product_documents`
+- `GET /items/products_analogs`
 - `GET /items/site_settings`
 - `GET /commerce/search?q=...`
 - `POST /commerce/leads`
 - `POST /commerce/orders`
 - `GET /assets/:id`
 
-The storefront intentionally preserves the CMS product fields already defined in `directus/schema/blueprint.mjs`.
+The storefront preserves the current CMS schema. No duplicate storefront-only catalog schema is introduced.
 
-## Checks for the next agent
-
-Run at minimum:
+## Quality checks
 
 ```powershell
-Set-Location storefront
 npm install
+npm test
 npm run typecheck
 npm run build
+npm run test:e2e
 ```
 
-Then verify the main routes at desktop, tablet and 390px mobile widths. See `INTEGRATION-HANDOFF.md` for the remaining CMS/infra work.
-
+GitHub Actions also runs the existing Directus suite and explicit concurrent lead/order race tests.
 
 ## Fast design changes
 
@@ -84,4 +104,4 @@ Before any redesign, read:
 
 Global visual tokens are isolated in `app/theme.css`. A normal design-only task should preserve `lib/**`, `app/api/**`, Directus contracts, routes and RFQ/order behavior.
 
-This means a future agent can take a screenshot/Figma/reference, replace the presentation layer, and keep all dynamic commerce data flowing through the same interfaces.
+A future agent can therefore take a screenshot/Figma/reference and replace the presentation layer while the same catalog, search, SEO entities and commerce flows continue feeding it.

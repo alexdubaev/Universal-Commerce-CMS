@@ -1,9 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { readRequestItems, writeRequestItems } from "@/lib/request-store";
 import type { RequestItem } from "@/lib/types";
-
-const storageKey = "smtechno-request";
 
 export function RequestClient() {
   const [items, setItems] = useState<RequestItem[]>([]);
@@ -12,17 +11,19 @@ export function RequestClient() {
   const requestKey = useRef<string | null>(null);
 
   useEffect(() => {
-    try {
-      setItems(JSON.parse(localStorage.getItem(storageKey) ?? "[]") as RequestItem[]);
-    } catch {
-      setItems([]);
-    }
+    const sync = () => setItems(readRequestItems());
+    sync();
+    window.addEventListener("request-updated", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("request-updated", sync);
+      window.removeEventListener("storage", sync);
+    };
   }, []);
 
   function persist(next: RequestItem[]) {
     setItems(next);
-    localStorage.setItem(storageKey, JSON.stringify(next));
-    window.dispatchEvent(new Event("request-updated"));
+    writeRequestItems(next);
   }
 
   function changeQuantity(index: number, delta: number) {
@@ -83,7 +84,7 @@ export function RequestClient() {
         </div>
         {items.length === 0 ? (
           <div className="empty-state">
-            <p>Добавьте товары из каталога или укажите позиции вручную в комментарии.</p>
+            <p>Добавьте товары из каталога, вставьте список выше или загрузите XLSX/CSV.</p>
             <a className="button secondary" href="/catalog">Перейти в каталог</a>
           </div>
         ) : (
@@ -96,11 +97,11 @@ export function RequestClient() {
                   <span>{item.title}</span>
                 </div>
                 <div className="qty">
-                  <button type="button" onClick={() => changeQuantity(index, -1)}>−</button>
+                  <button type="button" onClick={() => changeQuantity(index, -1)} aria-label={`Уменьшить количество ${item.article}`}>−</button>
                   <b>{item.quantity}</b>
-                  <button type="button" onClick={() => changeQuantity(index, 1)}>+</button>
+                  <button type="button" onClick={() => changeQuantity(index, 1)} aria-label={`Увеличить количество ${item.article}`}>+</button>
                 </div>
-                <button className="remove" type="button" onClick={() => remove(index)} aria-label="Удалить">×</button>
+                <button className="remove" type="button" onClick={() => remove(index)} aria-label={`Удалить ${item.article}`}>×</button>
               </div>
             ))}
           </div>
@@ -121,7 +122,7 @@ export function RequestClient() {
           {status === "sending" ? "Отправляем..." : "Отправить менеджеру"}
         </button>
         {message && <p className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
-        <small className="form-hint">В production подключите согласия, политику и профиль parts_request в Directus.</small>
+        <small className="form-hint">Повторная отправка сохраняет тот же request_key до подтверждённого успеха.</small>
       </form>
     </div>
   );

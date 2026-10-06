@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { SearchBox } from "@/components/SearchBox";
 import { ProductCard } from "@/components/ProductCard";
-import { brands, getProducts } from "@/lib/catalog";
+import { brands, getCategories, getProducts } from "@/lib/catalog";
 
 export default async function HomePage() {
-  const products = await getProducts({ limit: 8 });
+  const [products, categories] = await Promise.all([getProducts({ limit: 8 }), getCategories()]);
 
   return (
     <>
@@ -44,6 +44,26 @@ export default async function HomePage() {
             ))}
             <Link className="all-brands" href="/catalog">Все товары →</Link>
           </div>
+        </div>
+      </section>
+
+      <section className="section shell category-preview">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">По узлам техники</span>
+            <h2>Категории запчастей</h2>
+          </div>
+          <Link href="/catalog">Все категории в каталоге →</Link>
+        </div>
+        <div className="category-cards">
+          {categories.slice(0, 8).map((category) => (
+            <Link className="category-card panel" href={`/category/${category.slug}`} key={category.slug}>
+              <span>{category.title.slice(0, 2).toUpperCase()}</span>
+              <strong>{category.title}</strong>
+              <small>{category.description || "Открыть категорию"}</small>
+              <b>→</b>
+            </Link>
+          ))}
         </div>
       </section>
 

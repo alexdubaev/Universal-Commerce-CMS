@@ -1,9 +1,26 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
 import { findBrand, getProducts } from "@/lib/catalog";
 
 type Props = { params: Promise<{ brand: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { brand: slug } = await params;
+  const brand = findBrand(slug);
+  if (!brand) return {};
+  return {
+    title: `Запчасти ${brand.name}`,
+    description: `${brand.description} Поиск и заявка на запчасти ${brand.name} для юридических лиц.`,
+    alternates: { canonical: `/brand/${brand.slug}` },
+    openGraph: {
+      title: `Запчасти ${brand.name}`,
+      description: brand.description,
+      type: "website",
+    },
+  };
+}
 
 export default async function BrandPage({ params }: Props) {
   const { brand: slug } = await params;
@@ -36,9 +53,16 @@ export default async function BrandPage({ params }: Props) {
         <div className="section-heading">
           <div><span className="eyebrow">{brand.name}</span><h2>Товары</h2></div>
         </div>
-        <div className="product-grid">
-          {products.items.map((product) => <ProductCard product={product} key={product.id} />)}
-        </div>
+        {products.items.length ? (
+          <div className="product-grid">
+            {products.items.map((product) => <ProductCard product={product} key={product.id} />)}
+          </div>
+        ) : (
+          <div className="panel empty-state">
+            <p>В опубликованном каталоге пока нет товаров этого бренда.</p>
+            <Link className="button primary" href="/request">Запросить запчасть</Link>
+          </div>
+        )}
       </section>
     </>
   );
