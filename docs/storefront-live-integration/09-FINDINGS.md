@@ -21,4 +21,7 @@ Wave 1 complete. Initial evidence is preserved in the numbered audit reports; op
 | F013 | P2 | Fresh independent reviewer found published-product children/assets exposed with unpublished category | Visibility differed from product adapter | Enforce category absence-or-publication on child/asset references | Gateway | Reviewer fix integrated, gateway/race checks PASS |
 | B003 | Runtime prerequisite | Full fixture apply stopped at service-user creation; manifest retains exact partial ownership | Local activation cannot proceed yet | Diagnose supported user-create validation; preserve evidence and clean up/retry only exact owned records | Fixture tooling | In progress; gateway remains disabled |
 
+| F014 | P1 | Real gateway health/product reads return200/native product reads403, but owned public image/PDF delivery returns404 | Public media unavailable | Prove installed AssetsService contract and minimally align delivery | Activated local gateway | Asset runtime worker: investigating |
+| B004 | Runtime prerequisite | Singleton object response was treated as array; home_page may contain defaults without a stored row | Fixture final configuration cannot complete | Normalize singleton shape, exact snapshot/CAS and owned empty-home initialization | Fixture tooling | In progress; data and identity owned in partial manifest |
+
 No P0 confirmed. Broad-prefix relevance, category/group caps and tied sort stability are P3/readiness notes unless a fixture demonstrates incorrect required behavior. Real 100k load and production topology remain pending.
