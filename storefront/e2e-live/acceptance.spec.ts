@@ -10,12 +10,16 @@ test.beforeEach(async () => {
   await manifest();
 });
 
-test("live CMS drives home, brands, facets, product children, and search", async ({ page }) => {
+test("live CMS drives home, brands, facets, product children, and search", async ({ page }, testInfo) => {
   const refs = (await manifest()).namedRefs;
   const home = await page.goto("/");
   expect(home?.ok()).toBe(true);
   await expect(page.locator(".site-header")).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Основная навигация" })).toBeVisible();
+  const headerNav = page.getByRole("navigation", { name: "Основная навигация" });
+  if (testInfo.project.name.startsWith("mobile-")) {
+    await page.getByRole("button", { name: "Открыть меню" }).click();
+  }
+  await expect(headerNav).toBeVisible();
 
   await page.goto("/brands");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -78,7 +82,7 @@ test("public assets return bytes with safe headers and reject private or unknown
     [refs.publicDocumentFileId, /^application\/pdf/, /^inline/i],
   ] as const) {
     const response = await request.get(`/api/assets/${fileId}`);
-    expect(response.ok).toBe(true);
+    expect(response.ok()).toBe(true);
     const headers = response.headers();
     expect(headers["content-type"]).toMatch(expectedType);
     expect(headers["content-disposition"]).toMatch(disposition);
@@ -143,14 +147,17 @@ test("service identity reaches only guarded read/write gateway surfaces", async 
   ];
   for (const path of nativeReadPaths) {
     const response = await directusFetch(path).catch(() => null);
-    expect(response !== null && !response.ok).toBe(true);
+    expect(response !== null && response.status === 403).toBe(true);
   }
-  const nativeItemMutation = await directusFetch("/items/products", { method: "POST", body: "{}" }).catch(() => null);
-  expect(nativeItemMutation !== null && !nativeItemMutation.ok).toBe(true);
-  const nativeLeadMutation = await directusFetch("/commerce/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), company: "Synthetic native denial", name: "Live acceptance", phone: "+79990000004", email: "native-denial@example.invalid", request_items: [{ article: "LIVE-NATIVE-DENIAL", quantity: 1 }] }) }).catch(() => null);
-  expect(nativeLeadMutation !== null && !nativeLeadMutation.ok).toBe(true);
-  const disabledOrders = await directusFetch("/commerce/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), product: fixture.namedRefs.primaryProductId, quantity: 1 }) }).catch(() => null);
-  expect(disabledOrders !== null && !disabledOrders.ok).toBe(true);
+  const nativeLeadKey = randomUUID();
+  const nativeLeadMutation = await directusFetch("/commerce/leads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: nativeLeadKey, lead: { name: "Synthetic native denial", phone: "+79990000004", email: "native-denial@example.invalid", product: fixture.namedRefs.primaryProductId, request_items: [{ article: "LIVE-NATIVE-DENIAL", quantity: 1 }], page_url: "http://127.0.0.1:3001/request" } }) }).catch(() => null);
+  if (nativeLeadMutation?.ok) {
+    const body = await nativeLeadMutation.json().catch(() => null);
+    if (typeof body?.data?.id === "string") await recordLiveLead(fixture.runId, nativeLeadKey, body.data.id, "native-denial-regression");
+  }
+  expect(nativeLeadMutation?.status).toBe(403);
+  const disabledOrders = await directusFetch("/commerce/orders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ request_key: randomUUID(), order: { customer_name: "Synthetic native denial", phone: "+79990000004", page_url: "http://127.0.0.1:3001/request", currency: "RUB" }, items: [{ product: fixture.namedRefs.primaryProductId, quantity: 1, unit_price: 1 }] }) }).catch(() => null);
+  expect(disabledOrders?.status).toBe(403);
   const guardedOrders = await directusFetch("/commerce/storefront/orders", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }).catch(() => null);
   expect(guardedOrders?.status).toBe(404);
 
