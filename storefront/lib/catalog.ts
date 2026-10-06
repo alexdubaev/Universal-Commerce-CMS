@@ -516,8 +516,12 @@ function sitemapProductFilter() {
   };
 }
 
+function mockSitemapProducts() {
+  return mockProducts.filter((product) => product.is_indexable !== false);
+}
+
 export async function getSitemapProductCount() {
-  if (isMockMode()) return mockProducts.length;
+  if (isMockMode()) return mockSitemapProducts().length;
   const params = new URLSearchParams({
     limit: "1",
     fields: "id",
@@ -533,8 +537,7 @@ export async function getSitemapProductCount() {
 
 export async function getProductsForSitemap(offset: number, limit: number) {
   if (isMockMode()) {
-    return mockProducts.slice(offset, offset + limit)
-      .filter((product) => product.is_indexable !== false)
+    return mockSitemapProducts().slice(offset, offset + limit)
       .map(({ slug, date_updated }) => ({ slug, date_updated }));
   }
   const params = new URLSearchParams({

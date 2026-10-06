@@ -3,11 +3,12 @@ import { readFileSync } from "node:fs";
 
 const mocks = vi.hoisted(() => ({
   directusFetch: vi.fn(),
+  mockMode: false,
 }));
 
 vi.mock("../lib/directus", () => ({
   allowMockFallback: () => false,
-  isMockMode: () => false,
+  isMockMode: () => mocks.mockMode,
   directusFetch: mocks.directusFetch,
 }));
 
@@ -39,6 +40,7 @@ function productRow(overrides: Record<string, unknown> = {}) {
 
 describe("live product timestamp adapter", () => {
   beforeEach(() => {
+    mocks.mockMode = false;
     mocks.directusFetch.mockReset();
     expect(schemaBlueprintSource).toContain('field("updated_at", "timestamp"');
     expect(schemaBlueprintSource).not.toContain('field("date_updated"');
@@ -118,5 +120,21 @@ describe("live product timestamp adapter", () => {
     mocks.directusFetch.mockImplementation(async () => ({ data: [productRow({ is_indexable: false })] }));
     const detail = await getProductDetail("part-one");
     expect(detail?.is_indexable).toBe(false);
+  });
+
+  it("keeps mock sitemap counts and chunks aligned when a product is noindex", async () => {
+    const products = await import("../lib/mock");
+    const target = products.mockProducts[0];
+    const original = target.is_indexable;
+    try {
+      target.is_indexable = false;
+      mocks.mockMode = true;
+      expect(await getSitemapProductCount()).toBe(products.mockProducts.length - 1);
+      const firstChunk = await getProductsForSitemap(0, 1);
+      expect(firstChunk).toHaveLength(1);
+      expect(firstChunk[0].slug).toBe(products.mockProducts[1].slug);
+    } finally {
+      target.is_indexable = original;
+    }
   });
 });
