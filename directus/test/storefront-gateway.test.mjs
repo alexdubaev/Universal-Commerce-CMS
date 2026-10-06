@@ -41,17 +41,21 @@ test('gateway denies disabled, malformed, anonymous, wrong-user and admin before
     const h = harness({ env: { ...env, ...badEnv } });
     assert.equal((await h.invoke('/storefront/health')).statusCode, 403); assert.equal(h.calls.length, 0);
   }
+  const typedEnv = harness({ env: { ...env, COMMERCE_STOREFRONT_ENABLED: true } });
+  assert.equal((await typedEnv.invoke('/storefront/health')).statusCode, 200);
 });
 
 test('collection handler pins publication and fields and rejects unknown collection and query escalation', async () => {
   const h = harness();
   assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection: 'directus_users' } })).statusCode, 404);
   assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: { fields: '*' } })).statusCode, 400);
+  assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: { filter: 'x'.repeat(16385) } })).statusCode, 400);
+  assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: { filter: JSON.stringify({ category: { status: { _eq: 'draft' } } }) } })).statusCode, 400);
   assert.equal(h.calls.length, 0);
   const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: { limit: '12', page: '1' } });
   assert.equal(res.statusCode, 200);
   const sent = h.calls.find(item => item.query)?.query;
-  assert.deepEqual(sent.filter, { status: { _eq: 'published' }, _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] });
+  assert.deepEqual(sent.filter, { status: { _eq: 'published' }, _and: [{ _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }] });
   assert.ok(sent.fields.every(field => !field.includes('*'))); assert.equal(sent.limit, 12);
 });
 
@@ -72,12 +76,60 @@ test('current adapter filter shapes stay inside collection and parent visibility
   }
   const sectionRead = h.calls.find(call => call.collection === 'page_sections' && call.query)?.query;
   assert.equal(sectionRead.filter.page.status._eq, 'published');
+  const codeRead = h.calls.find(call => call.collection === 'product_codes' && call.query)?.query;
+  assert.deepEqual(codeRead.filter._and, [{ product: { _eq: sectionId } }, { product: { status: { _eq: 'published' } } }]);
   const analogId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   const analog = await h.invoke('/storefront/items/:collection', { params: { collection: 'products_analogs' }, query: { limit: '100', fields: 'relation_type,product_from.id,product_from.status,product_from.slug,product_from.title,product_from.sku,product_from.mpn,product_from.brand,product_from.price,product_from.currency,product_from.price_status,product_from.availability_status,product_from.part_type,product_from.main_image,product_from.category.id,product_from.category.slug,product_from.category.title,product_to.id,product_to.status,product_to.slug,product_to.title,product_to.sku,product_to.mpn,product_to.brand,product_to.price,product_to.currency,product_to.price_status,product_to.availability_status,product_to.part_type,product_to.main_image,product_to.category.id,product_to.category.slug,product_to.category.title', filter: JSON.stringify({ _or: [{ product_from: { _eq: analogId } }, { product_to: { _eq: analogId } }] }) } });
   assert.equal(analog.statusCode, 200);
   const analogRead = h.calls.filter(call => call.collection === 'products_analogs' && call.query).at(-1).query;
-  assert.equal(analogRead.filter.product_from.status._eq, 'published');
-  assert.equal(analogRead.filter.product_to.status._eq, 'published');
+  for (const side of ['product_from','product_to']) {
+    assert.equal(analogRead.filter[side]._and[0].status._eq, 'published');
+    assert.deepEqual(analogRead.filter[side]._and[1]._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
+  }
+});
+
+test('SEO sitemap null-or-true indexability remains bounded and publication is still forced', async () => {
+  const h = harness();
+  const filter = JSON.stringify({ _and: [
+    { status: { _eq: 'published' } },
+    { _or: [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }] },
+  ] });
+  for (const [collection, fields, sort] of [
+    ['products', 'slug,updated_at,is_indexable', 'id'],
+    ['pages', 'slug,updated_at,is_indexable', 'slug'],
+  ]) {
+    const result = await h.invoke('/storefront/items/:collection', { params: { collection }, query: { fields, limit: '500', offset: '0', sort, filter } });
+    assert.equal(result.statusCode, 200, `${collection} sitemap rows accepted`);
+    const sent = h.calls.filter(call => call.collection === collection && call.query).at(-1).query;
+    assert.equal(sent.limit, 500); assert.equal(sent.filter.status._eq, 'published');
+    const seoPredicate = collection === 'products' ? sent.filter._and[0]._or : sent.filter._or;
+    assert.deepEqual(seoPredicate, [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }]);
+  }
+});
+
+test('frontend asset-reference query shapes map through fixed selectors and preserve parent publication', async () => {
+  const h = harness();
+  const id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const status = { status: { _eq: 'published' } };
+  const queries = [
+    ['products', { _and: [status, { main_image: { _eq: id } }] }, 'id'],
+    ['product_images', { _and: [status, { image: { _eq: id } }, { product: status }] }, 'id'],
+    ['product_documents', { _and: [status, { file: { _eq: id } }, { product: status }] }, 'id'],
+    ['categories', { _and: [status, { _or: [{ image: { _eq: id } }, { icon: { _eq: id } }, { og_image: { _eq: id } }] }] }, 'id'],
+    ['pages', { _and: [status, { og_image: { _eq: id } }] }, 'id'],
+    ['page_sections', { _and: [status, { is_visible: { _eq: true } }, { image: { _eq: id } }, { page: status }] }, 'id'],
+    ['page_sections', { _and: [status, { is_visible: { _eq: true } }, { image: { _eq: id } }, { home_page: status }] }, 'id'],
+  ];
+  for (const [collection, filter, fields] of queries) {
+    const result = await h.invoke('/storefront/items/:collection', { params: { collection }, query: { fields, limit: '1', filter: JSON.stringify(filter) } });
+    assert.equal(result.statusCode, 200, `${collection} asset-reference query accepted`);
+  }
+  const home = await h.invoke('/storefront/items/:collection', { params: { collection: 'home_page' }, query: { fields: 'status,hero_image,og_image' } });
+  assert.equal(home.statusCode, 200);
+  const settings = await h.invoke('/storefront/items/:collection', { params: { collection: 'site_settings' }, query: { fields: 'logo,favicon,default_og_image,company_image' } });
+  assert.equal(settings.statusCode, 200);
+  const settingsQuery = h.calls.filter(call => call.collection === 'site_settings' && call.query).at(-1).query;
+  assert.equal(settingsQuery.fields.includes('commerce_profile'), false);
 });
 
 test('health and orders are bounded, gated routes; orders stay disabled', async () => {

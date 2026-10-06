@@ -9,12 +9,12 @@ const fields = {
   pages: ['id','title','slug','page_type','h1','eyebrow','intro','seo_title','seo_description','seo_text','og_image','canonical_url','is_indexable','updated_at'],
   navigation_items: ['id','label','url','location','open_in_new_tab'],
   page_sections: ['id','section_type','title','subtitle','text','image','image_alt','button_text','button_url','items','settings'],
-  home_page: ['id','status','h1','hero_title','hero_text','hero_image','hero_image_alt','hero_primary_button_text','hero_primary_button_url','hero_secondary_button_text','hero_secondary_button_url','hero_search_label','hero_search_placeholder','hero_search_button_text','seo_title','seo_description','canonical_url','is_indexable'],
-  site_settings: ['company_name','phone','email','primary_cta_text','primary_cta_url','address','city','working_hours','delivery_region','legal_name','inn','kpp','ogrn','legal_address','vat_info','footer_text','footer_disclaimer'],
+  home_page: ['id','status','h1','hero_title','hero_text','hero_image','hero_image_alt','hero_primary_button_text','hero_primary_button_url','hero_secondary_button_text','hero_secondary_button_url','hero_search_label','hero_search_placeholder','hero_search_button_text','seo_title','seo_description','canonical_url','is_indexable','og_image'],
+  site_settings: ['company_name','phone','email','primary_cta_text','primary_cta_url','address','city','working_hours','delivery_region','legal_name','inn','kpp','ogrn','legal_address','vat_info','footer_text','footer_disclaimer','logo','favicon','default_og_image','company_image'],
 };
 const relationProductFields = ['id','status','slug','title','sku','mpn','brand','price','currency','price_status','availability_status','part_type','main_image','category.id','category.slug','category.title'];
 const fixedFields = {
-  product_images: ['image','alt_text'], product_documents: ['file','title'], product_specifications: ['group_name','name','value','unit'], products_analogs: ['relation_type', ...relationProductFields.map(field => `product_from.${field}`), ...relationProductFields.map(field => `product_to.${field}`)], product_codes: ['code','code_type','source_name'],
+  product_images: ['id','image','alt_text'], product_documents: ['id','file','title'], product_specifications: ['id','group_name','name','value','unit'], products_analogs: ['id','relation_type', ...relationProductFields.map(field => `product_from.${field}`), ...relationProductFields.map(field => `product_to.${field}`)], product_codes: ['id','code','code_type','source_name'],
 };
 const childCollections = new Set(['product_images','product_documents','product_specifications','products_analogs','product_codes']);
 const allowed = new Set(['products','categories','pages','navigation_items','page_sections','home_page','site_settings', ...childCollections]);
@@ -22,7 +22,7 @@ const error = (res, status = 403) => res.status(status).set(noStore).json({ erro
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 function configuration(env = process.env) {
-  return env.COMMERCE_STOREFRONT_ENABLED === 'true' && UUID.test(env.COMMERCE_STOREFRONT_USER_ID ?? '') &&
+  return (env.COMMERCE_STOREFRONT_ENABLED === 'true' || env.COMMERCE_STOREFRONT_ENABLED === true) && UUID.test(env.COMMERCE_STOREFRONT_USER_ID ?? '') &&
     UUID.test(env.COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID ?? '')
     ? { userId: env.COMMERCE_STOREFRONT_USER_ID.toLowerCase(), folderId: env.COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID.toLowerCase() }
     : null;
@@ -37,8 +37,9 @@ function gate(req, res, env) {
   return config;
 }
 
-function decodeFilter(raw) {
-  if (!raw || raw.length > 16384) return {};
+function decodeFilter(raw, collection) {
+  if (raw === undefined || raw === null || raw === '') return {};
+  if (typeof raw !== 'string' || raw.length > 16384) throw new Error('filter');
   let input;
   try { input = JSON.parse(raw); } catch { throw new Error('filter'); }
   if (!plain(input)) throw new Error('filter');
@@ -48,9 +49,21 @@ function decodeFilter(raw) {
   for (const term of terms) {
     if (!plain(term) || Object.keys(term).length !== 1) throw new Error('filter');
     if ('_or' in term) {
-      if (!Array.isArray(term._or) || term._or.length !== 2 || term._or.some(item => !plain(item) || Object.keys(item).length !== 1)) throw new Error('filter');
-      const branches = term._or.map(item => { const [key, value] = Object.entries(item)[0]; if (!['product_from','product_to'].includes(key) || !plain(value) || !UUID.test(value._eq ?? '') || Object.keys(value).length !== 1) throw new Error('filter'); return { [key]: { _eq: value._eq } }; });
-      result._or = branches; continue;
+      if (!Array.isArray(term._or) || Object.keys(term).length !== 1) throw new Error('filter');
+      if (collection === 'products_analogs' && term._or.length === 2 && term._or.every(item => plain(item) && Object.keys(item).length === 1)) {
+        const branches = term._or.map(item => { const [key, value] = Object.entries(item)[0]; if (!['product_from','product_to'].includes(key) || !plain(value) || !UUID.test(value._eq ?? '') || Object.keys(value).length !== 1) throw new Error('filter'); return { [key]: { _eq: value._eq } }; });
+        result._or = branches; continue;
+      }
+      if (['products','pages'].includes(collection) && term._or.length === 2 && term._or.every(item => plain(item) && Object.keys(item).length === 1 && plain(item.is_indexable) && Object.keys(item.is_indexable).length === 1) &&
+          term._or.some(item => item.is_indexable._null === true) && term._or.some(item => item.is_indexable._eq === true)) {
+        result._or = [{ is_indexable: { _null: true } }, { is_indexable: { _eq: true } }]; continue;
+      }
+      if (collection === 'categories' && term._or.length === 3 && term._or.every(item => plain(item) && Object.keys(item).length === 1)) {
+        const branches = term._or.map(item => { const [key, value] = Object.entries(item)[0]; if (!['image','icon','og_image'].includes(key) || !plain(value) || !UUID.test(value._eq ?? '') || Object.keys(value).length !== 1) throw new Error('filter'); return { [key]: { _eq: value._eq } }; });
+        if (new Set(branches.map(item => Object.keys(item)[0])).size !== 3) throw new Error('filter');
+        result._or = branches; continue;
+      }
+      throw new Error('filter');
     }
     let [field, expression] = Object.entries(term)[0];
     if (field === 'status' || field === 'is_visible') {
@@ -67,13 +80,23 @@ function decodeFilter(raw) {
       if (!plain(expression) || expression._null !== true || Object.keys(expression).length !== 1) throw new Error('filter');
       result.parent = { _null: true }; continue;
     }
-    if (field === 'page' || field === 'home_page' || field === 'product') {
-      if (!plain(expression) || typeof expression._eq !== 'string' || !UUID.test(expression._eq) || Object.keys(expression).length !== 1) throw new Error('filter');
-      result[field] = { _eq: expression._eq }; continue;
+    if (['page','home_page','product'].includes(field)) {
+      if (!plain(expression) || Object.keys(expression).length !== 1) throw new Error('filter');
+      if (typeof expression._eq === 'string' && UUID.test(expression._eq)) { result[field] = { _eq: expression._eq }; continue; }
+      if (expression.status?._eq === 'published' && Object.keys(expression.status).length === 1 && Object.keys(expression).length === 1) { result[field] = { status: { _eq: 'published' } }; continue; }
+      throw new Error('filter');
     }
     if (field === 'category') {
       if (!plain(expression) || Object.keys(expression).length !== 1 || !plain(expression.slug) || Object.keys(expression.slug).length !== 1 || typeof expression.slug._eq !== 'string') throw new Error('filter');
       field = 'category.slug'; expression = expression.slug;
+    }
+    const mediaFields = {
+      products: ['main_image'], product_images: ['image'], product_documents: ['file'], pages: ['og_image'],
+      page_sections: ['image'], home_page: ['hero_image','og_image'], site_settings: ['logo','favicon','default_og_image','company_image'],
+    };
+    if (mediaFields[collection]?.includes(field)) {
+      if (!plain(expression) || Object.keys(expression).length !== 1 || typeof expression._eq !== 'string' || !UUID.test(expression._eq)) throw new Error('filter');
+      result[field] = { _eq: expression._eq }; continue;
     }
     const operators = { brand: ['_eq','_nnull'], 'category.slug': ['_eq'], availability_status: ['_eq'], part_type: ['_eq'], id: ['_eq','_in'], slug: ['_eq'], is_indexable: ['_eq','_neq','_null'], is_active: ['_eq'] };
     if (!operators[field] || !plain(expression) || Object.keys(expression).length !== 1) throw new Error('filter');
@@ -109,11 +132,12 @@ function queryParams(req, collection) {
   if (Object.keys(query).some(key => !allowedParams.has(key)) || scalarEntries.some(([key, value]) => typeof value !== 'string' || value.length > (key === 'filter' ? 16384 : 4096)) ||
       scalarEntries.reduce((sum, [, value]) => sum + String(value).length, 0) > 18432) throw new Error('query');
   if (aggregate && String(query.limit) !== '500') throw new Error('query');
-  const filters = decodeFilter(query.filter);
+  const filters = decodeFilter(query.filter, collection);
   const hasIdWindow = collection === 'products' && Array.isArray(filters.id?._in);
-  const isSitemap = collection === 'products' && query.fields === 'slug,updated_at' && query.sort === 'id';
-  const maxLimit = query['aggregate[count]'] === '*' ? 500 : isSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: query.fields === 'slug,updated_at' ? 500 : 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
-  const limit = Number(query.limit ?? (collection === 'categories' ? 200 : 24));
+  const productSitemap = collection === 'products' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'id';
+  const pageSitemap = collection === 'pages' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'slug';
+  const maxLimit = aggregate ? 500 : productSitemap || pageSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
+  const limit = Number(query.limit ?? (['home_page','site_settings'].includes(collection) ? 1 : collection === 'categories' ? 200 : 24));
   const page = Number(query.page ?? 1);
   if (!Number.isInteger(limit) || limit < 1 || limit > maxLimit || !Number.isInteger(page) || page < 1 || page > 1000) throw new Error('query');
   const offset = Number(query.offset ?? 0);
@@ -144,7 +168,9 @@ function makeItemsHandler(context) {
       let filter = { ...(['product_codes','products_analogs','site_settings'].includes(collection) ? {} : { status: { _eq: 'published' } }), ...parsed.filters };
       if (collection === 'products') {
         if (filter.category) filter.category = { ...filter.category, status: { _eq: 'published' } };
-        filter._or = [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }];
+        const existingOr = filter._or;
+        delete filter._or;
+        filter._and = [...(existingOr ? [{ _or: existingOr }] : []), { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }];
       }
       if (collection === 'navigation_items') filter = { ...filter, is_visible: { _eq: true }, parent: { _null: true } };
       if (collection === 'page_sections') {
@@ -154,9 +180,21 @@ function makeItemsHandler(context) {
       if (collection === 'product_codes') filter.is_active = { _eq: true };
       if (childCollections.has(collection)) {
         if (collection === 'products_analogs') {
-          const publishedProduct = { status: { _eq: 'published' }, category: { status: { _eq: 'published' } } };
+          const publishedProduct = { _and: [
+            { status: { _eq: 'published' } },
+            { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
+          ] };
           filter = { ...filter, product_from: publishedProduct, product_to: publishedProduct };
-        } else filter = { ...filter, product: { status: { _eq: 'published' } } };
+        } else {
+          const requestedProduct = filter.product;
+          const otherFilters = { ...filter };
+          delete otherFilters.product;
+          otherFilters._and = [
+            ...(requestedProduct?._eq ? [{ product: { _eq: requestedProduct._eq } }] : []),
+            { product: { status: { _eq: 'published' } } },
+          ];
+          filter = otherFilters;
+        }
       }
       const requestedFields = parsed.aggregate ? ['brand'] : req.query?.fields ? req.query.fields.split(',') : (fields[collection] ?? fixedFields[collection]);
       const readQuery = { filter, fields: requestedFields, limit: parsed.limit, page: parsed.page, ...(req.query?.offset !== undefined ? { offset: parsed.offset } : {}), ...(parsed.sort.length ? { sort: parsed.sort } : {}), meta: ['filter_count'] };
