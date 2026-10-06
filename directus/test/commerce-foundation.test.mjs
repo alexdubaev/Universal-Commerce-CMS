@@ -8,7 +8,7 @@ const file = (relative) => new URL(relative, root);
 
 test("commerce API and integrity ship source/dist pairs with Directus registrations", () => {
   for (const [name, files, extensionType] of [
-    ["commerce-api", ["index.js", "leads.mjs", "mutations.mjs", "orders.mjs", "versions.mjs"], "endpoint"],
+    ["commerce-api", ["index.js", "leads.mjs", "mutations.mjs", "orders.mjs", "versions.mjs", "storefront.mjs"], "endpoint"],
     ["commerce-integrity", ["index.js", "product-identity.mjs", "section-snapshot.mjs"], "hook"],
   ]) {
     for (const relative of files) {

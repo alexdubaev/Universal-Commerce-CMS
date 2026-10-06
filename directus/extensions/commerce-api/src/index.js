@@ -3,6 +3,7 @@ import { createAtomicLeadHandler } from './leads.mjs';
 import { createGuardedVersionSaveHandler, createGuardedVersionPromoteHandler } from './versions.mjs';
 import { createGuardedMutationHandler } from './mutations.mjs';
 import { createHmac } from "node:crypto";
+import { registerStorefrontGateway } from './storefront.mjs';
 
 // commerce-search — Directus endpoint extension (zero dependencies).
 //
@@ -390,6 +391,13 @@ export function createSearchHandler(context) {
         accountability: req?.accountability ?? EMPTY_ACCOUNTABILITY,
         knex: database,
       };
+      if (context.forcePublishedCategory === true) {
+        plan.products.query.filter = {
+          _and: [plan.products.query.filter, {
+            _or: [{ category: { _null: true } }, { category: { status: { _eq: "published" } } }],
+          }],
+        };
+      }
 
       const productsService = new services.ItemsService(
         plan.products.collection,
@@ -411,11 +419,15 @@ export function createSearchHandler(context) {
             ...new Set((codeRows ?? []).map((row) => row?.product).filter(Boolean)),
           ];
           if (productIds.length > 0) {
-            codeProductItems = await productsService.readByQuery({
-              filter: {
+            const codeFilter = {
                 status: { _eq: "published" },
                 id: { _in: productIds },
-              },
+              };
+            if (context.forcePublishedCategory === true) {
+              codeFilter._or = [{ category: { _null: true } }, { category: { status: { _eq: "published" } } }];
+            }
+            codeProductItems = await productsService.readByQuery({
+              filter: codeFilter,
               fields: [...PRODUCT_FIELDS],
               sort: [...SEARCH_SORT],
               limit: CANDIDATE_LIMIT,
@@ -463,6 +475,7 @@ export function createSearchHandler(context) {
  * the bundle is dependency-free by design).
  */
 export default function registerSearchEndpoint(router, context) {
+  registerStorefrontGateway(router, context);
   router.post("/mutations/:collection/:id", createGuardedMutationHandler(context));
   router.post("/orders", createAtomicOrderHandler(context));
   router.post("/leads", createAtomicLeadHandler(context));
