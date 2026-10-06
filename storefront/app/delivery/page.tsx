@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { getSiteSettings } from "@/lib/catalog";
+import { getCmsPage } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "Доставка запчастей",
-  description: "Условия доставки B2B-заказов запчастей для спецтехники.",
-  alternates: { canonical: "/delivery" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPage("delivery");
+  return {
+    title: page?.seo_title || page?.title || "Доставка запчастей",
+    description: page?.seo_description || page?.intro || "Условия доставки B2B-заказов запчастей для спецтехники.",
+    alternates: { canonical: page?.canonical_url || "/delivery" },
+    robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
+    openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
+  };
+}
 
 export default async function DeliveryPage() {
-  const settings = await getSiteSettings();
+  const [page, settings] = await Promise.all([getCmsPage("delivery"), getSiteSettings()]);
+  if (page) return <CmsPageRenderer page={page} />;
+
   const region = settings.delivery_region || "по России";
 
   return (

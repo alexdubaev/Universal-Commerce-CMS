@@ -1,5 +1,6 @@
 import { allowMockFallback, directusFetch, isMockMode } from "./directus";
-import { brands, defaultSettings, findBrand, mockCategories, mockProducts } from "./mock";
+import { brands, findBrand, mockCategories, mockProducts } from "./mock";
+import { getCmsSiteSettings } from "./content";
 import type {
   CatalogQuery,
   Category,
@@ -11,7 +12,6 @@ import type {
   ProductList,
   ProductRelation,
   ProductSpecification,
-  SiteSettings,
   SortOption,
 } from "./types";
 
@@ -389,36 +389,6 @@ export async function getProductsForSitemap(offset: number, limit: number) {
   return result.data;
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
-  if (isMockMode()) return defaultSettings;
-  try {
-    const result = await directusFetch<{ data: Record<string, unknown>[] }>(
-      "/items/site_settings?limit=1&fields=company_name,phone,email,primary_cta_text,primary_cta_url,address,city,working_hours,delivery_region,footer_text,footer_disclaimer,vat_info",
-      { revalidate: 120 },
-    );
-    const row = result.data[0];
-    if (!row) {
-      if (allowMockFallback()) return defaultSettings;
-      throw new Error("site_settings is not configured");
-    }
-    return {
-      company_name: String(row.company_name ?? defaultSettings.company_name),
-      phone: String(row.phone ?? defaultSettings.phone),
-      email: String(row.email ?? defaultSettings.email),
-      primary_cta_text: String(row.primary_cta_text ?? defaultSettings.primary_cta_text),
-      primary_cta_url: String(row.primary_cta_url ?? defaultSettings.primary_cta_url),
-      address: row.address ? String(row.address) : null,
-      city: row.city ? String(row.city) : null,
-      working_hours: row.working_hours ? String(row.working_hours) : null,
-      delivery_region: row.delivery_region ? String(row.delivery_region) : null,
-      footer_text: row.footer_text ? String(row.footer_text) : null,
-      footer_disclaimer: row.footer_disclaimer ? String(row.footer_disclaimer) : null,
-      vat_info: row.vat_info ? String(row.vat_info) : null,
-    };
-  } catch (error) {
-    if (allowMockFallback()) return defaultSettings;
-    throw error;
-  }
-}
+export const getSiteSettings = getCmsSiteSettings;
 
 export { brands, findBrand };

@@ -2,9 +2,17 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { SiteSettings } from "@/lib/types";
+import type { NavigationItem, SiteSettings } from "@/lib/types";
 
-export function Header({ settings }: { settings: SiteSettings }) {
+function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void }) {
+  const external = !item.url.startsWith("/");
+  if (external) {
+    return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined} onClick={onClick}>{item.label}</a>;
+  }
+  return <Link href={item.url} onClick={onClick}>{item.label}</Link>;
+}
+
+export function Header({ settings, navigation }: { settings: SiteSettings; navigation: NavigationItem[] }) {
   const [open, setOpen] = useState(false);
   const [requestCount, setRequestCount] = useState(0);
 
@@ -31,7 +39,7 @@ export function Header({ settings }: { settings: SiteSettings }) {
   return (
     <header className="site-header">
       <div className="shell header-inner">
-        <Link className="brand" href="/" onClick={close} aria-label="СМ ТЕХНО — главная">
+        <Link className="brand" href="/" onClick={close} aria-label={`${settings.company_name} — главная`}>
           <span className="brand-mark" aria-hidden="true">◆</span>
           <span>
             <strong>{settings.company_name}</strong>
@@ -43,7 +51,7 @@ export function Header({ settings }: { settings: SiteSettings }) {
           className="menu-toggle"
           type="button"
           aria-expanded={open}
-          aria-label="Открыть меню"
+          aria-label={open ? "Закрыть меню" : "Открыть меню"}
           onClick={() => setOpen((value) => !value)}
         >
           <span />
@@ -52,12 +60,7 @@ export function Header({ settings }: { settings: SiteSettings }) {
         </button>
 
         <nav className={open ? "main-nav is-open" : "main-nav"} aria-label="Основная навигация">
-          <Link href="/catalog" onClick={close}>Каталог</Link>
-          <Link href="/brands" onClick={close}>Бренды</Link>
-          <Link href="/delivery" onClick={close}>Доставка</Link>
-          <Link href="/payment" onClick={close}>Оплата</Link>
-          <Link href="/about" onClick={close}>О компании</Link>
-          <Link href="/contacts" onClick={close}>Контакты</Link>
+          {navigation.map((item) => <NavEntry item={item} onClick={close} key={item.id} />)}
         </nav>
 
         <div className="header-actions">

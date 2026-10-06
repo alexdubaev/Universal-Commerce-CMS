@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { getSiteSettings } from "@/lib/catalog";
+import { getCmsPage } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "Оплата",
-  description: "Условия оплаты B2B-заказов запчастей для юридических лиц.",
-  alternates: { canonical: "/payment" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPage("payment");
+  return {
+    title: page?.seo_title || page?.title || "Оплата",
+    description: page?.seo_description || page?.intro || "Условия оплаты B2B-заказов запчастей для юридических лиц.",
+    alternates: { canonical: page?.canonical_url || "/payment" },
+    robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
+    openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
+  };
+}
 
 export default async function PaymentPage() {
-  const settings = await getSiteSettings();
+  const [page, settings] = await Promise.all([getCmsPage("payment"), getSiteSettings()]);
+  if (page) return <CmsPageRenderer page={page} />;
 
   return (
     <div className="shell page-shell">

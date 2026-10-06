@@ -23,7 +23,17 @@ function saveHistory(query: string) {
   localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
 }
 
-export function SearchBox({ compact = false, initial = "" }: { compact?: boolean; initial?: string }) {
+export function SearchBox({
+  compact = false,
+  initial = "",
+  placeholder = "Введите артикул, OEM, название или бренд",
+  buttonLabel = "Найти",
+}: {
+  compact?: boolean;
+  initial?: string;
+  placeholder?: string;
+  buttonLabel?: string;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -89,12 +99,12 @@ export function SearchBox({ compact = false, initial = "" }: { compact?: boolean
           onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
           onFocus={() => { setOpen(true); setHistory(readHistory()); }}
           onBlur={() => window.setTimeout(() => setOpen(false), 160)}
-          placeholder="Введите артикул, OEM, название или бренд"
+          placeholder={placeholder}
           aria-label="Поиск запчастей"
           aria-expanded={showHistory || showSuggestions}
           autoComplete="off"
         />
-        <button type="submit">Найти</button>
+        <button type="submit">{buttonLabel}</button>
       </form>
 
       {(showHistory || showSuggestions) && (

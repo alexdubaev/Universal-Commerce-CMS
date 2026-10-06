@@ -17,16 +17,34 @@ async function collectionHasReference(collection: string, filter: Record<string,
       `/items/${collection}?${params.toString()}`,
       { revalidate: 300 },
     );
-    return result.data.length > 0;
+    return Array.isArray(result.data) && result.data.length > 0;
   } catch {
     return false;
   }
 }
 
+function singletonRow(data: unknown): Record<string, unknown> | null {
+  if (Array.isArray(data)) {
+    const first = data[0];
+    return first && typeof first === "object" ? first as Record<string, unknown> : null;
+  }
+  return data && typeof data === "object" ? data as Record<string, unknown> : null;
+}
+
 export async function isStorefrontAssetAllowed(id: string) {
   if (isMockMode() || !isValidAssetId(id)) return false;
 
-  const [productMain, productImage, productDocument, categoryAsset, settingsResult] = await Promise.all([
+  const [
+    productMain,
+    productImage,
+    productDocument,
+    categoryAsset,
+    pageAsset,
+    pageSectionAsset,
+    homeSectionAsset,
+    homeResult,
+    settingsResult,
+  ] = await Promise.all([
     collectionHasReference("products", {
       _and: [{ status: { _eq: "published" } }, { main_image: { _eq: id } }],
     }),
@@ -56,15 +74,45 @@ export async function isStorefrontAssetAllowed(id: string) {
         },
       ],
     }),
-    directusFetch<{ data: Array<Record<string, unknown>> }>(
-      "/items/site_settings?limit=1&fields=logo,favicon,default_og_image,company_image",
+    collectionHasReference("pages", {
+      _and: [{ status: { _eq: "published" } }, { og_image: { _eq: id } }],
+    }),
+    collectionHasReference("page_sections", {
+      _and: [
+        { status: { _eq: "published" } },
+        { is_visible: { _eq: true } },
+        { image: { _eq: id } },
+        { page: { status: { _eq: "published" } } },
+      ],
+    }),
+    collectionHasReference("page_sections", {
+      _and: [
+        { status: { _eq: "published" } },
+        { is_visible: { _eq: true } },
+        { image: { _eq: id } },
+        { home_page: { status: { _eq: "published" } } },
+      ],
+    }),
+    directusFetch<{ data: unknown }>(
+      "/items/home_page?fields=status,hero_image,og_image",
       { revalidate: 300 },
-    ).catch(() => ({ data: [] })),
+    ).catch(() => ({ data: null })),
+    directusFetch<{ data: unknown }>(
+      "/items/site_settings?fields=logo,favicon,default_og_image,company_image",
+      { revalidate: 300 },
+    ).catch(() => ({ data: null })),
   ]);
 
-  if (productMain || productImage || productDocument || categoryAsset) return true;
+  if (productMain || productImage || productDocument || categoryAsset || pageAsset || pageSectionAsset || homeSectionAsset) {
+    return true;
+  }
 
-  const settings = settingsResult.data[0];
+  const home = singletonRow(homeResult.data);
+  if (home?.status === "published" && ["hero_image", "og_image"].some((field) => String(home[field] ?? "") === id)) {
+    return true;
+  }
+
+  const settings = singletonRow(settingsResult.data);
   if (!settings) return false;
   return ["logo", "favicon", "default_og_image", "company_image"]
     .some((field) => String(settings[field] ?? "") === id);

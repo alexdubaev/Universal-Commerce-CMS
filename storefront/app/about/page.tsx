@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CmsPageRenderer } from "@/components/CmsPageRenderer";
+import { getCmsPage } from "@/lib/content";
 
-export const metadata: Metadata = {
-  title: "О компании",
-  description: "СМ ТЕХНО — поставка запчастей для спецтехники и сельскохозяйственной техники.",
-  alternates: { canonical: "/about" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await getCmsPage("about");
+  return {
+    title: page?.seo_title || page?.title || "О компании",
+    description: page?.seo_description || page?.intro || "СМ ТЕХНО — поставка запчастей для спецтехники и сельскохозяйственной техники.",
+    alternates: { canonical: page?.canonical_url || "/about" },
+    robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
+    openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
+  };
+}
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const page = await getCmsPage("about");
+  if (page) return <CmsPageRenderer page={page} />;
+
   return (
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>О компании</span></div>
