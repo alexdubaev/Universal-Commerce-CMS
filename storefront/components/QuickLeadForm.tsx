@@ -1,11 +1,12 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import { ensureIdempotencyKey, type IdempotencyState } from "@/lib/idempotency";
 
 export function QuickLeadForm({ title = "Связаться с менеджером" }: { title?: string }) {
   const [state, setState] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const requestKey = useRef<string | null>(null);
+  const idempotency = useRef<IdempotencyState | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -13,28 +14,36 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
     const form = new FormData(formElement);
     setState("sending");
     setMessage("");
-    requestKey.current ??= crypto.randomUUID();
+    const payloadBody = {
+      company: String(form.get("company") ?? ""),
+      name: String(form.get("name") ?? ""),
+      phone: String(form.get("phone") ?? ""),
+      email: String(form.get("email") ?? ""),
+      message: String(form.get("message") ?? ""),
+      request_items: [],
+      page_url: window.location.href,
+    };
+    const fingerprint = JSON.stringify(payloadBody);
+    idempotency.current = ensureIdempotencyKey(
+      idempotency.current,
+      fingerprint,
+      () => crypto.randomUUID(),
+    );
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_key: requestKey.current,
-          company: String(form.get("company") ?? ""),
-          name: String(form.get("name") ?? ""),
-          phone: String(form.get("phone") ?? ""),
-          email: String(form.get("email") ?? ""),
-          message: String(form.get("message") ?? ""),
-          request_items: [],
-          page_url: window.location.href,
+          request_key: idempotency.current.key,
+          ...payloadBody,
         }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
       setState("success");
       setMessage(`Заявка принята: ${payload.id}`);
-      requestKey.current = null;
+      idempotency.current = null;
       formElement.reset();
     } catch (error) {
       setState("error");

@@ -23,3 +23,17 @@ export function escapeXml(value: string) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
+
+
+export function safeCanonicalUrl(value: string | null | undefined, fallback: string) {
+  const candidate = value?.trim();
+  if (!candidate) return fallback;
+  if (candidate.startsWith("/") && !candidate.startsWith("//")) return candidate;
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
+  } catch {
+    // Fall through to the route-local canonical.
+  }
+  return fallback;
+}

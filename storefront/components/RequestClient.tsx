@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { ensureIdempotencyKey, type IdempotencyState } from "@/lib/idempotency";
 import { readRequestItems, writeRequestItems } from "@/lib/request-store";
 import type { RequestItem } from "@/lib/types";
 
@@ -8,7 +9,7 @@ export function RequestClient() {
   const [items, setItems] = useState<RequestItem[]>([]);
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const requestKey = useRef<string | null>(null);
+  const idempotency = useRef<IdempotencyState | null>(null);
 
   useEffect(() => {
     const sync = () => setItems(readRequestItems());
@@ -43,28 +44,36 @@ export function RequestClient() {
     const form = new FormData(formElement);
     setStatus("sending");
     setMessage("");
-    requestKey.current ??= crypto.randomUUID();
+    const payloadBody = {
+      name: String(form.get("name") ?? ""),
+      phone: String(form.get("phone") ?? ""),
+      email: String(form.get("email") ?? ""),
+      company: String(form.get("company") ?? ""),
+      message: String(form.get("message") ?? ""),
+      request_items: items.map(({ article, quantity }) => ({ article, quantity })),
+      page_url: window.location.href,
+    };
+    const fingerprint = JSON.stringify(payloadBody);
+    idempotency.current = ensureIdempotencyKey(
+      idempotency.current,
+      fingerprint,
+      () => crypto.randomUUID(),
+    );
 
     try {
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_key: requestKey.current,
-          name: String(form.get("name") ?? ""),
-          phone: String(form.get("phone") ?? ""),
-          email: String(form.get("email") ?? ""),
-          company: String(form.get("company") ?? ""),
-          message: String(form.get("message") ?? ""),
-          request_items: items.map(({ article, quantity }) => ({ article, quantity })),
-          page_url: window.location.href,
+          request_key: idempotency.current.key,
+          ...payloadBody,
         }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
       setStatus("success");
       setMessage(`Заявка принята. Номер: ${payload.id}`);
-      requestKey.current = null;
+      idempotency.current = null;
       persist([]);
       formElement.reset();
     } catch (error) {

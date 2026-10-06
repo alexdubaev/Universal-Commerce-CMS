@@ -4,13 +4,14 @@ import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { QuickLeadForm } from "@/components/QuickLeadForm";
 import { getSiteSettings } from "@/lib/catalog";
 import { getCmsPage } from "@/lib/content";
+import { safeCanonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage("contacts");
   return {
     title: page?.seo_title || page?.title || "Контакты",
     description: page?.seo_description || page?.intro || "Контакты СМ ТЕХНО для заявок и подбора запчастей для спецтехники.",
-    alternates: { canonical: page?.canonical_url || "/contacts" },
+    alternates: { canonical: safeCanonicalUrl(page?.canonical_url, "/contacts") },
     robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
     openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
   };

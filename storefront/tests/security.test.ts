@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isValidAssetId } from "../lib/assets";
 import { slugifyBrand } from "../lib/brands";
 import { safeContentHref } from "../lib/content";
-import { safeJsonLd } from "../lib/seo";
+import { safeCanonicalUrl, safeJsonLd } from "../lib/seo";
 
 describe("storefront security helpers", () => {
   it("accepts UUID asset ids and rejects arbitrary paths", () => {
@@ -24,6 +24,13 @@ describe("storefront security helpers", () => {
     expect(safeContentHref("/catalog")).toBe("/catalog");
     expect(safeContentHref("https://example.com/path")).toBe("https://example.com/path");
     expect(safeContentHref("mailto:sales@example.com")).toBe("mailto:sales@example.com");
+  });
+
+  it("sanitizes CMS canonical URLs", () => {
+    expect(safeCanonicalUrl("/delivery", "/fallback")).toBe("/delivery");
+    expect(safeCanonicalUrl("https://example.com/page", "/fallback")).toBe("https://example.com/page");
+    expect(safeCanonicalUrl("javascript:alert(1)", "/fallback")).toBe("/fallback");
+    expect(safeCanonicalUrl("//evil.example/page", "/fallback")).toBe("/fallback");
   });
 
   it("creates stable URL slugs for arbitrary future brands", () => {

@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { getCmsPage } from "@/lib/content";
+import { safeCanonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage("about");
   return {
     title: page?.seo_title || page?.title || "О компании",
     description: page?.seo_description || page?.intro || "СМ ТЕХНО — поставка запчастей для спецтехники и сельскохозяйственной техники.",
-    alternates: { canonical: page?.canonical_url || "/about" },
+    alternates: { canonical: safeCanonicalUrl(page?.canonical_url, "/about") },
     robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
     openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
   };

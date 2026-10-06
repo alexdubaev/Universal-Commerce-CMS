@@ -3,13 +3,14 @@ import Link from "next/link";
 import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { getSiteSettings } from "@/lib/catalog";
 import { getCmsPage } from "@/lib/content";
+import { safeCanonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage("delivery");
   return {
     title: page?.seo_title || page?.title || "Доставка запчастей",
     description: page?.seo_description || page?.intro || "Условия доставки B2B-заказов запчастей для спецтехники.",
-    alternates: { canonical: page?.canonical_url || "/delivery" },
+    alternates: { canonical: safeCanonicalUrl(page?.canonical_url, "/delivery") },
     robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
     openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
   };

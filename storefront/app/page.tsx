@@ -5,6 +5,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { SearchBox } from "@/components/SearchBox";
 import { getBrands, getCategories, getProducts } from "@/lib/catalog";
 import { getCmsHome, safeContentHref } from "@/lib/content";
+import { safeCanonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const home = await getCmsHome();
@@ -12,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: home.seo_title || home.h1 || home.hero_title || undefined,
     description: home.seo_description || home.hero_text || undefined,
-    alternates: { canonical: home.canonical_url || "/" },
+    alternates: { canonical: safeCanonicalUrl(home.canonical_url, "/") },
     robots: home.is_indexable === false ? { index: false, follow: true } : undefined,
     openGraph: {
       title: home.seo_title || home.h1 || home.hero_title || undefined,
