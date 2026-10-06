@@ -38,7 +38,8 @@ export function RequestClient() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formElement = event.currentTarget;\n    const form = new FormData(formElement);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     setStatus("sending");
     setMessage("");
     requestKey.current ??= crypto.randomUUID();
