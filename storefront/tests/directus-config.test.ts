@@ -5,6 +5,7 @@ const environmentKeys = [
   "DIRECTUS_TOKEN",
   "STOREFRONT_MOCK_MODE",
   "STOREFRONT_ALLOW_MOCK_FALLBACK",
+  "STOREFRONT_DIRECTUS_GATEWAY",
 ] as const;
 
 const originalEnvironment = new Map(
@@ -72,5 +73,46 @@ describe("Directus mode configuration", () => {
       status: 503,
     });
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("routes allowlisted requests through the gateway and preserves their query strings", async () => {
+    const fetch = vi.fn().mockImplementation(() => Promise.resolve(Response.json({ data: [] })));
+    vi.stubGlobal("fetch", fetch);
+    const directus = await importDirectusWithEnvironment({
+      DIRECTUS_URL: "https://cms.example",
+      DIRECTUS_TOKEN: "server-secret",
+      STOREFRONT_MOCK_MODE: "false",
+      STOREFRONT_DIRECTUS_GATEWAY: "true",
+    });
+
+    await directus.directusFetch("/items/products?limit=1&filter=%7B%7D");
+    await directus.directusFetch("/commerce/search?q=SKU&page=1");
+    await directus.directusFetch("/commerce/leads", { method: "POST", body: "{}" });
+    await directus.directusFetch("/commerce/orders", { method: "POST", body: "{}" });
+    await directus.directusFetch("/server/health");
+    await directus.directusAsset("file-id");
+
+    expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
+      "https://cms.example/commerce/storefront/items/products?limit=1&filter=%7B%7D",
+      "https://cms.example/commerce/storefront/search?q=SKU&page=1",
+      "https://cms.example/commerce/storefront/leads",
+      "https://cms.example/commerce/storefront/orders",
+      "https://cms.example/commerce/storefront/health",
+      "https://cms.example/commerce/storefront/assets/file-id",
+    ]);
+    expect(new Headers(fetch.mock.calls[0][1]?.headers).get("Authorization")).toBe("Bearer server-secret");
+  });
+
+  it("fails closed for unknown gateway paths without making a network request", async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal("fetch", fetch);
+    const directus = await importDirectusWithEnvironment({
+      DIRECTUS_URL: "https://cms.example",
+      STOREFRONT_MOCK_MODE: "false",
+      STOREFRONT_DIRECTUS_GATEWAY: "true",
+    });
+
+    await expect(directus.directusFetch("/items/users?limit=1")).rejects.toThrow(/not allowlisted/);
+    expect(fetch).not.toHaveBeenCalled();
   });
 });
