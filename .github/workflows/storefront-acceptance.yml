@@ -46,14 +46,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
       - name: Install
-        run: npm install
-      - name: Export generated lockfile
-        uses: actions/upload-artifact@v4
-        with:
-          name: storefront-package-lock
-          path: storefront/package-lock.json
-          if-no-files-found: error
+        run: npm ci
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
       - name: Critical dependency audit including dev tools
@@ -86,8 +82,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
       - name: Install
-        run: npm install
+        run: npm ci
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
       - name: Build
@@ -102,32 +100,3 @@ jobs:
           path: storefront/playwright-report/
           if-no-files-found: ignore
 
-
-  lockfile-sync:
-    if: github.event_name == 'push'
-    permissions:
-      contents: write
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - name: Generate deterministic storefront lockfile
-        working-directory: storefront
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-      - name: Commit lockfile when changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add storefront/package-lock.json
-          if git diff --cached --quiet; then
-            echo "package-lock.json already current"
-            exit 0
-          fi
-          git commit -m "Lock storefront dependencies"
-          git push origin HEAD:${GITHUB_REF_NAME}

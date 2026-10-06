@@ -44,7 +44,7 @@ The storefront does **not** change Directus schema, roles, permissions, Docker, 
 ```powershell
 Set-Location storefront
 Copy-Item .env.example .env.local
-npm install
+npm ci
 npm run dev
 ```
 
@@ -94,14 +94,14 @@ The storefront preserves the current CMS schema. No duplicate storefront-only ca
 ## Quality checks
 
 ```powershell
-npm install
+npm ci
 npm test
 npm run typecheck
 npm run build
 npm run test:e2e
 ```
 
-GitHub Actions also runs the existing Directus suite and explicit concurrent lead/order race tests.
+The committed `package-lock.json` is the dependency source of truth for storefront CI; GitHub Actions uses `npm ci`. GitHub Actions also runs the existing Directus suite and explicit concurrent lead/order race tests.
 
 ## Fast design changes
 
