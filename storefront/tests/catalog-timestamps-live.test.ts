@@ -1,0 +1,94 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync } from "node:fs";
+
+const mocks = vi.hoisted(() => ({
+  directusFetch: vi.fn(),
+}));
+
+vi.mock("../lib/directus", () => ({
+  allowMockFallback: () => false,
+  isMockMode: () => false,
+  directusFetch: mocks.directusFetch,
+}));
+
+import { getProductDetail, getProducts, getProductsForSitemap } from "../lib/catalog";
+
+const schemaBlueprintSource = readFileSync(new URL("../../directus/schema/blueprint.mjs", import.meta.url), "utf8");
+
+function assertValidProductFieldQuery(request: string) {
+  const url = new URL(request, "https://store.test");
+  const requested = (url.searchParams.get("fields") ?? "").split(",");
+  const invalid = requested.filter((field) =>
+    field === "date_updated" && !schemaBlueprintSource.includes(`field("${field}"`),
+  );
+  if (invalid.length) throw new Error(`Unknown Directus products field: ${invalid.join(",")}`);
+  return url;
+}
+
+function productRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "product-1",
+    slug: "part-one",
+    title: "Part One",
+    sku: "SKU-1",
+    brand: "Caterpillar",
+    updated_at: "2026-10-05T12:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("live product timestamp adapter", () => {
+  beforeEach(() => {
+    mocks.directusFetch.mockReset();
+    expect(schemaBlueprintSource).toContain('field("updated_at", "timestamp"');
+    expect(schemaBlueprintSource).not.toContain('field("date_updated"');
+    mocks.directusFetch.mockImplementation(async (request: string) => {
+      if (!request.startsWith("/items/products?")) return { data: [] };
+      const url = assertValidProductFieldQuery(request);
+      if (url.searchParams.get("fields") === "slug,updated_at") {
+        return { data: [{ slug: "part-one", updated_at: "2026-10-05T12:00:00.000Z" }] };
+      }
+      return { data: [productRow()], meta: { filter_count: 1 } };
+    });
+  });
+
+  it("requests the blueprint timestamp and maps it to the stable list and detail property", async () => {
+    const list = await getProducts();
+    expect(list.items[0].date_updated).toBe("2026-10-05T12:00:00.000Z");
+    const listUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[0][0]));
+    expect(listUrl.searchParams.get("fields")).toContain("updated_at");
+    expect(listUrl.searchParams.get("fields")).not.toContain("date_updated");
+
+    const detail = await getProductDetail("part-one");
+    expect(detail?.date_updated).toBe("2026-10-05T12:00:00.000Z");
+    const detailUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
+    expect(detailUrl.searchParams.get("fields")).toContain("updated_at");
+  });
+
+  it("maps updated_at in sitemap results and preserves absent or null timestamps as null", async () => {
+    mocks.directusFetch.mockImplementation(async (request: string) => {
+      if (!request.startsWith("/items/products?")) return { data: [] };
+      const url = assertValidProductFieldQuery(request);
+      if (url.searchParams.get("fields") === "slug,updated_at") {
+        return { data: [
+          { slug: "dated", updated_at: "2026-10-05T12:00:00.000Z" },
+          { slug: "null-date", updated_at: null },
+          { slug: "missing-date" },
+        ] };
+      }
+      return { data: [productRow({ updated_at: null }), productRow({ updated_at: undefined })] };
+    });
+
+    const products = await getProducts();
+    expect(products.items.map((item) => item.date_updated)).toEqual([null, null]);
+
+    const sitemap = await getProductsForSitemap(0, 10);
+    expect(sitemap).toEqual([
+      { slug: "dated", date_updated: "2026-10-05T12:00:00.000Z" },
+      { slug: "null-date", date_updated: null },
+      { slug: "missing-date", date_updated: null },
+    ]);
+    const sitemapUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
+    expect(sitemapUrl.searchParams.get("fields")).toBe("slug,updated_at");
+  });
+});

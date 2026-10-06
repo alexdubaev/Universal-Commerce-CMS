@@ -111,14 +111,14 @@ function mapProduct(item: Record<string, unknown>): Product {
     delivery_status: item.delivery_status ? String(item.delivery_status) : null,
     seo_title: item.seo_title ? String(item.seo_title) : null,
     seo_description: item.seo_description ? String(item.seo_description) : null,
-    date_updated: item.date_updated ? String(item.date_updated) : null,
+    date_updated: item.updated_at == null ? null : String(item.updated_at),
   };
 }
 
 const productFields = [
   "id","slug","title","sku","mpn","brand","short_description","full_description",
   "price","currency","price_status","availability_status","part_type","main_image",
-  "specifications","delivery_status","seo_title","seo_description","date_updated",
+  "specifications","delivery_status","seo_title","seo_description","updated_at",
   "category.id","category.slug","category.title","category.description","category.h1",
   "category.intro","category.image","category.seo_title","category.seo_description","category.is_indexable",
 ].join(",");
@@ -511,17 +511,20 @@ export async function getProductsForSitemap(offset: number, limit: number) {
     return mockProducts.slice(offset, offset + limit).map(({ slug, date_updated }) => ({ slug, date_updated }));
   }
   const params = new URLSearchParams({
-    fields: "slug,date_updated",
+    fields: "slug,updated_at",
     limit: String(limit),
     offset: String(offset),
     sort: "id",
     filter: JSON.stringify({ status: { _eq: "published" } }),
   });
-  const result = await directusFetch<{ data: Array<{ slug: string; date_updated?: string | null }> }>(
+  const result = await directusFetch<{ data: Array<{ slug: string; updated_at?: string | null }> }>(
     `/items/products?${params.toString()}`,
     { revalidate: 300 },
   );
-  return result.data;
+  return result.data.map(({ slug, updated_at }) => ({
+    slug,
+    date_updated: updated_at ?? null,
+  }));
 }
 
 export const getSiteSettings = getCmsSiteSettings;
