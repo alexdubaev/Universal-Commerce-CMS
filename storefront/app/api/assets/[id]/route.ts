@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { isStorefrontAssetAllowed } from "@/lib/assets";
+import { isStorefrontAssetAllowed, storefrontAssetResponsePolicy } from "@/lib/assets";
 import { directusAsset, isMockMode } from "@/lib/directus";
 
 type Context = { params: Promise<{ id: string }> };
@@ -19,10 +19,13 @@ export async function GET(_: Request, context: Context) {
     }
 
     const headers = new Headers();
-    const contentType = upstream.headers.get("content-type");
-    if (contentType) headers.set("content-type", contentType);
+    const policy = storefrontAssetResponsePolicy(upstream.headers.get("content-type"));
+    headers.set("content-type", policy.contentType);
+    headers.set("content-disposition", policy.contentDisposition);
     headers.set("cache-control", "public, max-age=300, stale-while-revalidate=86400");
     headers.set("x-content-type-options", "nosniff");
+    headers.set("cross-origin-resource-policy", "same-origin");
+    headers.set("content-security-policy", "sandbox; default-src 'none'");
     return new NextResponse(upstream.body, { status: 200, headers });
   } catch (error) {
     console.error("Asset proxy failed:", error);

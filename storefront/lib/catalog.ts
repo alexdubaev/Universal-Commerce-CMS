@@ -236,7 +236,7 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
 
     const hasPostSearchFilters = Boolean(query.brand || query.category || query.availability || query.partType);
 
-    if (query.q?.trim() && hasPostSearchFilters) {
+    if (query.q?.trim() && (hasPostSearchFilters || Boolean(query.sort))) {
       const ids = await getSearchCandidateIds(query.q);
       if (!ids.length) return { items: [], total: 0, page, limit, source: "directus" };
       filters.push({ id: { _in: ids } });

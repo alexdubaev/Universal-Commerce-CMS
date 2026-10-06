@@ -65,4 +65,38 @@ describe("live search with catalog filters", () => {
     expect(serialized).toContain('"id":{"_in":[');
     expect(serialized).toContain('"id-40"');
   });
+
+  it("sorts across the whole bounded search candidate set", async () => {
+    const firstIds = Array.from({ length: 20 }, (_, index) => ({ id: `id-${index + 1}` }));
+    const secondIds = Array.from({ length: 20 }, (_, index) => ({ id: `id-${index + 21}` }));
+    const sortedPage = Array.from({ length: 12 }, (_, index) => ({
+      ...product(index + 13),
+      price: 1_000 + index,
+      price_status: "fixed",
+    }));
+
+    mocks.directusFetch
+      .mockResolvedValueOnce({ data: firstIds, meta: { total: 40 } })
+      .mockResolvedValueOnce({ data: secondIds, meta: { total: 40 } })
+      .mockResolvedValueOnce({ data: sortedPage, meta: { filter_count: 40 } });
+
+    const result = await getProducts({
+      q: "SKU",
+      sort: "price_asc",
+      page: 2,
+      limit: 12,
+    });
+
+    expect(result.total).toBe(40);
+    expect(result.items).toHaveLength(12);
+
+    const productRequest = String(mocks.directusFetch.mock.calls[2][0]);
+    const url = new URL(productRequest, "https://store.test");
+    expect(url.searchParams.get("page")).toBe("2");
+    expect(url.searchParams.get("sort")).toBe("price,title");
+    const filter = JSON.parse(url.searchParams.get("filter") || "{}");
+    const serialized = JSON.stringify(filter);
+    expect(serialized).toContain('"id":{"_in":[');
+    expect(serialized).toContain('"id-40"');
+  });
 });

@@ -6,6 +6,15 @@ export function isValidAssetId(id: string) {
   return UUID.test(id);
 }
 
+export function storefrontAssetResponsePolicy(contentType: string | null) {
+  const normalized = (contentType || "application/octet-stream").split(";")[0].trim().toLowerCase();
+  const inline = normalized.startsWith("image/") || normalized === "application/pdf";
+  return {
+    contentType: inline ? normalized : "application/octet-stream",
+    contentDisposition: inline ? "inline" : "attachment",
+  };
+}
+
 async function collectionHasReference(collection: string, filter: Record<string, unknown>) {
   try {
     const params = new URLSearchParams({
@@ -34,35 +43,27 @@ function singletonRow(data: unknown): Record<string, unknown> | null {
 export async function isStorefrontAssetAllowed(id: string) {
   if (isMockMode() || !isValidAssetId(id)) return false;
 
-  const [
-    productMain,
-    productImage,
-    productDocument,
-    categoryAsset,
-    pageAsset,
-    pageSectionAsset,
-    homeSectionAsset,
-    homeResult,
-    settingsResult,
-  ] = await Promise.all([
-    collectionHasReference("products", {
+  // Order the checks by expected storefront frequency. Most catalog requests
+  // terminate on the first query instead of firing every authorization query.
+  const checks: Array<[string, Record<string, unknown>]> = [
+    ["products", {
       _and: [{ status: { _eq: "published" } }, { main_image: { _eq: id } }],
-    }),
-    collectionHasReference("product_images", {
+    }],
+    ["product_images", {
       _and: [
         { status: { _eq: "published" } },
         { image: { _eq: id } },
         { product: { status: { _eq: "published" } } },
       ],
-    }),
-    collectionHasReference("product_documents", {
+    }],
+    ["product_documents", {
       _and: [
         { status: { _eq: "published" } },
         { file: { _eq: id } },
         { product: { status: { _eq: "published" } } },
       ],
-    }),
-    collectionHasReference("categories", {
+    }],
+    ["categories", {
       _and: [
         { status: { _eq: "published" } },
         {
@@ -73,47 +74,48 @@ export async function isStorefrontAssetAllowed(id: string) {
           ],
         },
       ],
-    }),
-    collectionHasReference("pages", {
+    }],
+    ["pages", {
       _and: [{ status: { _eq: "published" } }, { og_image: { _eq: id } }],
-    }),
-    collectionHasReference("page_sections", {
+    }],
+    ["page_sections", {
       _and: [
         { status: { _eq: "published" } },
         { is_visible: { _eq: true } },
         { image: { _eq: id } },
         { page: { status: { _eq: "published" } } },
       ],
-    }),
-    collectionHasReference("page_sections", {
+    }],
+    ["page_sections", {
       _and: [
         { status: { _eq: "published" } },
         { is_visible: { _eq: true } },
         { image: { _eq: id } },
         { home_page: { status: { _eq: "published" } } },
       ],
-    }),
-    directusFetch<{ data: unknown }>(
-      "/items/home_page?fields=status,hero_image,og_image",
-      { revalidate: 300 },
-    ).catch(() => ({ data: null })),
-    directusFetch<{ data: unknown }>(
-      "/items/site_settings?fields=logo,favicon,default_og_image,company_image",
-      { revalidate: 300 },
-    ).catch(() => ({ data: null })),
-  ]);
+    }],
+  ];
 
-  if (productMain || productImage || productDocument || categoryAsset || pageAsset || pageSectionAsset || homeSectionAsset) {
-    return true;
+  for (const [collection, filter] of checks) {
+    if (await collectionHasReference(collection, filter)) return true;
   }
 
+  const homeResult = await directusFetch<{ data: unknown }>(
+    "/items/home_page?fields=status,hero_image,og_image",
+    { revalidate: 300 },
+  ).catch(() => ({ data: null }));
   const home = singletonRow(homeResult.data);
   if (home?.status === "published" && ["hero_image", "og_image"].some((field) => String(home[field] ?? "") === id)) {
     return true;
   }
 
+  const settingsResult = await directusFetch<{ data: unknown }>(
+    "/items/site_settings?fields=logo,favicon,default_og_image,company_image",
+    { revalidate: 300 },
+  ).catch(() => ({ data: null }));
   const settings = singletonRow(settingsResult.data);
   if (!settings) return false;
+
   return ["logo", "favicon", "default_og_image", "company_image"]
     .some((field) => String(settings[field] ?? "") === id);
 }
