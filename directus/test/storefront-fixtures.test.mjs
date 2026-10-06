@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { cleanupReason } from '../../dev/storefront-acceptance.mjs';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casRestorePatch,
-  collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, redactSummary, serviceEmailForRun,
+  collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, reconcileLegacySectionPage, redactSummary, serviceEmailForRun,
   safeManifestDirectory,
 } from '../../dev/storefront-acceptance-fixtures.mjs';
 
@@ -82,6 +83,21 @@ test('CAS restore allows original or fixture state and refuses third-party chang
   assert.deepEqual(casRestorePatch(snapshot, original, ['commerce_profile'], fixture), {});
   assert.deepEqual(casRestorePatch(snapshot, fixture, ['commerce_profile'], fixture), { commerce_profile: snapshot.commerce_profile });
   assert.throws(() => casRestorePatch(snapshot, { ...snapshot, commerce_profile: { currency: 'USD', features: { cart: true, parts_request: true } } }, ['commerce_profile'], fixture), /changed after/u);
+});
+
+test('legacy section-page reconciliation requires exact owned probe identity and known old row shape', () => {
+  const suffix = id.slice(0, 8), expected = { id, slug: `acceptance-${suffix}-section-probe`, title: 'Synthetic section transaction probe', status: 'published' };
+  const actual = { id, slug: `acceptance-${suffix}-page`, title: 'Synthetic acceptance page', status: 'published' };
+  assert.deepEqual(reconcileLegacySectionPage(expected, actual, id, id, [id]), actual);
+  assert.equal(reconcileLegacySectionPage(expected, { ...actual, title: 'Edited title' }, id, id, [id]), null);
+  assert.equal(reconcileLegacySectionPage(expected, actual, id, id, []), null);
+});
+
+test('cleanup diagnostics expose a reason code without leaking raw API details', () => {
+  const raw = 'DELETE /users failed: HTTP 400 {"errors":[{"message":"token super-secret","extensions":{"code":"FAILED_VALIDATION"}}]}';
+  assert.equal(cleanupReason(new Error(raw)), 'HTTP_400');
+  assert.equal(cleanupReason(new Error('wrapped {"errors":[{"extensions":{"code":"FORBIDDEN"}}]}')), 'FORBIDDEN');
+  assert.equal(cleanupReason(new Error('sensitive detail')), 'REQUEST_FAILED');
 });
 
 test('analog keys are stable for symmetric and directional relation types', () => {

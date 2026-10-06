@@ -156,6 +156,12 @@ export function ownershipFields(collection, data) {
   return Object.fromEntries(['id', ...(fieldMap[collection] ?? [])].filter(key => Object.hasOwn(data, key)).map(key => [key, data[key]]));
 }
 
+export function reconcileLegacySectionPage(expected, actual, id, runId, createdIds) {
+  const suffix = runId.slice(0, 8);
+  if (id !== expected?.id || !createdIds.includes(id) || actual?.id !== id || actual.slug !== `acceptance-${suffix}-page` || actual.title !== 'Synthetic acceptance page' || actual.status !== 'published' || expected.slug !== `acceptance-${suffix}-section-probe` || expected.title !== 'Synthetic section transaction probe' || expected.status !== 'published') return null;
+  return { id, slug: actual.slug, title: actual.title, status: actual.status };
+}
+
 export function casRestorePatch(snapshot, current, allowedFields, expected = snapshot) {
   let alreadyRestored = true;
   for (const field of allowedFields) {

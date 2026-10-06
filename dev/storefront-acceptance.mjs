@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { DirectusAdminClient } from '../directus/schema/apply-schema.mjs';
 import {
   COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget,
-  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows, serviceEmailForRun,
+  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows, reconcileLegacySectionPage, serviceEmailForRun,
   guardedDeleteRequest, ownershipFields, productAnalogKey, redactSummary, safeManifestDirectory,
 } from './storefront-acceptance-fixtures.mjs';
 
@@ -486,9 +486,18 @@ async function cleanup(client, manifest, path) {
         const query = new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: '*' });
         const rows = await readCollectionRows(client, collection, query);
         if (!rows.length) { appendCleanupAbsent(manifest, collection, id); continue; }
-        const expected = manifest.ownership[collection]?.[id] ?? manifest.pending[collection]?.[id];
+        let expected = manifest.ownership[collection]?.[id] ?? manifest.pending[collection]?.[id];
+        if (collection === 'pages' && id === manifest.namedRefs.sectionProbePageId) {
+          const reconciled = reconcileLegacySectionPage(expected, rows[0], id, manifest.runId, manifest.created.pages ?? []);
+          if (reconciled) {
+            manifest.ownership.pages[id] = expected = reconciled;
+            await saveManifest(path, manifest);
+          }
+        }
         if (!expected || Object.entries(expected).some(([field, value]) => JSON.stringify(rows[0][field]) !== JSON.stringify(value))) {
-          throw new Error('record no longer matches the fixture ownership snapshot');
+          const error = new Error('record no longer matches the fixture ownership snapshot');
+          error.cleanupReason = 'FIXTURE_OWNERSHIP_MISMATCH';
+          throw error;
         }
         if (collection === 'navigation_items') {
           await client.request(`/items/navigation_items/${encodeURIComponent(id)}`, { method: 'DELETE' });
@@ -501,7 +510,7 @@ async function cleanup(client, manifest, path) {
         }
         appendCleanupAbsent(manifest, collection, id);
       }
-      catch { throw new Error(`Owned cleanup stopped at ${collection}; run status and retain manifest`); }
+      catch (error) { throw new Error(`Owned cleanup stopped at ${collection} (${cleanupReason(error)}); run status and retain manifest`); }
     }
   }
   manifest.phase = 'cleaned'; await saveManifest(path, manifest);
@@ -511,6 +520,21 @@ function appendCleanupAbsent(manifest, collection, id) {
   manifest.created[collection] = (manifest.created[collection] ?? []).filter(value => value !== id);
   delete manifest.pending[collection]?.[id];
   delete manifest.ownership[collection]?.[id];
+}
+
+export function cleanupReason(error) {
+  if (error?.cleanupReason) return error.cleanupReason;
+  const message = String(error?.message ?? '');
+  const status = message.match(/HTTP (\d{3})/u)?.[1];
+  if (status) return `HTTP_${status}`;
+  const jsonStart = message.indexOf('{');
+  if (jsonStart >= 0) {
+    try {
+      const code = JSON.parse(message.slice(jsonStart)).errors?.[0]?.extensions?.code;
+      if (typeof code === 'string' && /^[A-Z0-9_]{2,}$/u.test(code)) return code;
+    } catch {}
+  }
+  return 'REQUEST_FAILED';
 }
 
 if (fileURLToPath(import.meta.url) === resolve(process.argv[1] ?? '')) {
