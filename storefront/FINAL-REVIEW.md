@@ -1,5 +1,13 @@
 # Storefront final code review
 
+## Integration follow-up — 2026-10-07
+
+The historical results below describe the original storefront PR. The current local integration baseline and fresh verification are in [REAL-DIRECTUS-ACCEPTANCE.md](REAL-DIRECTUS-ACCEPTANCE.md).
+
+Two proven adapter defects were corrected without schema or presentation changes: the CMS timestamp is `updated_at` (mapped to the existing storefront `date_updated` property), and explicit live mode must not become mock mode when `DIRECTUS_URL` is absent.
+
+Fresh local unit tests: 43/43; TypeScript/build/audits/client token canary: PASS. Directus tests: 170/170; race tests: 4/4. Windows mock browser suite: 27/30, with three reproducible mobile WebKit failures pending investigation. The real CMS has no published catalog/media and no least-privilege service identity; RFQ is disabled in its current profile. Real-data E2E and 100k performance have not been accepted. Keep PR #1 Draft; no merge or production approval is implied.
+
 Date: 2026-10-06  
 Scope: `feat/storefront-nextjs-dark` / PR #1
 

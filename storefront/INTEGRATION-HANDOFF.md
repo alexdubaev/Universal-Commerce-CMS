@@ -1,5 +1,15 @@
 # Storefront integration handoff
 
+## Updated local integration baseline — 2026-10-07
+
+See [REAL-DIRECTUS-ACCEPTANCE.md](REAL-DIRECTUS-ACCEPTANCE.md) before continuing. The original PR head was verified as `0f883b26e5003cb00bfad1ed7dc2586268182052` after fetch, and work is isolated on `feat/storefront-directus-acceptance`.
+
+The local isolated CMS runs Directus 12.1.1 / PostgreSQL 17.11 at `http://127.0.0.1:18056`. It contains one synthetic draft product, zero published products/brands/categories/files, and only Administrator access. `parts_request=false`; `cart=false`. No runtime/schema/access/profile/Docker changes were made.
+
+The catalog and sitemap adapter now reads `updated_at`, retaining `date_updated` in the frontend model. Explicit `STOREFRONT_MOCK_MODE=false` stays live even if the URL is missing. These are preparatory fixes, not completed integration.
+
+Fresh local checks passed except three Windows mobile WebKit mock E2E scenarios (suggestions, bulk import, skip-link focus), reproduced in a serial run. Resume with a real catalog and an instance that can enforce strict published-only/file permissions, then provision the service identity and perform real-data E2E/load acceptance. Do not claim synthetic seeds, mocked adapter tests or the mock production build as real acceptance. PR #1 remains Draft with a no-merge recommendation.
+
 ## Current state
 
 The storefront is now a substantially complete frontend shell. It runs end-to-end in mock mode and is wired to the current Universal Commerce CMS contracts.
