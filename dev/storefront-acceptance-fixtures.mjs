@@ -8,11 +8,11 @@ export const COLLECTIONS = Object.freeze([
   'directus_access', 'directus_folders', 'directus_files', 'directus_policies', 'directus_roles',
   'directus_users', 'categories', 'products', 'product_codes', 'products_analogs',
   'product_images', 'product_specifications', 'product_documents', 'pages',
-  'page_sections', 'navigation_items',
+  'page_sections', 'navigation_items', 'home_page',
 ]);
 const GUARDED_DELETE_COLLECTIONS = new Set([
   'categories', 'products', 'product_codes', 'products_analogs', 'product_images',
-  'product_specifications', 'product_documents', 'pages', 'page_sections',
+  'product_specifications', 'product_documents', 'pages', 'page_sections', 'home_page',
 ]);
 
 const slug = value => String(value).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -30,6 +30,7 @@ export function assertLocalTarget(rawUrl) {
 const DIRECTUS_SYSTEM_ENDPOINTS = Object.freeze({ directus_folders: '/folders', directus_files: '/files', directus_users: '/users', directus_roles: '/roles', directus_policies: '/policies', directus_access: '/access' });
 export function collectionEndpoint(collection) { return DIRECTUS_SYSTEM_ENDPOINTS[collection] ?? `/items/${collection}`; }
 export function readCollectionRows(client, collection, query) { return client.request(`${collectionEndpoint(collection)}?${query}`); }
+export function directusRows(value) { return Array.isArray(value) ? value : value && typeof value === 'object' ? [value] : []; }
 
 export function safeManifestDirectory(root) {
   if (typeof root !== 'string' || !root.trim()) throw new Error('An explicit integration root is required');
@@ -109,6 +110,7 @@ export function makeOwnershipManifest(runId, target = LOCAL_URL) {
       nonIndexableProductSlug: null,
       pageId: null,
       pageSlug: null,
+      homePageId: null,
       homeImageId: null,
       childProbeProductId: null,
       childProbeSpecificationId: null,
@@ -151,9 +153,14 @@ export function ownershipFields(collection, data) {
     product_specifications: ['product', 'name', 'value', 'status'],
     product_documents: ['product', 'file', 'title', 'status'],
     pages: ['slug', 'title', 'status'], page_sections: ['page', 'section_type', 'title', 'status'],
+    home_page: ['source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt', 'status', 'is_indexable'],
     navigation_items: ['label', 'url', 'location', 'status'],
   };
   return Object.fromEntries(['id', ...(fieldMap[collection] ?? [])].filter(key => Object.hasOwn(data, key)).map(key => [key, data[key]]));
+}
+
+export function recordMatchesOwnership(actual, expected) {
+  return Boolean(actual && expected && Object.entries(expected).every(([field, value]) => stableJson(actual[field]) === stableJson(value)));
 }
 
 export function reconcileLegacySectionPage(expected, actual, id, runId, createdIds) {
@@ -175,6 +182,17 @@ export function casRestorePatch(snapshot, current, allowedFields, expected = sna
   }
   if (alreadyRestored) return {};
   return Object.fromEntries(allowedFields.filter(field => Object.hasOwn(snapshot, field)).map(field => [field, snapshot[field]]));
+}
+
+export function casApplyPatch(snapshot, current, allowedFields, expected) {
+  const patch = {};
+  for (const field of allowedFields) {
+    if (!Object.hasOwn(snapshot, field) || !Object.hasOwn(current, field) || !Object.hasOwn(expected, field)) throw new Error(`Refusing apply because ${field} is missing`);
+    if (stableJson(current[field]) === stableJson(expected[field])) continue;
+    if (stableJson(current[field]) !== stableJson(snapshot[field])) throw new Error(`Refusing apply because ${field} changed during resume`);
+    patch[field] = expected[field];
+  }
+  return patch;
 }
 
 function stableJson(value) {

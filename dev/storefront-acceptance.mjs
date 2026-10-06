@@ -4,8 +4,8 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DirectusAdminClient } from '../directus/schema/apply-schema.mjs';
 import {
-  COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget,
-  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows, reconcileLegacySectionPage, serviceEmailForRun,
+  COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget, casApplyPatch, directusRows,
+  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows, recordMatchesOwnership, reconcileLegacySectionPage, serviceEmailForRun,
   guardedDeleteRequest, ownershipFields, productAnalogKey, redactSummary, safeManifestDirectory,
 } from './storefront-acceptance-fixtures.mjs';
 
@@ -18,7 +18,7 @@ import {
 const run = async (args = process.argv.slice(2)) => {
   const command = args[0];
   const option = name => { const at = args.indexOf(name); return at < 0 ? null : args[at + 1]; };
-  if (!['plan', 'apply', 'status', 'cleanup'].includes(command)) throw new Error('Use plan, apply, status, or cleanup');
+  if (!['plan', 'apply', 'status', 'cleanup', 'resume-config'].includes(command)) throw new Error('Use plan, apply, status, cleanup, or resume-config');
   const root = option('--integration-root') ?? process.env.STOREFRONT_ACCEPTANCE_INTEGRATION_ROOT;
   if (!root) throw new Error('Pass --integration-root pointing to the integration checkout');
   process.env.STOREFRONT_ACCEPTANCE_INTEGRATION_ROOT = resolve(root);
@@ -41,6 +41,21 @@ const run = async (args = process.argv.slice(2)) => {
     if (manifest.target !== baseUrl) throw new Error('Manifest target does not match the approved local instance');
     const client = await adminClient();
     await cleanup(client, manifest, manifestPath);
+    summary(redactSummary(manifest)); return;
+  }
+  if (command === 'resume-config') {
+    const manifest = await readManifest(manifestPath);
+    if (manifest.phase !== 'partial' || manifest.target !== baseUrl) throw new Error('resume-config requires a partial manifest for this exact local instance');
+    if (!manifest.original.env || !manifest.service?.userId || !manifest.publicFolderId || !manifest.namedRefs.pageId || !manifest.namedRefs.homeImageId) throw new Error('Partial manifest lacks the saved service configuration or required fixture references');
+    const client = await adminClient();
+    await verifyOwnedManifest(client, manifest, manifestPath);
+    await gatewayEnvPlan(manifest);
+    await repairOwnedAssetMime(client, manifest);
+    const page = await readExactOwned(client, manifest, 'pages', manifest.namedRefs.pageId);
+    const homeImage = await readExactOwned(client, manifest, 'directus_files', manifest.namedRefs.homeImageId);
+    await overrideSingletons(client, manifest, manifestPath, { page, homeImage });
+    await ensureLocalGatewayEnv(manifest);
+    manifest.phase = 'active'; await saveManifest(manifestPath, manifest);
     summary(redactSummary(manifest)); return;
   }
 
@@ -80,6 +95,47 @@ async function adminClient() {
   return client;
 }
 
+export async function readSingletonRows(client, collection, fields) {
+  if (!['site_settings', 'home_page'].includes(collection)) throw new Error('Unsupported fixture singleton read');
+  const query = new URLSearchParams({ fields: fields.join(','), limit: '1' });
+  return directusRows(await client.request(`/items/${collection}?${query}`));
+}
+
+export async function readOwnedRecord(client, collection, id) {
+  if (collection === 'home_page') {
+    try { return await client.request(`/items/home_page/${encodeURIComponent(id)}`); }
+    catch (error) { if (/HTTP 404/u.test(String(error?.message))) return null; throw error; }
+  }
+  const query = new URLSearchParams({ 'filter[id][_eq]': String(id), limit: '1', fields: '*' });
+  return (await readCollectionRows(client, collection, query))[0] ?? null;
+}
+
+async function readExactOwned(client, manifest, collection, id) {
+  const row = await readOwnedRecord(client, collection, id);
+  let expected = manifest.ownership[collection]?.[id];
+  if (collection === 'pages' && id === manifest.namedRefs.sectionProbePageId) {
+    const reconciled = reconcileLegacySectionPage(expected, row, id, manifest.runId, manifest.created.pages ?? []);
+    if (reconciled) manifest.ownership.pages[id] = expected = reconciled;
+  }
+  if (!recordMatchesOwnership(row, expected)) throw new Error(`Required owned ${collection} fixture is absent or changed`);
+  return row;
+}
+
+async function verifyOwnedManifest(client, manifest, path) {
+  for (const [collection, records] of Object.entries(manifest.pending ?? {})) {
+    for (const [id, expected] of Object.entries(records)) {
+      if (collection !== 'home_page') throw new Error('resume-config refuses a manifest with unresolved pending creates');
+      const row = await readOwnedRecord(client, collection, id);
+      if (!recordMatchesOwnership(row, expected)) throw new Error('resume-config refuses an unresolved home singleton create');
+      markOwnedCreated(manifest, collection, id, expected);
+    }
+  }
+  for (const collection of COLLECTIONS) {
+    for (const id of manifest.created[collection] ?? []) await readExactOwned(client, manifest, collection, id);
+  }
+  await saveManifest(path, manifest);
+}
+
 async function readManifest(path) {
   const value = JSON.parse(await readFile(path, 'utf8'));
   if (value.schema !== FIXTURE_SCHEMA || !value.created || !value.original) throw new Error('Invalid private fixture manifest');
@@ -111,7 +167,11 @@ async function saveManifest(path, manifest) {
 }
 
 const post = (client, collection, data) => client.request(`/items/${collection}`, { method: 'POST', body: JSON.stringify(data) });
-const patch = (client, collection, id, data) => client.request(`/items/${collection}/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(data) });
+
+export function patchSingleton(client, collection, changes) {
+  if (!['site_settings', 'home_page'].includes(collection) || !changes || typeof changes !== 'object' || Array.isArray(changes)) throw new Error('Unsupported fixture singleton patch');
+  return client.request(`/items/${collection}`, { method: 'PATCH', body: JSON.stringify(changes) });
+}
 
 function nestedOwnedChildren(collection, data) {
   if (collection !== 'products') return [];
@@ -126,8 +186,7 @@ async function prepareOwned(client, manifest, path, collection, data) {
   const row = { ...data, id: String(data.id ?? randomUUID()) };
   for (const [targetCollection, target] of [[collection, row], ...nestedOwnedChildren(collection, row)]) {
     target.id = String(target.id ?? randomUUID());
-    const query = new URLSearchParams({ 'filter[id][_eq]': target.id, limit: '1', fields: 'id' });
-    if ((await readCollectionRows(client, targetCollection, query)).length) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
+    if (await readOwnedRecord(client, targetCollection, target.id)) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
     const expected = ownershipFields(targetCollection, target);
     manifest.pending[targetCollection][target.id] = expected;
     manifest.ownership[targetCollection][target.id] = expected;
@@ -375,6 +434,27 @@ async function writeLocalGatewayEnv(manifest) {
   await chmod(envPath, 0o600);
 }
 
+async function ensureLocalGatewayEnv(manifest) {
+  const { envPath, text, next } = await gatewayEnvPlan(manifest);
+  if (next !== text) { await writeFile(envPath, next, { mode: 0o600 }); await chmod(envPath, 0o600); }
+}
+
+async function gatewayEnvPlan(manifest) {
+  const root = process.env.STOREFRONT_ACCEPTANCE_INTEGRATION_ROOT;
+  const envPath = join(root, 'dev/.env');
+  const keys = ['COMMERCE_STOREFRONT_ENABLED', 'COMMERCE_STOREFRONT_USER_ID', 'COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID'];
+  const expected = ['true', String(manifest.service.userId), String(manifest.publicFolderId)];
+  const original = manifest.original.env;
+  const text = await readFile(envPath, 'utf8');
+  let next = text;
+  for (let index = 0; index < keys.length; index++) {
+    const current = envValue(text, keys[index]);
+    if (current !== expected[index] && current !== original[keys[index]]) throw new Error(`Refusing environment resume because ${keys[index]} changed after fixture start`);
+    if (current === original[keys[index]] && current !== expected[index]) next = setEnvValue(next, keys[index], expected[index]);
+  }
+  return { envPath, text, next };
+}
+
 function envValue(text, key) {
   const line = text.split(/\r?\n/u).find(value => value.startsWith(`${key}=`));
   return line ? line.slice(key.length + 1) : null;
@@ -388,27 +468,43 @@ function setEnvValue(text, key, value) {
 }
 
 async function overrideSingletons(client, manifest, path, { page, homeImage }) {
-  const settingsRows = await client.request('/items/site_settings?limit=1');
+  const settingsRows = await readSingletonRows(client, 'site_settings', ['id', 'commerce_profile']);
   if (!settingsRows.length) throw new Error('site_settings singleton is missing');
   const settings = settingsRows[0];
-  manifest.original.site_settings = { id: settings.id, commerce_profile: settings.commerce_profile };
-  await saveManifest(path, manifest);
-  const profile = settings.commerce_profile;
+  const profileSnapshot = manifest.original.site_settings;
+  if (profileSnapshot && String(profileSnapshot.id) !== String(settings.id)) throw new Error('site_settings singleton identity changed after fixture start');
+  const profile = profileSnapshot?.commerce_profile ?? settings.commerce_profile;
   if (!profile || profile.currency !== 'RUB' || profile.features?.cart !== false) throw new Error('Existing commerce profile does not match the expected RUB/cart-off baseline');
-  const fixtureProfile = { ...profile, features: { ...profile.features, parts_request: true, cart: false } };
-  manifest.original.site_settings.expectedCommerceProfile = fixtureProfile;
+  const fixtureProfile = profileSnapshot?.expectedCommerceProfile ?? { ...profile, features: { ...profile.features, parts_request: true, cart: false } };
+  manifest.original.site_settings = { ...(profileSnapshot ?? { id: settings.id, commerce_profile: profile }), expectedCommerceProfile: fixtureProfile };
   await saveManifest(path, manifest);
-  await patch(client, 'site_settings', settings.id, { commerce_profile: fixtureProfile });
-  const homeRows = await client.request('/items/home_page?limit=1');
+  const profilePatch = casApplyPatch({ commerce_profile: manifest.original.site_settings.commerce_profile }, { commerce_profile: settings.commerce_profile }, ['commerce_profile'], { commerce_profile: fixtureProfile });
+  if (Object.keys(profilePatch).length) await patchSingleton(client, 'site_settings', profilePatch);
+  const homeFields = ['status', 'source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt'];
+  const homeRows = await readSingletonRows(client, 'home_page', ['id', ...homeFields]);
   if (!homeRows.length) throw new Error('home_page singleton is missing');
   const home = homeRows[0];
-  const fields = ['status', 'source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt'];
-  manifest.original.home_page = { id: home.id, values: Object.fromEntries(fields.filter(key => Object.hasOwn(home, key)).map(key => [key, home[key]])) };
-  await saveManifest(path, manifest);
-  const values = { status: 'published', source_page: page.id, h1: 'Synthetic acceptance home', hero_title: 'Synthetic parts catalog', hero_text: 'Neutral local integration content.', hero_image: homeImage.id, hero_image_alt: 'Generated synthetic test image' };
+  const homeSnapshot = manifest.original.home_page;
+  if (homeSnapshot && String(homeSnapshot.id) !== String(home.id)) throw new Error('home_page singleton identity changed after fixture start');
+  const values = homeSnapshot?.expectedValues ?? { status: 'published', source_page: page.id, h1: 'Synthetic acceptance home', hero_title: 'Synthetic parts catalog', hero_text: 'Neutral local integration content.', hero_image: homeImage.id, hero_image_alt: 'Generated synthetic test image' };
+  if (home.id == null) {
+    const created = await createOwned(client, manifest, path, 'home_page', { id: randomUUID(), ...values, is_indexable: true });
+    manifest.namedRefs.homePageId = created.id;
+    await saveManifest(path, manifest);
+    return;
+  }
+  if ((manifest.created.home_page ?? []).includes(String(home.id))) {
+    await readExactOwned(client, manifest, 'home_page', String(home.id));
+    manifest.namedRefs.homePageId = String(home.id);
+    await saveManifest(path, manifest);
+    return;
+  }
+  const currentValues = Object.fromEntries(homeFields.map(key => [key, Object.hasOwn(home, key) ? home[key] : null]));
+  manifest.original.home_page = homeSnapshot ?? { id: home.id, values: currentValues };
   manifest.original.home_page.expectedValues = values;
   await saveManifest(path, manifest);
-  await patch(client, 'home_page', home.id, values);
+  const homePatch = casApplyPatch(manifest.original.home_page.values, currentValues, homeFields, values);
+  if (Object.keys(homePatch).length) await patchSingleton(client, 'home_page', homePatch);
 }
 
 const pngBytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/T8sAAAAASUVORK5CYII=', 'base64');
@@ -432,15 +528,51 @@ async function uploadAsset(client, manifest, path, folderId, filename, bytes) {
   form.append('id', id);
   form.append('folder', folderId);
   form.append('title', 'Generated synthetic acceptance fixture');
-  form.append('file', new Blob([bytes]), generatedName);
+  const mime = fixtureMime(generatedName);
+  form.append('file', new Blob([bytes], { type: mime }), generatedName);
   const response = await fetch(`${client.baseUrl}/files`, { method: 'POST', headers: { authorization: `Bearer ${client.token}` }, body: form });
   if (!response.ok) throw new Error(`Generated asset upload failed with HTTP ${response.status}`);
   const record = (await response.json()).data;
   if (!record?.id) throw new Error('Asset upload did not return an owned file id');
-  markOwnedCreated(manifest, 'directus_files', String(record.id), { id: String(record.id), folder: folderId, filename_download: generatedName });
+  markOwnedCreated(manifest, 'directus_files', String(record.id), { id: String(record.id), folder: folderId, filename_download: generatedName, type: mime });
   delete manifest.pending.directus_files[id];
   await saveManifest(path, manifest);
   return record;
+}
+
+function fixtureMime(filename) {
+  const extension = filename.slice(filename.lastIndexOf('.') + 1).toLowerCase();
+  return ({ png: 'image/png', pdf: 'application/pdf', html: 'text/html' })[extension] ?? null;
+}
+
+function fixtureBytes(filename) {
+  const extension = filename.slice(filename.lastIndexOf('.') + 1).toLowerCase();
+  return ({ png: pngBytes, pdf: pdfBytes, html: htmlBytes })[extension] ?? null;
+}
+
+export async function repairOwnedAssetMime(client, manifest, fetchImpl = fetch) {
+  for (const id of manifest.created.directus_files ?? []) {
+    const expected = manifest.ownership.directus_files?.[id];
+    if (!expected || expected.id !== id) throw new Error('Refusing MIME repair without exact file ownership');
+    const desired = fixtureMime(expected.filename_download ?? '');
+    const bytes = fixtureBytes(expected.filename_download ?? '');
+    if (!desired || !bytes) throw new Error('Refusing MIME repair for an unknown generated file type');
+    const current = await readOwnedRecord(client, 'directus_files', id);
+    if (!recordMatchesOwnership(current, { id, folder: expected.folder, filename_download: expected.filename_download })) throw new Error('Refusing MIME repair because the owned file identity changed');
+    if (current.type === desired) { expected.type = desired; continue; }
+    if (current.type !== 'application/octet-stream') throw new Error('Refusing MIME repair because the file MIME changed after fixture creation');
+    const asset = await fetchImpl(`${client.baseUrl}/assets/${encodeURIComponent(id)}`, { headers: { authorization: `Bearer ${client.token}` } });
+    if (!asset.ok) throw new Error(`Owned asset verification failed with HTTP ${asset.status}`);
+    const actualBytes = Buffer.from(await asset.arrayBuffer());
+    if (actualBytes.length !== bytes.length || !actualBytes.equals(bytes)) throw new Error('Refusing MIME repair because owned asset bytes differ from the generated fixture');
+    const form = new FormData();
+    form.append('file', new Blob([bytes], { type: desired }), expected.filename_download);
+    const response = await fetchImpl(`${client.baseUrl}/files/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { authorization: `Bearer ${client.token}` }, body: form });
+    if (!response.ok) throw new Error(`Owned asset MIME repair failed with HTTP ${response.status}`);
+    const returned = (await response.json()).data;
+    if (returned?.id !== id || returned.type !== desired) throw new Error('Owned asset MIME repair did not return the expected file identity and type');
+    expected.type = desired;
+  }
 }
 
 async function cleanup(client, manifest, path) {
@@ -464,18 +596,20 @@ async function cleanup(client, manifest, path) {
   }
   for (const [collection, saved] of [['home_page', manifest.original.home_page], ['site_settings', manifest.original.site_settings]]) {
     if (!saved) continue;
-    const currentRows = await client.request(`/items/${collection}?limit=1`);
+    const fields = collection === 'home_page' ? ['id', 'status', 'source_page', 'h1', 'hero_title', 'hero_text', 'hero_image', 'hero_image_alt'] : ['id', 'commerce_profile'];
+    const currentRows = await readSingletonRows(client, collection, fields);
     if (!currentRows.length || String(currentRows[0].id) !== String(saved.id)) throw new Error(`Refusing singleton restore for ${collection}: identity changed`);
     const snapshot = collection === 'home_page' ? saved.values : { commerce_profile: saved.commerce_profile };
     const expected = collection === 'home_page' ? saved.expectedValues : { commerce_profile: saved.expectedCommerceProfile };
-    const fields = Object.keys(snapshot);
     const current = currentRows[0];
-    const restore = casRestorePatch(snapshot, Object.fromEntries(fields.map(field => [field, current[field]])), fields, expected);
-    if (Object.keys(restore).length) await patch(client, collection, saved.id, restore);
+    const currentValues = Object.fromEntries(fields.filter(field => field !== 'id').map(field => [field, Object.hasOwn(current, field) ? current[field] : null]));
+    const allowedFields = fields.filter(field => field !== 'id');
+    const restore = casRestorePatch(snapshot, currentValues, allowedFields, expected);
+    if (Object.keys(restore).length) await patchSingleton(client, collection, restore);
   }
   const order = [
     'directus_users', 'directus_access', 'directus_roles', 'directus_policies',
-    'navigation_items', 'page_sections', 'pages', 'products_analogs', 'product_codes',
+    'navigation_items', 'page_sections', 'home_page', 'pages', 'products_analogs', 'product_codes',
     'product_documents', 'product_specifications', 'product_images', 'products',
     'categories', 'directus_files', 'directus_folders',
   ];
@@ -483,18 +617,17 @@ async function cleanup(client, manifest, path) {
     const ids = [...new Set([...(manifest.created[collection] ?? []), ...Object.keys(manifest.pending[collection] ?? {})])].reverse();
     for (const id of ids) {
       try {
-        const query = new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: '*' });
-        const rows = await readCollectionRows(client, collection, query);
-        if (!rows.length) { appendCleanupAbsent(manifest, collection, id); continue; }
+        const row = await readOwnedRecord(client, collection, id);
+        if (!row) { appendCleanupAbsent(manifest, collection, id); continue; }
         let expected = manifest.ownership[collection]?.[id] ?? manifest.pending[collection]?.[id];
         if (collection === 'pages' && id === manifest.namedRefs.sectionProbePageId) {
-          const reconciled = reconcileLegacySectionPage(expected, rows[0], id, manifest.runId, manifest.created.pages ?? []);
+          const reconciled = reconcileLegacySectionPage(expected, row, id, manifest.runId, manifest.created.pages ?? []);
           if (reconciled) {
             manifest.ownership.pages[id] = expected = reconciled;
             await saveManifest(path, manifest);
           }
         }
-        if (!expected || Object.entries(expected).some(([field, value]) => JSON.stringify(rows[0][field]) !== JSON.stringify(value))) {
+        if (!recordMatchesOwnership(row, expected)) {
           const error = new Error('record no longer matches the fixture ownership snapshot');
           error.cleanupReason = 'FIXTURE_OWNERSHIP_MISMATCH';
           throw error;
