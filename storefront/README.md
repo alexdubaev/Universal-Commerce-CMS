@@ -7,6 +7,7 @@ Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 - one responsive desktop/mobile codebase;
 - search-first B2B home page;
 - multi-brand catalog;
+- live brand discovery from published Directus products, using one shared brand template;
 - working brand, category, availability and part-type filters;
 - price/title/popularity sorting and pagination;
 - dynamic brand routes at `/brand/[brand]`;
@@ -18,6 +19,10 @@ Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 - manual bulk article input;
 - XLSX / CSV / TXT request-list import;
 - delivery, payment, about, contacts and request pages;
+- CMS-driven header/footer/legal navigation;
+- CMS-driven page rendering for published `pages` + visible `page_sections`;
+- generic `/[slug]` route for future standard CMS pages;
+- optional CMS-driven home hero and extra home sections;
 - dynamic SEO metadata for product/brand/category pages;
 - Organization, Product and BreadcrumbList JSON-LD;
 - robots.txt;
@@ -29,7 +34,8 @@ Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 - `/commerce/orders` proxy prepared for later cart/account work;
 - Directus asset proxy with UUID validation and allowlisting of files referenced by published storefront content; the server token never reaches the browser;
 - health endpoint without upstream error-detail leakage;
-- request-size/search guard rails and sanitized public API errors;\n- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
+- request-size/search guard rails and sanitized public API errors;
+- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
 
 The storefront does **not** change Directus schema, roles, permissions, Docker, database or deployment configuration.
 
@@ -74,6 +80,10 @@ The current Directus baseline keeps anonymous access closed. Production should u
 - `GET /items/product_documents`
 - `GET /items/products_analogs`
 - `GET /items/site_settings`
+- `GET /items/navigation_items`
+- `GET /items/pages`
+- `GET /items/page_sections`
+- `GET /items/home_page`
 - `GET /commerce/search?q=...`
 - `POST /commerce/leads`
 - `POST /commerce/orders`

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { brands } from "@/lib/catalog";
+import { getBrands } from "@/lib/catalog";
 
 export const metadata: Metadata = {
   title: "Бренды запчастей",
@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brands" },
 };
 
-export default function BrandsPage() {
+export default async function BrandsPage() {
+  const brands = await getBrands();
   return (
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Бренды</span></div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchBox } from "@/components/SearchBox";
-import { brands, getCategories, getProducts } from "@/lib/catalog";
+import { getBrands, getCategories, getProducts } from "@/lib/catalog";
 import type { Availability, PartType, SortOption } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -43,7 +43,8 @@ function pages(current: number, max: number) {
 export default async function CatalogPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
-  const [categories, result] = await Promise.all([
+  const [brandList, categories, result] = await Promise.all([
+    getBrands(),
     getCategories(),
     getProducts({
       q: params.q,
@@ -77,7 +78,7 @@ export default async function CatalogPage({ searchParams }: Props) {
             <summary>Бренд</summary>
             <div className="filter-links">
               <Link className={!params.brand ? "active" : ""} href={href(params, { brand: undefined, page: undefined })}>Все бренды</Link>
-              {brands.map((brand) => (
+              {brandList.map((brand) => (
                 <Link
                   className={params.brand === brand.slug ? "active" : ""}
                   href={href(params, { brand: brand.slug, page: undefined })}

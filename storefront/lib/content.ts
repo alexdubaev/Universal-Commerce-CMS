@@ -231,7 +231,7 @@ export async function getCmsHome(): Promise<CmsHome | null> {
 export function safeContentHref(value: string | null | undefined) {
   if (!value) return null;
   const trimmed = value.trim();
-  if (trimmed.startsWith("/")) return trimmed;
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) return trimmed;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (/^(mailto|tel):/i.test(trimmed)) return trimmed;
   return null;

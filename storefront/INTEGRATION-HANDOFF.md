@@ -34,6 +34,18 @@ Directus schema, database, roles/permissions, Docker and deployment remain inten
 
 ## CMS mapping
 
+### Brands and navigation
+
+In mock mode the storefront uses synthetic brand metadata. In live Directus mode the visible brand list is derived from published products through Directus aggregation/grouping. Known brands reuse richer descriptions; any future brand gets a deterministic slug and the same dynamic `/brand/[brand]` template. Do not create copied per-brand page trees.
+
+Published `navigation_items` drive header/footer/legal navigation. URLs are allowlisted to internal paths, http(s), mailto and tel; script/data/protocol-relative URLs are rejected.
+
+### Pages and home content
+
+Published `pages` plus visible `page_sections` feed the shared CMS page renderer. Delivery, payment, about and contacts use CMS content when it exists. New standard pages can be created in Directus and served by `/[slug]` without a new React route.
+
+Published `home_page` may override hero/SEO content and append visible page sections while catalog/category/product blocks continue using commerce data.
+
 ### Catalog
 
 Published `products` feed the catalog and product pages. Filtering supports brand, category, availability and part type. Sorting supports popularity, price ascending/descending and title.
@@ -109,15 +121,14 @@ Do not enable mock fallback in production.
 3. Verify every collection/asset permission with real Directus.
 4. Set `commerce_profile.features.parts_request=true`.
 5. Decide whether Company / INN / KPP become first-class B2B entities.
-6. Move delivery/payment/about/contact body content to real Directus page sections.
-7. Verify production search behavior with the real large catalog; decide whether to add Meilisearch/OpenSearch.
-8. Add warehouse inventory before displaying numeric stock.
-9. Add price lists before customer-specific B2B pricing.
-10. Verify sitemap throughput against the real 100k+ catalog and Directus query limits.
-11. Add production rate limiting / abuse controls at the deployment edge for form/API routes.
-12. Add CSP/security headers after final deployment topology is known.
-13. Wire Docker/services/deployment only in a separately scoped infrastructure task.
-14. Run real-Directus E2E and performance/load tests before production acceptance.
+6. Verify production search behavior with the real large catalog; decide whether to add Meilisearch/OpenSearch.
+7. Add warehouse inventory before displaying numeric stock.
+8. Add price lists before customer-specific B2B pricing.
+9. Verify sitemap throughput against the real 100k+ catalog and Directus query limits.
+10. Add production rate limiting / abuse controls at the deployment edge for form/API routes.
+11. Add CSP/security headers after final deployment topology is known.
+12. Wire Docker/services/deployment only in a separately scoped infrastructure task.
+13. Run real-Directus E2E and performance/load tests before production acceptance.
 
 ## Acceptance already automated
 
@@ -127,7 +138,8 @@ CI covers:
 - TypeScript;
 - production build;
 - production dependency audit;
-- server-token client-bundle leak canary;\n- public asset-id validation and API guard-rail tests;
+- server-token client-bundle leak canary;
+- public asset-id validation and API guard-rail tests;
 - Playwright desktop;
 - Playwright 390px mobile;
 - route overflow checks;

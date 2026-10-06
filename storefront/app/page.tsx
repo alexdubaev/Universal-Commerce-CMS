@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CmsSections } from "@/components/CmsPageRenderer";
 import { ProductCard } from "@/components/ProductCard";
 import { SearchBox } from "@/components/SearchBox";
-import { brands, getCategories, getProducts } from "@/lib/catalog";
+import { getBrands, getCategories, getProducts } from "@/lib/catalog";
 import { getCmsHome, safeContentHref } from "@/lib/content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,9 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [products, categories, home] = await Promise.all([
+  const [products, categories, brandList, home] = await Promise.all([
     getProducts({ limit: 8 }),
     getCategories(),
+    getBrands(),
     getCmsHome(),
   ]);
 
@@ -90,7 +91,7 @@ export default async function HomePage() {
       <section className="brand-strip" id="brands">
         <div className="shell">
           <div className="brand-list">
-            {brands.map((brand) => (
+            {brandList.map((brand) => (
               <Link href={`/brand/${brand.slug}`} key={brand.slug}>{brand.name}</Link>
             ))}
             <Link className="all-brands" href="/catalog">Все товары →</Link>

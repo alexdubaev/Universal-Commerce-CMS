@@ -1,4 +1,4 @@
-import { brands, getCategories, getProductsForSitemap } from "@/lib/catalog";
+import { getBrands, getCategories, getProductsForSitemap } from "@/lib/catalog";
 import { absoluteUrl, escapeXml } from "@/lib/seo";
 
 const PRODUCT_CHUNK = 1000;
@@ -26,11 +26,11 @@ export async function GET(_: Request, context: { params: Promise<{ name: string 
   const { name } = await context.params;
 
   if (name === "static.xml") {
-    const categories = await getCategories();
+    const [brandList, categories] = await Promise.all([getBrands(), getCategories()]);
     const staticRoutes = ["/", "/catalog", "/brands", "/delivery", "/payment", "/about", "/contacts"];
     return xmlResponse([
       ...staticRoutes.map((path) => urlNode(path)),
-      ...brands.map((brand) => urlNode(`/brand/${brand.slug}`)),
+      ...brandList.map((brand) => urlNode(`/brand/${brand.slug}`)),
       ...categories.filter((category) => category.is_indexable !== false).map((category) => urlNode(`/category/${category.slug}`)),
     ]);
   }

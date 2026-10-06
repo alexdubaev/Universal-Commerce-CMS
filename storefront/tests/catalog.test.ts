@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brands, getCategories, getProductDetail, getProducts } from "../lib/catalog";
+import { getBrands, getCategories, getProductDetail, getProducts } from "../lib/catalog";
 import { mockProducts } from "../lib/mock";
 
 const normalize = (value: string) => value.trim().toUpperCase().replace(/[^A-Z0-9А-ЯЁ]+/g, "");
@@ -16,6 +16,7 @@ describe("mock catalog contract", () => {
   });
 
   it("has at least one mock product for every advertised brand route", async () => {
+    const brands = await getBrands();
     for (const brand of brands) {
       const result = await getProducts({ brand: brand.slug, limit: 24 });
       expect(result.total, brand.slug).toBeGreaterThan(0);

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AddToRequest } from "@/components/AddToRequest";
 import { ProductCard } from "@/components/ProductCard";
 import { getProductDetail, getRelatedProducts } from "@/lib/catalog";
-import { brandToSlug } from "@/lib/mock";
+import { slugifyBrand } from "@/lib/brands";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: Props) {
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Главная", item: absoluteUrl("/") },
       { "@type": "ListItem", position: 2, name: "Каталог", item: absoluteUrl("/catalog") },
-      { "@type": "ListItem", position: 3, name: product.brand, item: absoluteUrl(`/brand/${brandToSlug(product.brand)}`) },
+      { "@type": "ListItem", position: 3, name: product.brand, item: absoluteUrl(`/brand/${slugifyBrand(product.brand)}`) },
       { "@type": "ListItem", position: 4, name: product.sku, item: absoluteUrl(`/product/${product.slug}`) },
     ],
   };
@@ -93,7 +93,7 @@ export default async function ProductPage({ params }: Props) {
       <div className="breadcrumbs">
         <Link href="/">Главная</Link><span>/</span>
         <Link href="/catalog">Каталог</Link><span>/</span>
-        <Link href={`/brand/${brandToSlug(product.brand)}`}>{product.brand}</Link><span>/</span>
+        <Link href={`/brand/${slugifyBrand(product.brand)}`}>{product.brand}</Link><span>/</span>
         <span>{product.sku}</span>
       </div>
 

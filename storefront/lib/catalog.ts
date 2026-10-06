@@ -1,7 +1,9 @@
 import { allowMockFallback, directusFetch, isMockMode } from "./directus";
 import { brands, findBrand, mockCategories, mockProducts } from "./mock";
 import { getCmsSiteSettings } from "./content";
+import { slugifyBrand } from "./brands";
 import type {
+  Brand,
   CatalogQuery,
   Category,
   Product,
@@ -134,6 +136,55 @@ function directusSort(sort: SortOption = "popular") {
   return "-popularity_score,title";
 }
 
+export async function getBrands(): Promise<Brand[]> {
+  if (isMockMode()) return brands;
+
+  try {
+    const params = new URLSearchParams();
+    params.set("aggregate[count]", "*");
+    params.append("groupBy[]", "brand");
+    params.set("limit", "500");
+    params.set("filter", JSON.stringify({
+      _and: [
+        { status: { _eq: "published" } },
+        { brand: { _nnull: true } },
+      ],
+    }));
+
+    const result = await directusFetch<{ data: Array<Record<string, unknown>> }>(
+      `/items/products?${params.toString()}`,
+      { revalidate: 300 },
+    );
+
+    const bySlug = new Map<string, Brand>();
+    for (const row of result.data ?? []) {
+      const name = String(row.brand ?? "").trim();
+      if (!name) continue;
+      const slug = slugifyBrand(name);
+      if (!slug || bySlug.has(slug)) continue;
+      const known = brands.find((brand) => brand.name.toLowerCase() === name.toLowerCase());
+      bySlug.set(slug, known ?? {
+        slug,
+        name,
+        description: `Запчасти ${name} для спецтехники.`,
+        accent: "#f7c400",
+      });
+    }
+
+    return [...bySlug.values()].sort((a, b) => a.name.localeCompare(b.name, "ru"));
+  } catch (error) {
+    console.error("Storefront brands error:", error);
+    if (allowMockFallback()) return brands;
+    throw error;
+  }
+}
+
+export async function getBrand(slug: string): Promise<Brand | null> {
+  if (isMockMode()) return findBrand(slug) ?? null;
+  const list = await getBrands();
+  return list.find((brand) => brand.slug === slug) ?? null;
+}
+
 export async function getProducts(query: CatalogQuery = {}): Promise<ProductList> {
   const page = Math.max(1, query.page ?? 1);
   const limit = Math.min(24, Math.max(1, query.limit ?? 12));
@@ -155,8 +206,9 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
 
     const filters: Record<string, unknown>[] = [{ status: { _eq: "published" } }];
     if (query.brand) {
-      const meta = findBrand(query.brand);
-      filters.push({ brand: { _eq: meta?.name ?? query.brand } });
+      const meta = await getBrand(query.brand);
+      if (!meta) return { items: [], total: 0, page, limit, source: "directus" };
+      filters.push({ brand: { _eq: meta.name } });
     }
     if (query.category) filters.push({ category: { slug: { _eq: query.category } } });
     if (query.availability) filters.push({ availability_status: { _eq: query.availability } });

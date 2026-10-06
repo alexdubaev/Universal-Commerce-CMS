@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
-import { findBrand, getProducts } from "@/lib/catalog";
+import { getBrand, getProducts } from "@/lib/catalog";
 
 type Props = { params: Promise<{ brand: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { brand: slug } = await params;
-  const brand = findBrand(slug);
+  const brand = await getBrand(slug);
   if (!brand) return {};
   return {
     title: `Запчасти ${brand.name}`,
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BrandPage({ params }: Props) {
   const { brand: slug } = await params;
-  const brand = findBrand(slug);
+  const brand = await getBrand(slug);
   if (!brand) notFound();
 
   const products = await getProducts({ brand: slug, limit: 12 });
