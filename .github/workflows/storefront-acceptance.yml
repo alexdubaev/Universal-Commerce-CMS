@@ -87,10 +87,10 @@ jobs:
       - name: Install
         run: npm ci
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
       - name: Build
         run: npm run build
-      - name: E2E desktop + mobile + concurrent API retries
+      - name: E2E desktop + Chromium mobile + WebKit mobile + concurrent API retries
         run: npm run test:e2e
       - name: Upload Playwright report on failure
         if: failure()

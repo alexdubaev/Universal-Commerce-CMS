@@ -190,7 +190,7 @@ test("keyboard skip link reaches the main content", async ({ page }) => {
 });
 
 test("mobile menu works and key routes never overflow horizontally", async ({ page }, testInfo) => {
-  if (testInfo.project.name === "mobile-chromium") {
+  if (testInfo.project.name.startsWith("mobile-")) {
     await page.goto("/");
     const toggle = page.getByRole("button", { name: "Открыть меню" });
     await toggle.click();
