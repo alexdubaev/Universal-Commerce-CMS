@@ -130,7 +130,7 @@ async function verifyOwnedManifest(client, manifest, path) {
   for (const [collection, records] of Object.entries(manifest.pending ?? {})) {
     for (const [id, expected] of Object.entries(records)) {
       if (collection !== 'home_page') throw new Error('resume-config refuses a manifest with unresolved pending creates');
-      const row = await readOwnedRecord(client, collection, id);
+      const row = await resumePendingHomeCreate(client, id, expected);
       if (!recordMatchesOwnership(row, expected)) throw new Error('resume-config refuses an unresolved home singleton create');
       markOwnedCreated(manifest, collection, id, expected);
     }
@@ -139,6 +139,16 @@ async function verifyOwnedManifest(client, manifest, path) {
     for (const id of manifest.created[collection] ?? []) await readExactOwned(client, manifest, collection, id);
   }
   await saveManifest(path, manifest);
+}
+
+export async function resumePendingHomeCreate(client, id, expected) {
+  const row = await readOwnedRecord(client, 'home_page', id);
+  if (recordMatchesOwnership(row, expected)) return row;
+  const singleton = (await readSingletonRows(client, 'home_page', ['*']))[0];
+  if (singleton?.id != null) throw new Error('Refusing pending home create because a different singleton already exists');
+  const created = await client.request('/items/home_page', { method: 'PATCH', body: JSON.stringify(expected) });
+  if (!recordMatchesOwnership(created, expected)) throw new Error('Pending home singleton retry did not return its journaled identity');
+  return created;
 }
 
 async function readManifest(path) {
@@ -215,6 +225,8 @@ async function createOwned(client, manifest, path, collection, data) {
   const systemPath = ['directus_folders'].includes(collection) ? collectionEndpoint(collection) : null;
   const created = systemPath
     ? await client.request(systemPath, { method: 'POST', body: JSON.stringify(row) })
+    : collection === 'home_page'
+      ? await client.request('/items/home_page', { method: 'PATCH', body: JSON.stringify(row) })
     : await post(client, collection, row);
   if (!created?.id) throw new Error('Directus create did not return its record id');
   markOwnedCreated(manifest, collection, String(created.id), ownershipFields(collection, { ...row, id: String(created.id) }));

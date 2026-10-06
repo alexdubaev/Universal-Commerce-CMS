@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertHomeSingletonAbsent, cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime } from '../../dev/storefront-acceptance.mjs';
+import { assertHomeSingletonAbsent, cleanupReason, patchSingleton, readOwnedRecord, readSingletonRows, repairOwnedAssetMime, resumePendingHomeCreate } from '../../dev/storefront-acceptance.mjs';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casApplyPatch, casRestorePatch, directusRows,
   collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, reconcileLegacySectionPage, redactSummary, serviceEmailForRun,
@@ -55,6 +55,23 @@ test('home singleton ownership reads its projection and matches only a persisted
   await assertHomeSingletonAbsent({ request: async () => ({ id: null }) });
   await assert.rejects(assertHomeSingletonAbsent({ request: async () => ({ id }) }), /already exists/u);
   await assert.rejects(assertHomeSingletonAbsent({ request: async () => { throw Error('HTTP 403 denied'); } }), /HTTP 403/u);
+});
+
+test('pending home create retries collection PATCH with its already-journaled UUID', async () => {
+  const expected = { id, status: 'published', h1: 'Synthetic acceptance home' };
+  const calls = [];
+  let row = { id: null };
+  const client = { request: async (path, options) => {
+    calls.push({ path, options });
+    if (!options) return row;
+    row = expected;
+    return row;
+  } };
+  assert.deepEqual(await resumePendingHomeCreate(client, id, expected), expected);
+  assert.deepEqual(calls.map(call => call.path), [`/items/home_page?fields=*&limit=1`, `/items/home_page?fields=*&limit=1`, '/items/home_page']);
+  assert.equal(calls[2].options.method, 'PATCH');
+  assert.deepEqual(JSON.parse(calls[2].options.body), expected);
+  await assert.rejects(resumePendingHomeCreate({ request: async () => ({ id: '8b8b8b8b-8b8b-48b8-88b8-8b8b8b8b8b8b' }) }, id, expected), /different singleton/u);
 });
 
 test('owned file MIME repair requires exact ownership and byte-identical generated content', async () => {
