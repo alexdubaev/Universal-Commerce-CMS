@@ -189,6 +189,39 @@ test('asset gate checks configured folder before references and enforces publish
   assert.deepEqual(privateCalls, ['directus_files']);
 });
 
+test('asset streaming awaits the installed Directus deferred stream factory', async () => {
+  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const calls = [];
+  class ReferencedItems {
+    constructor(collection) { this.collection = collection; }
+    async readByQuery(query) {
+      calls.push({ collection: this.collection, query });
+      if (this.collection === 'directus_files') return [{ id: assetId, folder: FOLDER, type: 'image/png' }];
+      return this.collection === 'products' ? [{ id: 'product' }] : [];
+    }
+  }
+  let streamFactoryCalled = false;
+  class DeferredAssets {
+    async getAsset(...args) {
+      calls.push({ getAsset: args });
+      return {
+        file: { type: 'image/png', filename_download: 'fixture.png' },
+        stream: async () => {
+          streamFactoryCalled = true;
+          return { pipe: destination => destination };
+        },
+      };
+    }
+  }
+  const h = harness({ services: { ItemsService: ReferencedItems, AssetsService: DeferredAssets } });
+  const response = await h.invoke('/storefront/assets/:id', { params: { id: assetId } });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.headers['Content-Type'], 'image/png');
+  assert.equal(response.headers['Cache-Control'], 'no-store');
+  assert.equal(streamFactoryCalled, true);
+  assert.deepEqual(calls.find(call => call.getAsset)?.getAsset, [assetId, null, undefined, true]);
+});
+
 test('lead gateway fixes service ownership, scopes idempotency lookup, and refuses attachments', async () => {
   const h = harness();
   const body = { request_key: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', lead: { name: 'Test Name', phone: '+70000000000', page_url: 'https://example.test/request' } };

@@ -246,7 +246,7 @@ function makeAssetHandler(context) {
       const mime = /^image\/(?:png|jpeg|gif|webp|avif)$/.test(asset.file.type ?? '') || asset.file.type === 'application/pdf' ? asset.file.type : 'application/octet-stream';
       const filename = encodeURIComponent(String(asset.file.filename_download ?? 'download').replace(/[\r\n"\\]/g, '_'));
       res.set({ ...noStore, 'X-Content-Type-Options':'nosniff', 'Cross-Origin-Resource-Policy':'same-origin', 'Content-Security-Policy':"sandbox; default-src 'none'", 'Content-Type': mime, 'Content-Disposition': `${mime === 'application/octet-stream' ? 'attachment' : 'inline'}; filename*=UTF-8''${filename}` });
-      return asset.stream().pipe(res);
+      return (await asset.stream()).pipe(res);
     } catch { return error(res, 404); }
   };
 }
