@@ -13,8 +13,10 @@ const manifestPath = path.join(repoRoot, "dev", ".storefront-acceptance", "manif
 const nextCli = path.join(storefrontRoot, "node_modules", "next", "dist", "bin", "next");
 const args = new Set(process.argv.slice(2));
 
+class ProbeError extends Error {}
+
 function fail(message) {
-  throw new Error(message);
+  throw new ProbeError(message);
 }
 
 async function readManifest() {
@@ -202,19 +204,26 @@ async function adminFetch(token, route, init = {}) {
   });
 }
 
-function ownedDocumentFilter(documentId, status, fileId, productId) {
+function ownedDocumentFilter(documentId, status, fileId, productId, title) {
   return {
     _and: [
       { id: { _eq: documentId } },
       { status: { _eq: status } },
       { file: { _eq: fileId } },
       { product: { _eq: productId } },
+      title === null ? { title: { _null: true } } : { title: { _eq: title } },
     ],
   };
 }
 
-async function setDocumentStatus(token, documentId, from, to, fileId, productId) {
-  const filter = encodeURIComponent(JSON.stringify(ownedDocumentFilter(documentId, from, fileId, productId)));
+function pendingContains(manifest, collection, id) {
+  const entries = manifest.pending?.[collection];
+  if (Array.isArray(entries)) return entries.includes(id);
+  return Boolean(entries && typeof entries === "object" && Object.hasOwn(entries, id));
+}
+
+async function setDocumentStatus(token, documentId, from, to, fileId, productId, title) {
+  const filter = encodeURIComponent(JSON.stringify(ownedDocumentFilter(documentId, from, fileId, productId, title)));
   const response = await adminFetch(token, `/items/product_documents?filter=${filter}`, {
     method: "PATCH",
     body: JSON.stringify({ status: to }),
@@ -231,15 +240,42 @@ async function revocationProbe(manifest) {
   const documentId = refs.documentId;
   const publicFileId = refs.publicDocumentFileId;
   const productId = refs.primaryProductId;
-  const owned = manifest.created?.product_documents;
-  if (!Array.isArray(owned) || !owned.includes(documentId)) fail("Manifest does not establish ownership of the document used for CAS revocation.");
+  const ownedDocuments = manifest.created?.product_documents;
+  const ownedProducts = manifest.created?.products;
+  const ownedFiles = manifest.created?.directus_files;
+  const expectedDocument = manifest.ownership?.product_documents?.[documentId];
+  const expectedFile = manifest.ownership?.directus_files?.[publicFileId];
+  if (!Array.isArray(ownedDocuments) || !ownedDocuments.includes(documentId)
+    || !Array.isArray(ownedProducts) || !ownedProducts.includes(productId)
+    || !Array.isArray(ownedFiles) || !ownedFiles.includes(publicFileId)
+    || !expectedDocument || expectedDocument.id !== documentId
+    || expectedDocument.product !== productId || expectedDocument.file !== publicFileId
+    || expectedDocument.status !== "published"
+    || !(expectedDocument.title === null || typeof expectedDocument.title === "string")
+    || !expectedFile || expectedFile.id !== publicFileId
+    || expectedFile.folder !== manifest.publicFolderId
+    || typeof expectedFile.filename_download !== "string"
+    || pendingContains(manifest, "product_documents", documentId)
+    || pendingContains(manifest, "products", productId)
+    || pendingContains(manifest, "directus_files", publicFileId)) {
+    fail("Manifest does not establish ownership of every record used for CAS revocation.");
+  }
 
   const token = await adminToken();
-  const read = await adminFetch(token, `/items/product_documents/${encodeURIComponent(documentId)}?fields=id,status,file,product`);
+  const fileFilter = encodeURIComponent(JSON.stringify({ id: { _eq: publicFileId } }));
+  const fileResponse = await adminFetch(token, `/files?filter=${fileFilter}&fields=id,folder,filename_download`);
+  const fileRows = fileResponse.ok ? (await fileResponse.json().catch(() => null))?.data : null;
+  if (!Array.isArray(fileRows) || fileRows.length !== 1
+    || fileRows[0]?.id !== publicFileId || fileRows[0]?.folder !== manifest.publicFolderId
+    || fileRows[0]?.filename_download !== expectedFile.filename_download) {
+    fail("Admin file observer does not match the manifest-owned synthetic public file.");
+  }
+  const read = await adminFetch(token, `/items/product_documents/${encodeURIComponent(documentId)}?fields=id,status,file,product,title`);
   if (!read.ok) fail("Unable to read the owned document before CAS revocation.");
   const record = (await read.json().catch(() => null))?.data;
-  if (record?.id !== documentId || record?.status !== "published"
-    || record?.file !== publicFileId || record?.product !== productId) {
+  if (record?.id !== documentId || record?.status !== expectedDocument.status
+    || record?.file !== publicFileId || record?.product !== productId
+    || record?.title !== expectedDocument.title) {
     fail("The manifest-owned document no longer matches the expected published fixture state.");
   }
 
@@ -252,19 +288,20 @@ async function revocationProbe(manifest) {
     const before = await fetch(`${origin}/api/assets/${publicFileId}`, { signal: AbortSignal.timeout(15_000) });
     if (!before.ok) fail("Public synthetic document was unavailable before revocation.");
     changed = true;
-    await setDocumentStatus(token, documentId, "published", "draft", publicFileId, productId);
+    await setDocumentStatus(token, documentId, expectedDocument.status, "draft", publicFileId, productId, expectedDocument.title);
     const revoked = await fetch(`${origin}/api/assets/${publicFileId}`, { signal: AbortSignal.timeout(15_000) });
     if (revoked.ok) fail("Asset remained accessible after its published reference was revoked.");
   } finally {
     if (changed) {
-      const filter = encodeURIComponent(JSON.stringify(ownedDocumentFilter(documentId, "draft", publicFileId, productId)));
-      const currentResponse = await adminFetch(token, `/items/product_documents?filter=${filter}&fields=id,status,file,product`);
+      const filter = encodeURIComponent(JSON.stringify(ownedDocumentFilter(documentId, "draft", publicFileId, productId, expectedDocument.title)));
+      const currentResponse = await adminFetch(token, `/items/product_documents?filter=${filter}&fields=id,status,file,product,title`);
       const current = currentResponse.ok ? await currentResponse.json().catch(() => null) : null;
       if (Array.isArray(current?.data) && current.data.length === 1
         && current.data[0]?.id === documentId && current.data[0]?.file === publicFileId
-        && current.data[0]?.product === productId && current.data[0]?.status === "draft") {
+        && current.data[0]?.product === productId && current.data[0]?.status === "draft"
+        && current.data[0]?.title === expectedDocument.title) {
         try {
-          await setDocumentStatus(token, documentId, "draft", "published", publicFileId, productId);
+          await setDocumentStatus(token, documentId, "draft", expectedDocument.status, publicFileId, productId, expectedDocument.title);
           restored = true;
         } catch {}
       }
@@ -299,5 +336,5 @@ try {
   console.log("LIVE_PROBE asset-revocation cas-restore: pass");
 } catch (error) {
   process.exitCode = 1;
-  console.error(error instanceof Error ? error.message : "Live probe failed without details.");
+  console.error(error instanceof ProbeError ? error.message : "Live probe failed without details; no raw request or credential data was printed.");
 }
