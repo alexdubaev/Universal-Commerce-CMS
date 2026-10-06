@@ -1,12 +1,12 @@
 PHASE: Wave 2 implementation
 STATUS: IN PROGRESS
 
-CURRENT HEAD: 0f883b26e5003cb00bfad1ed7dc2586268182052 (two bounded fixes uncommitted)
+CURRENT HEAD: c728306b1e9ce67f638b8cfe783e36bf5cb36eb4
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
 - Required handoff/contracts/ADR read; PR fetched and isolated worktree created.
-- Runtime baseline recorded; timestamp and explicit-live config fixes pass first review.
+- Runtime baseline and all seven audit reports recorded; two reviewed fixes committed.
 - User selected synthetic acceptance records in the existing local CMS; real catalog later.
 
 IN PROGRESS:
