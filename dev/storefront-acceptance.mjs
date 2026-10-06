@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { DirectusAdminClient } from '../directus/schema/apply-schema.mjs';
 import {
   COLLECTIONS, FIXTURE_SCHEMA, LOCAL_URL, appendOwnedId, assertLocalTarget,
-  casRestorePatch, createFixturePlan, makeOwnershipManifest, newServiceToken,
+  casRestorePatch, collectionEndpoint, createFixturePlan, makeOwnershipManifest, newServiceToken, readCollectionRows,
   guardedDeleteRequest, ownershipFields, productAnalogKey, redactSummary, safeManifestDirectory,
 } from './storefront-acceptance-fixtures.mjs';
 
@@ -97,7 +97,7 @@ async function readManifest(path) {
   const suffix = value.runId.slice(0, 8);
   if (value.namedRefs.childProbeProductId) value.ownership.products[value.namedRefs.childProbeProductId] ??= { id: value.namedRefs.childProbeProductId, slug: `acceptance-${suffix}-tx-probe`, sku: `FX-${suffix}-TX-PROBE`, brand: 'Fixture Works', status: 'draft' };
   if (value.namedRefs.childProbeSpecificationId && value.namedRefs.childProbeProductId) value.ownership.product_specifications[value.namedRefs.childProbeSpecificationId] ??= { id: value.namedRefs.childProbeSpecificationId, product: value.namedRefs.childProbeProductId, name: 'Transaction probe', value: 'synthetic', status: 'draft' };
-  if (value.namedRefs.sectionProbePageId) value.ownership.pages[value.namedRefs.sectionProbePageId] ??= { id: value.namedRefs.sectionProbePageId, slug: `acceptance-${suffix}-page`, title: 'Synthetic acceptance page', status: 'published' };
+  if (value.namedRefs.sectionProbePageId) value.ownership.pages[value.namedRefs.sectionProbePageId] ??= { id: value.namedRefs.sectionProbePageId, slug: `acceptance-${suffix}-section-probe`, title: 'Synthetic section transaction probe', status: 'published' };
   if (value.namedRefs.sectionProbeId && value.namedRefs.sectionProbePageId) value.ownership.page_sections[value.namedRefs.sectionProbeId] ??= { id: value.namedRefs.sectionProbeId, page: value.namedRefs.sectionProbePageId, section_type: 'text', title: 'Fixture section', status: 'published' };
   return value;
 }
@@ -127,7 +127,7 @@ async function prepareOwned(client, manifest, path, collection, data) {
   for (const [targetCollection, target] of [[collection, row], ...nestedOwnedChildren(collection, row)]) {
     target.id = String(target.id ?? randomUUID());
     const query = new URLSearchParams({ 'filter[id][_eq]': target.id, limit: '1', fields: 'id' });
-    if ((await client.request(`/items/${targetCollection}?${query}`)).length) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
+    if ((await readCollectionRows(client, targetCollection, query)).length) throw new Error('A generated record UUID is already in use; refusing to reuse or overwrite it');
     const expected = ownershipFields(targetCollection, target);
     manifest.pending[targetCollection][target.id] = expected;
     manifest.ownership[targetCollection][target.id] = expected;
@@ -145,7 +145,7 @@ function markOwnedCreated(manifest, collection, id, expected) {
 
 async function createOwned(client, manifest, path, collection, data) {
   const row = await prepareOwned(client, manifest, path, collection, data);
-  const systemPath = { directus_folders: '/folders' }[collection];
+  const systemPath = ['directus_folders'].includes(collection) ? collectionEndpoint(collection) : null;
   const created = systemPath
     ? await client.request(systemPath, { method: 'POST', body: JSON.stringify(row) })
     : await post(client, collection, row);
@@ -180,15 +180,15 @@ async function assertNoSlugCollisions(client, plan) {
 async function assertNoGeneratedNameCollisions(client, manifest) {
   const suffix = manifest.runId.slice(0, 8);
   const checks = [
-    ['/folders', 'name', `Acceptance Public ${suffix}`],
-    ['/folders', 'name', `Acceptance Private ${suffix}`],
-    ['/policies', 'name', `Synthetic Storefront ${suffix}`],
-    ['/roles', 'name', `Synthetic Storefront ${suffix}`],
-    ['/users', 'email', `storefront-${suffix}@example.invalid`],
+    ['directus_folders', 'name', `Acceptance Public ${suffix}`],
+    ['directus_folders', 'name', `Acceptance Private ${suffix}`],
+    ['directus_policies', 'name', `Synthetic Storefront ${suffix}`],
+    ['directus_roles', 'name', `Synthetic Storefront ${suffix}`],
+    ['directus_users', 'email', `storefront-${suffix}@example.invalid`],
   ];
-  for (const [path, field, value] of checks) {
+  for (const [collection, field, value] of checks) {
     const params = new URLSearchParams({ [`filter[${field}][_eq]`]: value, limit: '1', fields: 'id' });
-    const found = await client.request(`${path}?${params}`);
+    const found = await readCollectionRows(client, collection, params);
     if (found.length) throw new Error('A generated fixture identity or folder name is already in use; no fixture data was changed');
   }
 }
@@ -419,10 +419,10 @@ async function uploadAsset(client, manifest, path, folderId, filename, bytes) {
   const extensionAt = filename.lastIndexOf('.');
   const runLabel = manifest.runId.slice(0, 8);
   const generatedName = `${filename.slice(0, extensionAt)}-${runLabel}${filename.slice(extensionAt)}`;
-  const duplicate = await client.request(`/items/directus_files?${new URLSearchParams({ 'filter[folder][_eq]': folderId, 'filter[filename_download][_eq]': generatedName, limit: '1', fields: 'id' })}`);
+  const duplicate = await readCollectionRows(client, 'directus_files', new URLSearchParams({ 'filter[folder][_eq]': folderId, 'filter[filename_download][_eq]': generatedName, limit: '1', fields: 'id' }));
   if (duplicate.length) throw new Error('A generated file name is already in the fixture folder; refusing to overwrite it');
   const id = randomUUID();
-  const idCollision = await client.request(`/items/directus_files?${new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: 'id' })}`);
+  const idCollision = await readCollectionRows(client, 'directus_files', new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: 'id' }));
   if (idCollision.length) throw new Error('A generated file UUID is already in use; refusing to overwrite it');
   const expected = { id, folder: folderId, filename_download: generatedName };
   manifest.pending.directus_files[id] = expected;
@@ -484,7 +484,7 @@ async function cleanup(client, manifest, path) {
     for (const id of ids) {
       try {
         const query = new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: '*' });
-        const rows = await client.request(`/items/${collection}?${query}`);
+        const rows = await readCollectionRows(client, collection, query);
         if (!rows.length) { appendCleanupAbsent(manifest, collection, id); continue; }
         const expected = manifest.ownership[collection]?.[id] ?? manifest.pending[collection]?.[id];
         if (!expected || Object.entries(expected).some(([field, value]) => JSON.stringify(rows[0][field]) !== JSON.stringify(value))) {
@@ -496,10 +496,7 @@ async function cleanup(client, manifest, path) {
           const request = guardedDeleteRequest(collection, id, expected);
           await client.request(request.path, request.options);
         } else {
-          const systemPath = {
-            directus_users: '/users', directus_access: '/access', directus_roles: '/roles',
-            directus_policies: '/policies', directus_files: '/files', directus_folders: '/folders',
-          }[collection] ?? `/items/${collection}`;
+          const systemPath = collectionEndpoint(collection);
           await client.request(`${systemPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         }
         appendCleanupAbsent(manifest, collection, id);

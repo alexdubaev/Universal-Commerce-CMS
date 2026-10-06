@@ -21,11 +21,15 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}
 export function assertLocalTarget(rawUrl) {
   let url;
   try { url = new URL(rawUrl); } catch { throw new Error('DIRECTUS_URL must be the approved local endpoint'); }
-  if (url.origin !== LOCAL_URL || url.pathname !== '/' || url.search || url.hash) {
+  if (url.origin !== LOCAL_URL || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
     throw new Error('DIRECTUS_URL must be exactly http://127.0.0.1:18056');
   }
   return url.origin;
 }
+
+const DIRECTUS_SYSTEM_ENDPOINTS = Object.freeze({ directus_folders: '/folders', directus_files: '/files', directus_users: '/users', directus_roles: '/roles', directus_policies: '/policies', directus_access: '/access' });
+export function collectionEndpoint(collection) { return DIRECTUS_SYSTEM_ENDPOINTS[collection] ?? `/items/${collection}`; }
+export function readCollectionRows(client, collection, query) { return client.request(`${collectionEndpoint(collection)}?${query}`); }
 
 export function safeManifestDirectory(root) {
   if (typeof root !== 'string' || !root.trim()) throw new Error('An explicit integration root is required');

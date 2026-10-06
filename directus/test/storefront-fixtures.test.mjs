@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   LOCAL_URL, appendOwnedId, assertLocalTarget, casRestorePatch,
-  createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, redactSummary,
+  collectionEndpoint, createFixturePlan, guardedDeleteRequest, makeOwnershipManifest, productAnalogKey, readCollectionRows, redactSummary,
   safeManifestDirectory,
 } from '../../dev/storefront-acceptance-fixtures.mjs';
 
@@ -10,9 +10,18 @@ const id = '7a7a7a7a-7a7a-47a7-87a7-7a7a7a7a7a7a';
 
 test('only the exact approved loopback Directus URL is accepted', () => {
   assert.equal(assertLocalTarget(LOCAL_URL), LOCAL_URL);
-  for (const value of ['http://localhost:18056', 'http://127.0.0.1:18056/admin', 'https://127.0.0.1:18056', 'http://127.0.0.1:18057']) {
+  for (const value of ['http://localhost:18056', 'http://127.0.0.1:18056/admin', 'https://127.0.0.1:18056', 'http://127.0.0.1:18057', 'http://admin@127.0.0.1:18056']) {
     assert.throws(() => assertLocalTarget(value), /exactly http/u);
   }
+});
+
+test('system collection reads use supported native endpoints with Directus query shape', async () => {
+  const calls = [];
+  const client = { request: async path => { calls.push(path); return []; } };
+  for (const collection of ['directus_folders', 'directus_files', 'directus_users', 'directus_roles', 'directus_policies', 'directus_access']) await readCollectionRows(client, collection, new URLSearchParams({ 'filter[id][_eq]': id, limit: '1', fields: 'id' }));
+  assert.deepEqual(calls.map(path => path.split('?')[0]), ['/folders', '/files', '/users', '/roles', '/policies', '/access']);
+  assert.equal(collectionEndpoint('products'), '/items/products');
+  assert.ok(calls.every(path => path.includes('filter%5Bid%5D%5B_eq%5D=') && path.includes('fields=id')));
 });
 
 test('synthetic fixture plan covers the required public, variant, pricing, stock and draft cases', () => {
