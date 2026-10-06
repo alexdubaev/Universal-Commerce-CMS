@@ -59,6 +59,10 @@ Native access probes return403 on business/files/assets/admin/mutation/native-wr
 
 Full logs and journals remain ignored locally; expected same-key changed-payload409 messages in server logs are successful negative-test evidence.
 
+## GitHub verification
+
+Draft PR #1 was fast-forwarded to `4c99e6f43ad31b244363fe99cea4e95651278953`, including the tested code and documentation. All six push/PR checks succeeded: [push workflow](https://github.com/alexdubaev/Universal-Commerce-CMS/actions/runs/37543404499) and [PR workflow](https://github.com/alexdubaev/Universal-Commerce-CMS/actions/runs/37543409882). The evidence update after that snapshot is documentation only. Main was not merged and the PR remains Draft.
+
 ## Small-dataset performance
 
 Loopback, sequential requests,15 published synthetic products; warm samples. These are smoke measurements, not load acceptance or stable production p95 estimates.

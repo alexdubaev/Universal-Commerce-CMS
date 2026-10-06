@@ -1,6 +1,6 @@
 PHASE: Local acceptance closeout
 STATUS: PASS — local synthetic scope; production pending
-CURRENT HEAD: 8535da036c5f2286a01e61a382589ea1864394f9 (tested code; documentation closeout follows)
+CURRENT HEAD: 4c99e6f43ad31b244363fe99cea4e95651278953 (verified PR snapshot; final evidence commit follows)
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
@@ -10,9 +10,10 @@ DONE:
 - Mock30/30 and real Directus21/21 browsers PASS in Chromium/mobile/WebKit.
 - All15 journaled RFQ rows verified; restart/retry/conflict/invalid/outage/revocation PASS.
 - Fresh review: no unresolved P0/P1/P2; full evidence in11-FINAL-HANDOFF.
+- Draft PR synchronized; push and PR CI all six checks SUCCESS at4c99e6f.
 
 IN PROGRESS:
-- Documentation and Draft PR synchronization only.
+- None in the accepted local scope.
 
 BLOCKERS:
 - Production acceptance needs genuine catalog, topology and100k/load/security evidence.
