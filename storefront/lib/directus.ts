@@ -1,6 +1,7 @@
 const directusUrl = process.env.DIRECTUS_URL?.replace(/\/$/, "");
 const directusToken = process.env.DIRECTUS_TOKEN;
-const mockMode = process.env.STOREFRONT_MOCK_MODE === "true" || !directusUrl;
+const configuredMockMode = process.env.STOREFRONT_MOCK_MODE;
+const mockMode = configuredMockMode === "true" || (configuredMockMode !== "false" && !directusUrl);
 const mockFallback = process.env.STOREFRONT_ALLOW_MOCK_FALLBACK === "true";
 
 export class DirectusRequestError extends Error {
