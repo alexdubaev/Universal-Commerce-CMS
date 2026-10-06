@@ -35,3 +35,5 @@ D016 — Keep `COMMERCE_ENABLE_ADDITIONAL_CODES=false` in the existing stack. Ve
 D017 — Allow the small Vitest alias configuration needed to import actual presentation components for hydration regression tests. This is test support within the frontend workstream, not a design or runtime contract change.
 
 D018 — Honor existing product `is_indexable` in sitemap counts/chunks while keeping non-indexable published products browsable. Verify count/chunk consistency; no CMS migration is needed.
+
+D019 — Owner clarified that the sole human CMS operator is the Administrator. Do not provision staff/content-manager/sales roles or run the generic access blueprint. Keep only the technical zero-grant storefront identity needed for server integration, separate from human administration.
