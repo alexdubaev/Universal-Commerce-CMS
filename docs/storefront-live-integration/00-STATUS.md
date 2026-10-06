@@ -1,29 +1,29 @@
-PHASE: Local fixture provisioning and live acceptance
-STATUS: IN PROGRESS
-CURRENT HEAD: 700499e0cd36e28fe63466e99ada7e27b0dafb1f
+PHASE: Local acceptance closeout
+STATUS: PASS — local synthetic scope; production pending
+CURRENT HEAD: 8535da036c5f2286a01e61a382589ea1864394f9 (tested code; documentation closeout follows)
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
-- Seven audits, isolated implementation and first independent review complete.
-- Storefront 60 unit tests/typecheck PASS; unchanged mock browsers 30/30 PASS.
-- Gateway, security/SEO corrections and exact-owned fixture tooling integrated.
-- Initial partial fixture attempt cleaned; fresh service identity and test records created.
-- Sole human operator is Administrator; no staff roles are provisioned.
+- Own zero-grant technical identity; sole human Administrator, no staff roles.
+- Real CMS fixtures15 products/3brands/3categories, mocks/fallback disabled.
+- Unit62, Directus205, race4, TypeScript/builds/audits/canaries PASS.
+- Mock30/30 and real Directus21/21 browsers PASS in Chromium/mobile/WebKit.
+- All15 journaled RFQ rows verified; restart/retry/conflict/invalid/outage/revocation PASS.
+- Fresh review: no unresolved P0/P1/P2; full evidence in11-FINAL-HANDOFF.
 
 IN PROGRESS:
-- Diagnose final fixture singleton configuration stage; owned records retained.
-- Complete live test tooling and independent final review.
+- Documentation and Draft PR synchronization only.
 
 BLOCKERS:
-- Fixture manifest is partial; gateway activation awaits safe singleton configuration.
+- Production acceptance needs genuine catalog, topology and100k/load/security evidence.
 
 P0:
-- None confirmed.
+- None unresolved.
 P1:
-- None remaining in integrated corrections; final review pending.
+- None unresolved.
 P2:
-- Live identity, assets and RFQ acceptance pending.
+- None unresolved in accepted local scope.
 
 NEXT:
-- Finish fixture provisioning, activate only existing local Directus service.
-- Run live browsers, durable retry/security probes and final verification.
+- Retain local fixtures/evidence and Draft PR; no main merge/deploy.
+- Owner's next stage: genuine catalog and production acceptance.
