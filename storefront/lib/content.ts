@@ -233,6 +233,37 @@ export async function getCmsHome(): Promise<CmsHome | null> {
   }
 }
 
+export async function getIndexableCmsPages(): Promise<Array<{ slug: string; updated_at?: string | null }>> {
+  if (isMockMode()) return [];
+
+  try {
+    const params = new URLSearchParams({
+      fields: "slug,updated_at",
+      limit: "500",
+      sort: "slug",
+      filter: JSON.stringify({
+        _and: [
+          { status: { _eq: "published" } },
+          { is_indexable: { _eq: true } },
+        ],
+      }),
+    });
+    const result = await directusFetch<{ data: Array<{ slug?: unknown; updated_at?: unknown }> }>(
+      `/items/pages?${params.toString()}`,
+      { revalidate: 300 },
+    );
+    return (result.data ?? [])
+      .map((row) => ({
+        slug: String(row.slug ?? "").trim(),
+        updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
+      }))
+      .filter((row) => row.slug);
+  } catch (error) {
+    if (allowMockFallback()) return [];
+    throw error;
+  }
+}
+
 export function safeContentHref(value: string | null | undefined) {
   if (!value) return null;
   const trimmed = value.trim();
