@@ -20,6 +20,13 @@ const childCollections = new Set(['product_images','product_documents','product_
 const allowed = new Set(['products','categories','pages','navigation_items','page_sections','home_page','site_settings', ...childCollections]);
 const error = (res, status = 403) => res.status(status).set(noStore).json({ error: status === 403 ? 'forbidden' : 'invalid_request' });
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const publishedProductRelationFilters = relation => [
+  { [relation]: { status: { _eq: 'published' } } },
+  { _or: [
+    { [relation]: { category: { _null: true } } },
+    { [relation]: { category: { status: { _eq: 'published' } } } },
+  ] },
+];
 
 function configuration(env = process.env) {
   return (env.COMMERCE_STOREFRONT_ENABLED === 'true' || env.COMMERCE_STOREFRONT_ENABLED === true) && UUID.test(env.COMMERCE_STOREFRONT_USER_ID ?? '') &&
@@ -183,21 +190,19 @@ function makeItemsHandler(context) {
       if (collection === 'product_codes') filter.is_active = { _eq: true };
       if (childCollections.has(collection)) {
         if (collection === 'products_analogs') {
-          const publishedProduct = { _and: [
-            { status: { _eq: 'published' } },
-            { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
+          filter = { ...filter, _and: [
+            ...(filter._and ?? []),
+            ...publishedProductRelationFilters('product_from'),
+            ...publishedProductRelationFilters('product_to'),
           ] };
-          filter = { ...filter, product_from: publishedProduct, product_to: publishedProduct };
         } else {
           const requestedProduct = filter.product;
           const otherFilters = { ...filter };
           delete otherFilters.product;
           otherFilters._and = [
+            ...(otherFilters._and ?? []),
             ...(requestedProduct?._eq ? [{ product: { _eq: requestedProduct._eq } }] : []),
-            { product: { _and: [
-              { status: { _eq: 'published' } },
-              { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
-            ] } },
+            ...publishedProductRelationFilters('product'),
           ];
           filter = otherFilters;
         }
@@ -232,9 +237,10 @@ function makeAssetHandler(context) {
       const files = new context.services.ItemsService('directus_files', { schema, accountability, knex: context.database });
       const file = (await files.readByQuery({ filter: { id: { _eq: id }, folder: { _eq: config.folderId } }, fields: ['id','folder','type','filesize','filename_download'], limit: 1 }))[0];
       if (!file) return error(res, 404);
+      const publishedProductParent = publishedProductRelationFilters('product');
       const refs = [
-        ['products', 'main_image', { status: { _eq: 'published' }, _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }], ['product_images', 'image', { status: { _eq: 'published' }, product: { _and: [{ status: { _eq: 'published' } }, { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }] } }],
-        ['product_documents', 'file', { status: { _eq: 'published' }, product: { _and: [{ status: { _eq: 'published' } }, { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }] } }], ['categories', 'image', { status: { _eq: 'published' } }], ['categories', 'icon', { status: { _eq: 'published' } }], ['categories', 'og_image', { status: { _eq: 'published' } }],
+        ['products', 'main_image', { status: { _eq: 'published' }, _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }], ['product_images', 'image', { status: { _eq: 'published' }, _and: publishedProductParent }],
+        ['product_documents', 'file', { status: { _eq: 'published' }, _and: publishedProductParent }], ['categories', 'image', { status: { _eq: 'published' } }], ['categories', 'icon', { status: { _eq: 'published' } }], ['categories', 'og_image', { status: { _eq: 'published' } }],
         ['pages', 'og_image', { status: { _eq: 'published' } }], ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, page: { status: { _eq: 'published' } } }],
         ['home_page', 'hero_image', { status: { _eq: 'published' } }], ['home_page', 'og_image', { status: { _eq: 'published' } }], ['site_settings', 'logo', {}], ['site_settings', 'favicon', {}], ['site_settings', 'default_og_image', {}], ['site_settings', 'company_image', {}],
         ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, home_page: { status: { _eq: 'published' } } }],

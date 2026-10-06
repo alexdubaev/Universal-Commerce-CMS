@@ -133,6 +133,7 @@ test('current adapter filter shapes stay inside collection and parent visibility
     ['categories', { fields: 'id,slug,title,description,h1,intro,image,seo_title,seo_description,is_indexable', limit: '200', sort: 'sort_order,title', filter: JSON.stringify({ status: { _eq: 'published' } }) }],
     ['navigation_items', { fields: 'id,label,url,location,open_in_new_tab', limit: '100', sort: 'sort_order', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { is_visible: { _eq: true } }, { location: { _eq: 'header' } }, { parent: { _null: true } }] }) }],
     ['page_sections', { fields: 'id,section_type,title,subtitle,text,image,image_alt,button_text,button_url,items,settings', limit: '100', sort: 'sort_order', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { is_visible: { _eq: true } }, { page: { _eq: sectionId } }] }) }],
+    ['product_specifications', { fields: 'id,group_name,name,value,unit', limit: '200', sort: 'sort_order', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { product: { _eq: sectionId } }] }) }],
     ['product_codes', { fields: 'code,code_type,source_name', limit: '100', sort: 'code_type,code', filter: JSON.stringify({ _and: [{ product: { _eq: sectionId } }, { is_active: { _eq: true } }] }) }],
     ['products', { 'aggregate[count]': '*', 'groupBy[]': 'brand', limit: '500', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { brand: { _nnull: true } }] }) }],
   ];
@@ -148,18 +149,22 @@ test('current adapter filter shapes stay inside collection and parent visibility
   const codeRead = h.calls.find(call => call.collection === 'product_codes' && call.query)?.query;
   assert.deepEqual(codeRead.filter._and, [
     { product: { _eq: sectionId } },
-    { product: { _and: [
-      { status: { _eq: 'published' } },
-      { _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] },
-    ] } },
+    { product: { status: { _eq: 'published' } } },
+    { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] },
+  ]);
+  const specificationRead = h.calls.find(call => call.collection === 'product_specifications' && call.query)?.query;
+  assert.deepEqual(specificationRead.filter._and.slice(-2), [
+    { product: { status: { _eq: 'published' } } },
+    { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] },
   ]);
   const analogId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   const analog = await h.invoke('/storefront/items/:collection', { params: { collection: 'products_analogs' }, query: { limit: '100', fields: 'relation_type,product_from.id,product_from.status,product_from.slug,product_from.title,product_from.sku,product_from.mpn,product_from.brand,product_from.price,product_from.currency,product_from.price_status,product_from.availability_status,product_from.part_type,product_from.main_image,product_from.category.id,product_from.category.slug,product_from.category.title,product_to.id,product_to.status,product_to.slug,product_to.title,product_to.sku,product_to.mpn,product_to.brand,product_to.price,product_to.currency,product_to.price_status,product_to.availability_status,product_to.part_type,product_to.main_image,product_to.category.id,product_to.category.slug,product_to.category.title', filter: JSON.stringify({ _or: [{ product_from: { _eq: analogId } }, { product_to: { _eq: analogId } }] }) } });
   assert.equal(analog.statusCode, 200);
   const analogRead = h.calls.filter(call => call.collection === 'products_analogs' && call.query).at(-1).query;
   for (const side of ['product_from','product_to']) {
-    assert.equal(analogRead.filter[side]._and[0].status._eq, 'published');
-    assert.deepEqual(analogRead.filter[side]._and[1]._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
+    assert.ok(analogRead.filter._and.some(term => term[side]?.status?._eq === 'published'));
+    assert.ok(analogRead.filter._and.some(term => term._or?.some(branch => branch[side]?.category?._null === true)));
+    assert.ok(analogRead.filter._and.some(term => term._or?.some(branch => branch[side]?.category?.status?._eq === 'published')));
   }
 });
 
@@ -198,6 +203,13 @@ test('frontend asset-reference query shapes map through fixed selectors and pres
   for (const [collection, filter, fields] of queries) {
     const result = await h.invoke('/storefront/items/:collection', { params: { collection }, query: { fields, limit: '1', filter: JSON.stringify(filter) } });
     assert.equal(result.statusCode, 200, `${collection} asset-reference query accepted`);
+  }
+  for (const collection of ['product_images','product_documents']) {
+    const query = h.calls.find(call => call.collection === collection && call.query)?.query;
+    assert.deepEqual(query.filter._and.slice(-2), [
+      { product: { status: { _eq: 'published' } } },
+      { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] },
+    ], `${collection} uses Directus relation paths under root boolean operators`);
   }
   const home = await h.invoke('/storefront/items/:collection', { params: { collection: 'home_page' }, query: { fields: 'status,hero_image,og_image' } });
   assert.equal(home.statusCode, 200);
@@ -244,8 +256,12 @@ test('asset gate checks configured folder before references and enforces publish
   assert.equal(fileLookup.query.filter.folder._eq, FOLDER);
   const imageProbe = calls.find(call => call.collection === 'product_images');
   assert.equal(imageProbe.query.filter.status._eq, 'published');
-  assert.equal(imageProbe.query.filter.product._and[0].status._eq, 'published');
-  assert.deepEqual(imageProbe.query.filter.product._and[1]._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
+  assert.deepEqual(imageProbe.query.filter._and, [
+    { product: { status: { _eq: 'published' } } },
+    { _or: [{ product: { category: { _null: true } } }, { product: { category: { status: { _eq: 'published' } } } }] },
+  ]);
+  const documentProbe = calls.find(call => call.collection === 'product_documents');
+  assert.deepEqual(documentProbe.query.filter._and, imageProbe.query.filter._and);
   const productProbe = calls.find(call => call.collection === 'products');
   assert.deepEqual(productProbe.query.filter._or, [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }]);
 
@@ -256,6 +272,24 @@ test('asset gate checks configured folder before references and enforces publish
   const privateHarness = harness({ services: { ItemsService: PrivateFileItems, AssetsService: class { constructor() { throw new Error('private file must not stream'); } } } });
   assert.equal((await privateHarness.invoke('/storefront/assets/:id', { params: { id: assetId } })).statusCode, 404);
   assert.deepEqual(privateCalls, ['directus_files']);
+
+  const draftCalls = [];
+  class DraftParentItems extends FileGateItems {
+    async readByQuery(query) {
+      draftCalls.push({ collection: this.collection, query });
+      if (this.collection === 'directus_files') return [{ id: assetId, folder: FOLDER, type: 'image/png' }];
+      if (this.collection === 'product_images') {
+        const terms = query.filter._and ?? [];
+        const hasPublishedParent = terms.some(term => term.product?.status?._eq === 'published');
+        const hasPublishedCategoryGate = terms.some(term => term._or?.some(branch => branch.product?.category?._null === true) && term._or?.some(branch => branch.product?.category?.status?._eq === 'published'));
+        return hasPublishedParent && hasPublishedCategoryGate ? [] : [{ id: 'draft-parent-child' }];
+      }
+      return [];
+    }
+  }
+  const draftHarness = harness({ services: { ItemsService: DraftParentItems, AssetsService: class { constructor() { throw new Error('draft-parent asset must not stream'); } } } });
+  assert.equal((await draftHarness.invoke('/storefront/assets/:id', { params: { id: assetId } })).statusCode, 404);
+  assert.ok(draftCalls.some(call => call.collection === 'product_images'));
 });
 
 test('asset streaming awaits the installed Directus deferred stream factory', async () => {
