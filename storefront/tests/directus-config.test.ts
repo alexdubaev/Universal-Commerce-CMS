@@ -86,6 +86,7 @@ describe("Directus mode configuration", () => {
     });
 
     await directus.directusFetch("/items/products?limit=1&filter=%7B%7D");
+    await directus.directusFetch("/items/page_sections?fields=id,status");
     await directus.directusFetch("/commerce/search?q=SKU&page=1");
     await directus.directusFetch("/commerce/leads", { method: "POST", body: "{}" });
     await directus.directusFetch("/commerce/orders", { method: "POST", body: "{}" });
@@ -94,6 +95,7 @@ describe("Directus mode configuration", () => {
 
     expect(fetch.mock.calls.map(([url]) => String(url))).toEqual([
       "https://cms.example/commerce/storefront/items/products?limit=1&filter=%7B%7D",
+      "https://cms.example/commerce/storefront/items/page_sections?fields=id,status",
       "https://cms.example/commerce/storefront/search?q=SKU&page=1",
       "https://cms.example/commerce/storefront/leads",
       "https://cms.example/commerce/storefront/orders",

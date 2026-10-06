@@ -32,6 +32,7 @@ const gatewayCollections = new Set([
   "home_page",
   "navigation_items",
   "pages",
+  "page_sections",
   "product_codes",
   "product_documents",
   "product_images",
