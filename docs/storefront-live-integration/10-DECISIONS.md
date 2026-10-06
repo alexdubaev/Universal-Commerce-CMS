@@ -31,3 +31,7 @@ D014 — Fix hydration and explicit skip tabindex in presentation components onl
 D015 — Enforce request limits in bytes while streaming; fresh asset authorization and no-store delivery are the initial safe local revocation policy. Production cache topology remains a separate acceptance stage.
 
 D016 — Keep `COMMERCE_ENABLE_ADDITIONAL_CODES=false` in the existing stack. Verify canonical MPN/OEM search and display product_codes; alias-only search is not promised. Gateway global candidate ceiling stays200.
+
+D017 — Allow the small Vitest alias configuration needed to import actual presentation components for hydration regression tests. This is test support within the frontend workstream, not a design or runtime contract change.
+
+D018 — Honor existing product `is_indexable` in sitemap counts/chunks while keeping non-indexable published products browsable. Verify count/chunk consistency; no CMS migration is needed.

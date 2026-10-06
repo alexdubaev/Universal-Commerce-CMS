@@ -1,17 +1,19 @@
 PHASE: Wave 2 implementation
 STATUS: IN PROGRESS
 
-CURRENT HEAD: c728306b1e9ce67f638b8cfe783e36bf5cb36eb4
+CURRENT HEAD: 4b3897f (latest implementation; subsequent documentation commits may follow)
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
 - Required handoff/contracts/ADR read; PR fetched and isolated worktree created.
-- Runtime baseline and all seven audit reports recorded; two reviewed fixes committed.
+- Runtime baseline and all seven audit reports recorded; isolated implementation worktrees active.
+- Timestamp, explicit-live mode, byte-bounded bodies, asset revocation, brand labels, transport and hydration fixes integrated.
+- Storefront 57 unit tests, TypeScript and mock production build PASS; client canary absent.
 - User selected synthetic acceptance records in the existing local CMS; real catalog later.
 
 IN PROGRESS:
-- Isolated backend gateway, frontend readiness/transport, and API guard streams.
-- Local fixture/provisioning and live E2E follow as dependencies become available.
+- Backend gateway, fixture/provisioning tooling and indexability correction in parallel.
+- Unchanged three-browser mock regression running; live E2E follows reviewed gateway/fixtures.
 
 BLOCKERS:
 - Native filtered policy unsupported; guarded endpoint-only alternative selected, not yet verified.
@@ -20,11 +22,10 @@ BLOCKERS:
 P0:
 - None confirmed.
 P1:
-- Timestamp mismatch fixed; pending final review/commit.
+- None remaining in integrated adapter changes; whole-change review pending.
 P2:
-- Explicit-live silent mock fixed; pending final review/commit.
-- Hydration readiness/explicit skip-link tabindex fixes required.
-- Stream body cap, asset revocation/public-folder gate and brand-label correctness required.
+- Integrated fixes await browser/live acceptance and fresh whole-change review.
+- Public-folder backend gate and sitemap indexability correction in progress.
 
 NEXT:
 - Integrate reviewed logical commits with targeted tests; provision only the existing local test stack.
