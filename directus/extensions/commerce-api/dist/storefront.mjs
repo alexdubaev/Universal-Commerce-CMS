@@ -118,7 +118,8 @@ function queryParams(req, collection) {
   const query = req.query ?? {};
   const allowedParams = new Set(['fields','limit','page','sort','meta','filter','aggregate[count]','groupBy[]','aggregate','groupBy','offset']);
   const aggregateObjectKey = plain(query.aggregate) && Object.keys(query.aggregate).length === 1 ? Object.keys(query.aggregate)[0] : undefined;
-  const aggregateValue = query['aggregate[count]'] ?? (['count','[count]'].includes(aggregateObjectKey) ? query.aggregate[aggregateObjectKey] : undefined);
+  const aggregateRaw = query['aggregate[count]'] ?? (['count','[count]'].includes(aggregateObjectKey) ? query.aggregate[aggregateObjectKey] : undefined);
+  const aggregateValue = aggregateObjectKey && Array.isArray(aggregateRaw) && aggregateRaw.length === 1 ? aggregateRaw[0] : aggregateRaw;
   const groupedArrayKey = plain(query.groupBy) && Object.keys(query.groupBy).length === 1 && Object.keys(query.groupBy)[0] === '[]';
   const groupRaw = query['groupBy[]'] ?? (groupedArrayKey ? query.groupBy['[]'] : query.groupBy);
   const groupValue = Array.isArray(groupRaw) && groupRaw.length === 1 ? groupRaw[0] : groupRaw;

@@ -85,6 +85,44 @@ test('brand aggregate accepts Directus depth-limited query parsing and rejects u
   assert.equal(invalid.calls.length, 0);
 });
 
+test('brand aggregate accepts the installed Directus qs parser output shape', async () => {
+  const h = harness();
+  const response = await h.invoke('/storefront/items/:collection', {
+    params: { collection: 'products' },
+    query: {
+      aggregate: { count: '*' },
+      groupBy: ['brand'],
+      limit: '500',
+      filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { brand: { _nnull: true } }] }),
+    },
+  });
+  assert.equal(response.statusCode, 200);
+  const sent = h.calls.find(call => call.query)?.query;
+  assert.deepEqual(sent.aggregate, { count: ['*'] });
+  assert.deepEqual(sent.groupBy, ['brand']);
+});
+
+test('brand aggregate accepts Directus singleton-array count normalization and rejects ambiguity', async () => {
+  const h = harness();
+  const query = {
+    aggregate: { count: ['*'] },
+    groupBy: ['brand'],
+    limit: '500',
+    filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { brand: { _nnull: true } }] }),
+  };
+  const response = await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query });
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(h.calls.find(call => call.query)?.query.aggregate, { count: ['*'] });
+
+  const invalid = harness();
+  const rejected = await invalid.invoke('/storefront/items/:collection', {
+    params: { collection: 'products' },
+    query: { ...query, aggregate: { count: ['*', '*'] } },
+  });
+  assert.equal(rejected.statusCode, 400);
+  assert.equal(invalid.calls.length, 0);
+});
+
 test('current adapter filter shapes stay inside collection and parent visibility allowlists', async () => {
   const h = harness();
   const sectionId = 'ffffffff-ffff-4fff-8fff-ffffffffffff';
