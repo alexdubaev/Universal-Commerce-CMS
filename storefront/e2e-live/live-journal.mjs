@@ -12,7 +12,9 @@ export async function recordLiveLead(runId, requestKey, id, source, attempts = 1
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   if (manifest.runId !== runId || manifest.phase !== "active") throw new Error("Live journal run does not match the active fixture.");
   let journal = { schema: "universal-cms/storefront-acceptance-results/v1", runId, leads: [] };
-  try { journal = JSON.parse(await readFile(journalPath, "utf8")); } catch {}
+  try { journal = JSON.parse(await readFile(journalPath, "utf8")); } catch (error) {
+    if (error?.code !== "ENOENT") throw new Error("Private live journal is unreadable; refusing to replace it.");
+  }
   if (journal.schema !== "universal-cms/storefront-acceptance-results/v1" || journal.runId !== runId || !Array.isArray(journal.leads)) {
     throw new Error("Private live journal belongs to another run or is malformed.");
   }

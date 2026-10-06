@@ -133,7 +133,10 @@ async function postLead(origin, payload) {
 
 async function readJournal(manifest) {
   let journal;
-  try { journal = JSON.parse(await readFile(journalPath, "utf8")); } catch { journal = { runId: manifest.runId, leads: [] }; }
+  try { journal = JSON.parse(await readFile(journalPath, "utf8")); } catch (error) {
+    if (error?.code !== "ENOENT") fail("Private lead journal is unreadable; refusing to replace it.");
+    journal = { runId: manifest.runId, leads: [] };
+  }
   if (journal.runId !== manifest.runId || !Array.isArray(journal.leads)) fail("Private lead journal does not match active fixtures.");
   return journal;
 }
