@@ -71,3 +71,17 @@ npm run build
 ```
 
 Then verify the main routes at desktop, tablet and 390px mobile widths. See `INTEGRATION-HANDOFF.md` for the remaining CMS/infra work.
+
+
+## Fast design changes
+
+The storefront is intentionally design-swappable.
+
+Before any redesign, read:
+
+- `AGENTS.md`
+- `DESIGN-CONTRACT.md`
+
+Global visual tokens are isolated in `app/theme.css`. A normal design-only task should preserve `lib/**`, `app/api/**`, Directus contracts, routes and RFQ/order behavior.
+
+This means a future agent can take a screenshot/Figma/reference, replace the presentation layer, and keep all dynamic commerce data flowing through the same interfaces.
