@@ -8,12 +8,12 @@ DONE:
 - Required handoff/contracts/ADR read; PR fetched and isolated worktree created.
 - Runtime baseline and all seven audit reports recorded; isolated implementation worktrees active.
 - Timestamp, explicit-live mode, byte-bounded bodies, asset revocation, brand labels, transport and hydration fixes integrated.
-- Storefront 57 unit tests, TypeScript and mock production build PASS; client canary absent.
+- Storefront 57 unit tests, TypeScript, mock production build and unchanged 30/30 browser tests PASS; client canary absent.
 - User selected synthetic acceptance records in the existing local CMS; real catalog later.
 
 IN PROGRESS:
 - Backend gateway, fixture/provisioning tooling and indexability correction in parallel.
-- Unchanged three-browser mock regression running; live E2E follows reviewed gateway/fixtures.
+- Live E2E follows reviewed gateway/fixtures.
 
 BLOCKERS:
 - Native filtered policy unsupported; guarded endpoint-only alternative selected, not yet verified.
