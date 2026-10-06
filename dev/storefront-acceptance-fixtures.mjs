@@ -12,7 +12,7 @@ export const COLLECTIONS = Object.freeze([
 ]);
 const GUARDED_DELETE_COLLECTIONS = new Set([
   'categories', 'products', 'product_codes', 'products_analogs', 'product_images',
-  'product_specifications', 'product_documents', 'pages', 'page_sections', 'home_page',
+  'product_specifications', 'product_documents', 'pages', 'page_sections', 'home_page', 'navigation_items',
 ]);
 
 const slug = value => String(value).normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

@@ -210,11 +210,11 @@ test('analog keys are stable for symmetric and directional relation types', () =
   assert.notEqual(productAnalogKey('b', 'a', 'superseded_by'), productAnalogKey('a', 'b', 'superseded_by'));
 });
 
-test('owned child cleanup uses guarded mutations while navigation stays on native REST', () => {
+test('owned content cleanup routes navigation items through guarded mutations', () => {
   const request = guardedDeleteRequest('page_sections', id);
   assert.equal(request.path, `/commerce/mutations/page_sections/${id}`);
   assert.deepEqual(JSON.parse(request.options.body), { expected: { id }, action: 'delete' });
-  assert.throws(() => guardedDeleteRequest('navigation_items', id), /unguarded/u);
+  assert.equal(guardedDeleteRequest('navigation_items', id).path, `/commerce/mutations/navigation_items/${id}`);
   assert.equal(guardedDeleteRequest('home_page', id, { id, h1: 'Synthetic' }).path, `/commerce/mutations/home_page/${id}`);
   assert.throws(() => guardedDeleteRequest('directus_users', id), /unguarded/u);
 });

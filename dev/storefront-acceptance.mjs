@@ -694,9 +694,7 @@ async function cleanup(client, manifest, path) {
           error.cleanupReason = 'FIXTURE_OWNERSHIP_MISMATCH';
           throw error;
         }
-        if (collection === 'navigation_items') {
-          await client.request(`/items/navigation_items/${encodeURIComponent(id)}`, { method: 'DELETE' });
-        } else if (['page_sections', 'pages', 'products_analogs', 'product_codes', 'product_documents', 'product_specifications', 'product_images', 'products', 'categories'].includes(collection)) {
+        if (['navigation_items', 'page_sections', 'pages', 'products_analogs', 'product_codes', 'product_documents', 'product_specifications', 'product_images', 'products', 'categories'].includes(collection)) {
           const request = guardedDeleteRequest(collection, id, expected);
           await client.request(request.path, request.options);
         } else {
