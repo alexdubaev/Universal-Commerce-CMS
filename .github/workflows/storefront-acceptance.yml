@@ -48,6 +48,12 @@ jobs:
           node-version: 22
       - name: Install
         run: npm install
+      - name: Export generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: storefront-package-lock
+          path: storefront/package-lock.json
+          if-no-files-found: error
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
       - name: Critical dependency audit including dev tools
