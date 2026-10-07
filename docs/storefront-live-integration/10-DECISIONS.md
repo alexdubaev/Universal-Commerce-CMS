@@ -43,3 +43,7 @@ D020 — Directus relation predicates use boolean groups at filter root with rel
 D021 — Remove the root loading boundary so CMS `notFound()` can produce HTTP404 before streaming. Keep the existing 404 UI and strict status assertion; no duplicate query/proxy preflight.
 
 D022 — Native and gateway asset reference queries both require published-or-absent product categories. Gateway accepts only the exact flat category predicate shapes needed by the adapter and always forces its own visibility gates.
+
+D023 — Owner approved publishing imported gallery rows and explicitly authorized the supplied catalog/WebP upload on2026-10-07. Apply only to the own local CMS; no production or source-instance writes. Fresh target IDs and private remapping; no source data in Git.
+
+D024 — Quarantine all four records in the two normalized-SKU collision pairs. Do not pick prices, merge distinct records or change brand identity without owner adjudication. Import nonconflicting12967 records first.
