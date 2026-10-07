@@ -74,6 +74,25 @@ test("bulk manual import updates the same RFQ list immediately", async ({ page }
   await expect(page.locator(".request-line").filter({ hasText: "1R-1808" })).toContainText("4");
 });
 
+test("file import preserves CSV quantities and rejects oversized files", async ({ page }) => {
+  await page.goto("/request");
+  const fileInput = page.locator('input[type="file"]');
+  await expect(fileInput).toBeEnabled();
+  await fileInput.setInputFiles({
+    name: "parts.csv", mimeType: "text/csv",
+    buffer: Buffer.from("Артикул;Количество\nRE568158;2\n1R-1808;4", "utf8"),
+  });
+  await expect(page.getByText(/CSV\/TXT: добавлено 2, всего 2/)).toBeVisible();
+  await expect(page.locator(".request-line").filter({ hasText: "RE568158" }).locator(".qty b")).toHaveText("2");
+  await expect(page.locator(".request-line").filter({ hasText: "1R-1808" }).locator(".qty b")).toHaveText("4");
+  await expect(page.locator(".request-link b")).toHaveText("6");
+  await fileInput.setInputFiles({
+    name: "oversized.txt", mimeType: "text/plain", buffer: Buffer.alloc(5 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByText("Файл слишком большой. Для интерфейсной загрузки используйте файл до 5 МБ.")).toBeVisible();
+  await expect(page.locator(".request-line")).toHaveCount(2);
+});
+
 test("request flow survives add, quantity edit and mock submission", async ({ page }) => {
   await page.goto("/product/jd-re568158");
   await page.getByRole("button", { name: "Добавить в заявку" }).click();
@@ -94,6 +113,159 @@ test("request flow survives add, quantity edit and mock submission", async ({ pa
 
   await expect(page.getByText(/Заявка принята\. Номер:/)).toBeVisible();
   await expect(page.getByText("Список пока пуст")).toBeVisible();
+});
+
+test("RFQ retries keep their key and preserve the list until successful submission", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("smtechno-request", JSON.stringify([
+    { article: "RE568158", title: "Фильтр", brand: "John Deere", quantity: 3 },
+  ])));
+  const payloads: Array<{ request_key: string; request_items: unknown[]; message: string }> = [];
+  await page.route("**/api/lead", async (route) => {
+    payloads.push(route.request().postDataJSON());
+    await route.fulfill({
+      status: payloads.length >= 4 ? 200 : 503,
+      json: payloads.length >= 4 ? { id: "accepted-rfq" } : { error: "Временная ошибка" },
+    });
+  });
+  await page.goto("/request");
+  await expect(page.locator(".request-line")).toHaveCount(1);
+  await expect(page.locator(".request-link b")).toHaveText("3");
+  await page.getByLabel("Контактное лицо").fill("Иван");
+  await page.getByLabel("Телефон").fill("+79990000000");
+  const submit = page.getByRole("button", { name: "Отправить менеджеру" });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await submit.click();
+    await expect(page.locator(".lead-form").getByRole("alert")).toHaveText("Временная ошибка");
+    await expect.poll(() => payloads.length).toBe(attempt + 1);
+    await expect(page.locator(".request-line")).toHaveCount(1);
+  }
+  expect(payloads[1].request_key).toBe(payloads[0].request_key);
+  expect(Object.keys(payloads[0])).toEqual([
+    "request_key", "name", "phone", "email", "company", "message", "request_items", "page_url",
+  ]);
+  expect(payloads[0].request_items).toEqual([{ article: "RE568158", quantity: 3 }]);
+  await page.getByLabel("Комментарий").fill("Изменённый запрос");
+  await submit.click();
+  await expect.poll(() => payloads.length).toBe(3);
+  await expect(page.locator(".lead-form").getByRole("alert")).toHaveText("Временная ошибка");
+  expect(payloads[2].request_key).not.toBe(payloads[1].request_key);
+  await submit.click();
+  await expect(page.getByText("Заявка принята. Номер: accepted-rfq")).toBeVisible();
+  expect(payloads[3].request_key).toBe(payloads[2].request_key);
+  await expect(page.locator(".request-line")).toHaveCount(0);
+  await expect(page.locator(".request-link b")).toHaveCount(0);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("smtechno-request") ?? "null"))).toEqual([]);
+  await page.getByLabel("Артикулы").fill("RE568158 3");
+  await page.getByRole("button", { name: "Добавить список" }).click();
+  await page.getByLabel("Контактное лицо").fill("Иван");
+  await page.getByLabel("Телефон").fill("+79990000000");
+  await page.getByLabel("Комментарий").fill("Изменённый запрос");
+  await submit.click();
+  await expect.poll(() => payloads.length).toBe(5);
+  expect(payloads[4].request_key).not.toBe(payloads[3].request_key);
+  expect({ ...payloads[4], request_key: undefined }).toEqual({ ...payloads[3], request_key: undefined });
+  await expect(page.locator(".request-line")).toHaveCount(0);
+});
+
+test("quick lead retries preserve the key and leave saved RFQ items intact", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("smtechno-request", JSON.stringify([
+    { article: "RE568158", title: "Фильтр", brand: "John Deere", quantity: 2 },
+  ])));
+  const payloads: Array<{ request_key: string; request_items: unknown[] }> = [];
+  await page.route("**/api/lead", async (route) => {
+    payloads.push(route.request().postDataJSON());
+    await route.fulfill({
+      status: payloads.length === 1 ? 503 : 200,
+      json: payloads.length === 1 ? { error: "Временная ошибка" } : { id: "accepted-contact" },
+    });
+  });
+  await page.goto("/contacts");
+  await page.getByLabel("Контактное лицо").fill("Иван");
+  await page.getByLabel("Телефон").fill("+79990000000");
+  await page.getByRole("button", { name: "Отправить", exact: true }).click();
+  await expect(page.locator(".lead-form").getByRole("alert")).toHaveText("Временная ошибка");
+  await page.getByRole("button", { name: "Отправить", exact: true }).click();
+  await expect(page.getByText("Заявка принята: accepted-contact")).toBeVisible();
+  expect(payloads[1].request_key).toBe(payloads[0].request_key);
+  expect(Object.keys(payloads[0])).toEqual([
+    "request_key", "company", "name", "phone", "email", "message", "request_items", "page_url",
+  ]);
+  expect(payloads[1].request_items).toEqual([]);
+  await expect(page.getByLabel("Контактное лицо")).toHaveValue("");
+  await expect(page.locator(".request-link b")).toHaveText("2");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("smtechno-request") ?? "[]").length)).toBe(1);
+});
+
+test("RFQ list and header count respond to storage updates and removal", async ({ page }) => {
+  await page.goto("/request");
+  await page.evaluate(() => {
+    localStorage.setItem("smtechno-request", JSON.stringify([
+      { article: "RE568158", title: "Фильтр", brand: "John Deere", quantity: 2 },
+    ]));
+    window.dispatchEvent(new StorageEvent("storage", { key: "smtechno-request" }));
+  });
+  const line = page.locator(".request-line");
+  await expect(line).toHaveCount(1);
+  await expect(page.locator(".request-link b")).toHaveText("2");
+  await line.getByRole("button", { name: /Уменьшить количество/ }).click();
+  await line.getByRole("button", { name: /Уменьшить количество/ }).click();
+  await expect(line.locator(".qty b")).toHaveText("1");
+  await expect(page.locator(".request-link b")).toHaveText("1");
+  await line.getByRole("button", { name: /Удалить/ }).click();
+  await expect(line).toHaveCount(0);
+  await expect(page.locator(".request-link b")).toHaveCount(0);
+});
+
+test("search preserves trimmed queries and bounded recent history", async ({ page }) => {
+  await page.addInitScript(() => {
+    if (!localStorage.getItem("smtechno-search-history")) {
+      localStorage.setItem("smtechno-search-history", JSON.stringify([
+        "re-568158", "Old", "Third", "Fourth", "Fifth", "Sixth",
+      ]));
+    }
+  });
+  await page.goto("/");
+  const search = page.getByRole("search");
+  await search.getByRole("textbox").fill("  RE-568158  ");
+  await search.getByRole("button", { name: "Найти" }).click();
+  await expect(page).toHaveURL(/\/catalog\?q=RE-568158$/);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("smtechno-search-history") ?? "[]")))
+    .toEqual(["RE-568158", "Old", "Third", "Fourth", "Fifth", "Sixth"]);
+  await page.getByRole("search").getByRole("textbox").fill("");
+  await expect(page.locator(".history-item")).toHaveCount(6);
+  await page.getByRole("button", { name: /Old/, exact: false }).click();
+  await expect(page).toHaveURL(/\/catalog\?q=Old$/);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("smtechno-search-history") ?? "[]")[0])).toBe("Old");
+});
+
+test("search debounces changes and limits visible suggestions to six", async ({ page }) => {
+  const queries: string[] = [];
+  await page.route("**/api/search?*", async (route) => {
+    queries.push(new URL(route.request().url()).searchParams.get("q") ?? "");
+    await route.fulfill({ json: { data: Array.from({ length: 8 }, (_, index) => ({
+      id: String(index), slug: `suggestion-${index}`, sku: `RE56-${index}`,
+      title: `Деталь ${index}`, brand: "John Deere",
+    })) } });
+  });
+  await page.goto("/");
+  const input = page.getByRole("search").getByRole("textbox");
+  await expect(input).toBeEnabled();
+  await page.clock.install({ time: new Date("2026-10-07T12:00:00Z") });
+  await page.clock.pauseAt(new Date("2026-10-07T12:00:01Z"));
+  await input.fill("R");
+  await page.clock.runFor(500);
+  expect(queries).toEqual([]);
+  await input.fill("RE");
+  await page.clock.runFor(179);
+  expect(queries).toEqual([]);
+  await input.fill("RE56");
+  await page.clock.runFor(179);
+  expect(queries).toEqual([]);
+  await page.clock.runFor(1);
+  await expect.poll(() => queries).toEqual(["RE56"]);
+  await expect(page.locator(".suggestion-item")).toHaveCount(6);
+  await input.fill("");
+  await expect(page.locator(".suggestion-item")).toHaveCount(0);
 });
 
 test("lead API is stable under concurrent retries with one request key in mock mode", async ({ request }) => {

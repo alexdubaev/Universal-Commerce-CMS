@@ -19,6 +19,8 @@ data adapters
         ↓
 stable storefront types
         ↓
+interaction hooks (search / request / submission state and actions)
+        ↓
 shared UI components
         ↓
 page composition
@@ -26,8 +28,8 @@ page composition
 CSS design tokens / responsive layout
 ```
 
-The bottom two layers are expected to change during a redesign.
-The top three layers should normally remain unchanged.
+Shared UI markup, page composition and CSS are expected to change during a redesign.
+Data adapters, stable types and interaction hooks should normally remain unchanged.
 
 ---
 
@@ -86,7 +88,11 @@ Presentation may change, but adding/removing/changing quantity and lead submissi
 
 All visual identity should be centralized.
 
-Current implementation keeps tokens in the top of `app/globals.css`.
+Current implementation keeps tokens in `app/theme.css`, imported before `app/globals.css`.
+All concrete presentation colors live in this canonical theme, including control,
+media, decorative, status and standalone error colors. RGB tokens also feed
+translucent borders, overlays and shadows. Transparent backgrounds/stops and black
+mask coverage remain structural CSS values.
 
 A redesign should start by replacing token values such as:
 
@@ -111,6 +117,33 @@ A redesign should start by replacing token values such as:
 Future agents may migrate tokens to CSS modules or another theme system, but there must remain **one canonical token source**.
 
 Do not scatter brand colors, spacing values, radii and typography rules across dozens of page files.
+
+---
+
+## Interaction boundary
+
+Search and RFQ components render markup and bind actions from `hooks/`:
+
+| Hook | State and actions it owns |
+| --- | --- |
+| `useCatalogSearch(initial)` | Query, suggestions, recent history, hydration, focus/blur and catalog navigation |
+| `useAddToRequest(product)` | Add/merge a product into the stored request and temporary added feedback |
+| `useRequestItems()` | Stored request items, event synchronization, quantity changes and removal |
+| `useRequestCount()` | Header count with its existing raw-storage quantity semantics |
+| `useBulkRequestImport()` | Manual/file import, hydration, limits and import feedback |
+| `useRequestForm(items?, persist?)` | Form payload and success cleanup; no arguments selects the quick contact form, supplying both arguments selects the RFQ form |
+| `useLeadSubmission(successMessage)` | Sending/error/success state, API call and request-key reuse |
+
+The hooks contain no JSX or visual tokens. A new layout may render their state
+and bind the same actions without copying request/search logic. Keep form field
+names (`company`, `name`, `phone`, `email`, `message`) and hook bindings intact.
+`useRequestForm` preserves each form's payload property order and success message;
+RFQ cleanup runs only after a successful response. Quick contact submissions do
+not clear stored RFQ items.
+
+Treat `hooks/**` as behavior code during a visual-only task. Preserve storage keys,
+storage events, search timing and URLs, request payloads and idempotency behavior.
+The existing `lib/**` and `app/api/**` remain the data/domain/server boundaries.
 
 ---
 

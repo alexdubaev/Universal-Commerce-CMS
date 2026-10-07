@@ -112,6 +112,6 @@ Before any redesign, read:
 - `AGENTS.md`
 - `DESIGN-CONTRACT.md`
 
-Global visual tokens are isolated in `app/theme.css`. A normal design-only task should preserve `lib/**`, `app/api/**`, Directus contracts, routes and RFQ/order behavior.
+Global visual tokens, including component colors and translucent RGB primitives, are isolated in `app/theme.css`. Search, request storage/import and lead submission state/actions live in `hooks/**`; their components retain the visual markup. A normal design-only task should preserve `hooks/**`, `lib/**`, `app/api/**`, Directus contracts, routes and RFQ/order behavior.
 
 A future agent can therefore take a screenshot/Figma/reference and replace the presentation layer while the same catalog, search, SEO entities and commerce flows continue feeding it.

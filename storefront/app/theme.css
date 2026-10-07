@@ -13,19 +13,65 @@
   /* Canvas */
   --bg: #090e12;
   --bg-soft: #0e151b;
+  --bg-gradient-start: #0a1014;
+
+  /* RGB primitives for translucent borders, overlays and shadows. */
+  --white-rgb: 255, 255, 255;
+  --black-rgb: 0, 0, 0;
 
   /* Surfaces */
   --surface: #121a20;
   --surface-2: #172128;
   --surface-3: #1d2931;
+  --surface-light: #fff;
+  --surface-media: #e9ecec;
+  --surface-product-art: #e8ebeb;
+  --surface-product-card-end: #0f161b;
+  --surface-control: #0b1216;
+  --surface-request-line: #0d1419;
+  --surface-search-popover: #0d1418;
+  --surface-import: #0c1317;
+  --surface-import-input: #081014;
+  --surface-relation-badge: #111a20;
+  --surface-mobile-navigation: #0b1115;
+  --surface-footer: #070b0e;
+  --surface-header: rgba(7,12,16,.9);
+
+  /* Decorative hero/about surfaces and image overlays. */
+  --hero-stage-start: #1c252b;
+  --hero-stage-middle: #11191f;
+  --hero-stage-end: #080c0f;
+  --hero-stage-stripe: #0b1014;
+  --about-stage-end: #0d1317;
+  --hero-image-overlay-start: rgba(5,9,12,.15);
+  --hero-image-overlay-end: rgba(5,9,12,.78);
 
   /* Borders */
-  --line: rgba(255,255,255,.09);
-  --line-strong: rgba(255,255,255,.16);
+  --line: rgba(var(--white-rgb),.09);
+  --line-strong: rgba(var(--white-rgb),.16);
 
   /* Text */
   --text: #f4f7f8;
   --muted: #8d9aa2;
+  --text-navigation: #c8d0d5;
+  --text-hero-copy: #b7c1c6;
+  --text-search-icon: #1d272d;
+  --text-search-input: #11181c;
+  --text-search-example: #718089;
+  --text-brand-list: #9ca7ad;
+  --text-product-art: #171b1e;
+  --text-product-meta: #7f8d95;
+  --text-sku-value: #d9e0e3;
+  --text-breadcrumb: #69767e;
+  --text-page-intro: #a9b4ba;
+  --text-filter-note: #5d6970;
+  --text-source-badge: #d0d6d9;
+  --text-brand-intro: #aeb9be;
+  --text-brand-monogram: #101519;
+  --text-product-placeholder: #171b1d;
+  --text-product-description: #a7b2b8;
+  --text-form-hint: #627078;
+  --text-footer-bottom: #56636b;
 
   /* Brand accent */
   --accent: #f6c916;
@@ -35,14 +81,19 @@
 
   /* Status */
   --success: #4fd17a;
+  --success-rgb: 79, 209, 122;
   --danger: #ff7272;
+  --availability-on-request: #d4a94b;
+
+  /* Standalone global error uses browser canvas/text defaults. */
+  --global-error-border: #333;
 
   /* Shape */
   --radius: 16px;
   --radius-sm: 11px;
 
   /* Depth */
-  --shadow: 0 22px 60px rgba(0,0,0,.28);
+  --shadow: 0 22px 60px rgba(var(--black-rgb),.28);
 
   /* Layout */
   --shell: 1320px;

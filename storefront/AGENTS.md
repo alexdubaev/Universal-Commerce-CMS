@@ -24,6 +24,7 @@ Do not casually change:
 - `lib/directus.ts`
 - `lib/catalog.ts`
 - `lib/types.ts`
+- `hooks/**` — search, request storage/import and lead submission behavior
 - `app/api/**`
 - Directus endpoint paths
 - product/brand route params
@@ -38,6 +39,7 @@ If a design cannot be implemented without changing one of these, stop and explai
 
 For design work, prefer changing only:
 
+- `app/theme.css` — canonical visual tokens
 - `app/globals.css`
 - `components/Header.tsx`
 - `components/Footer.tsx`

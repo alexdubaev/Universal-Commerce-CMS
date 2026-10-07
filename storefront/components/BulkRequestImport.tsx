@@ -1,61 +1,9 @@
 "use client";
 
-import { ChangeEvent, useEffect, useState } from "react";
-import { parseDelimitedText, rowsToRequestItems } from "@/lib/request-import";
-import { MAX_REQUEST_ITEMS, mergeRequestItems, readRequestItems, writeRequestItems } from "@/lib/request-store";
-import type { ImportRow } from "@/lib/request-import";
-
+import { useBulkRequestImport } from "@/hooks/useBulkRequestImport";
 
 export function BulkRequestImport() {
-  const [manual, setManual] = useState("");
-  const [message, setMessage] = useState("");
-  const [hydrated, setHydrated] = useState(false);
-
-  useEffect(() => setHydrated(true), []);
-
-  function append(items: ReturnType<typeof parseDelimitedText>, source: string) {
-    const current = readRequestItems();
-    const merged = mergeRequestItems(current, items);
-    const limited = merged.slice(0, MAX_REQUEST_ITEMS);
-    writeRequestItems(limited);
-    const added = Math.max(0, limited.length - current.length);
-    const truncated = merged.length > MAX_REQUEST_ITEMS;
-    setMessage(`${source}: добавлено ${added}, всего ${limited.length}.${truncated ? " Достигнут лимит 100 позиций." : ""}`);
-  }
-
-  function addManual() {
-    if (!hydrated) return;
-    const parsed = parseDelimitedText(manual);
-    if (!parsed.length) {
-      setMessage("Не удалось найти артикулы. Используйте: артикул + количество, по одной позиции в строке.");
-      return;
-    }
-    append(parsed, "Список");
-    setManual("");
-  }
-
-  async function upload(event: ChangeEvent<HTMLInputElement>) {
-    if (!hydrated) return;
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setMessage("Файл слишком большой. Для интерфейсной загрузки используйте файл до 5 МБ.");
-      return;
-    }
-
-    try {
-      if (file.name.toLowerCase().endsWith(".xlsx")) {
-        const { readSheet } = await import("read-excel-file/browser");
-        const rows = await readSheet(file) as ImportRow[];
-        append(rowsToRequestItems(rows), "XLSX");
-      } else {
-        append(parseDelimitedText(await file.text()), "CSV/TXT");
-      }
-    } catch {
-      setMessage("Не удалось прочитать файл. Поддерживаются XLSX, CSV и TXT.");
-    }
-  }
+  const { manual, setManual, message, hydrated, addManual, upload } = useBulkRequestImport();
 
   return (
     <section className="bulk-import panel">

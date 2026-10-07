@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useRequestCount } from "@/hooks/useRequestItems";
 import type { NavigationItem, SiteSettings } from "@/lib/types";
 
 function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void }) {
@@ -14,26 +15,8 @@ function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void
 
 export function Header({ settings, navigation }: { settings: SiteSettings; navigation: NavigationItem[] }) {
   const [open, setOpen] = useState(false);
-  const [requestCount, setRequestCount] = useState(0);
+  const requestCount = useRequestCount();
   const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    const read = () => {
-      try {
-        const items = JSON.parse(localStorage.getItem("smtechno-request") ?? "[]") as Array<{ quantity?: number }>;
-        setRequestCount(items.reduce((sum, item) => sum + Number(item.quantity ?? 1), 0));
-      } catch {
-        setRequestCount(0);
-      }
-    };
-    read();
-    window.addEventListener("request-updated", read);
-    window.addEventListener("storage", read);
-    return () => {
-      window.removeEventListener("request-updated", read);
-      window.removeEventListener("storage", read);
-    };
-  }, []);
 
   useEffect(() => {
     if (!open) return;

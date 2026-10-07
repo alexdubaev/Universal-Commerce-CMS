@@ -1,86 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
-import { ensureIdempotencyKey, type IdempotencyState } from "@/lib/idempotency";
-import { readRequestItems, writeRequestItems } from "@/lib/request-store";
-import type { RequestItem } from "@/lib/types";
+import { useRequestItems } from "@/hooks/useRequestItems";
+import { useRequestForm } from "@/hooks/useRequestForm";
 
 export function RequestClient() {
-  const [items, setItems] = useState<RequestItem[]>([]);
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
-  const idempotency = useRef<IdempotencyState | null>(null);
-
-  useEffect(() => {
-    const sync = () => setItems(readRequestItems());
-    sync();
-    window.addEventListener("request-updated", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("request-updated", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-
-  function persist(next: RequestItem[]) {
-    setItems(next);
-    writeRequestItems(next);
-  }
-
-  function changeQuantity(index: number, delta: number) {
-    const next = items.map((item, itemIndex) => itemIndex === index
-      ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-      : item);
-    persist(next);
-  }
-
-  function remove(index: number) {
-    persist(items.filter((_, itemIndex) => itemIndex !== index));
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    setStatus("sending");
-    setMessage("");
-    const payloadBody = {
-      name: String(form.get("name") ?? ""),
-      phone: String(form.get("phone") ?? ""),
-      email: String(form.get("email") ?? ""),
-      company: String(form.get("company") ?? ""),
-      message: String(form.get("message") ?? ""),
-      request_items: items.map(({ article, quantity }) => ({ article, quantity })),
-      page_url: window.location.href,
-    };
-    const fingerprint = JSON.stringify(payloadBody);
-    idempotency.current = ensureIdempotencyKey(
-      idempotency.current,
-      fingerprint,
-      () => crypto.randomUUID(),
-    );
-
-    try {
-      const response = await fetch("/api/lead", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          request_key: idempotency.current.key,
-          ...payloadBody,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
-      setStatus("success");
-      setMessage(`Заявка принята. Номер: ${payload.id}`);
-      idempotency.current = null;
-      persist([]);
-      formElement.reset();
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Ошибка отправки");
-    }
-  }
+  const { items, persist, changeQuantity, remove } = useRequestItems();
+  const { status, message, submit } = useRequestForm(items, persist);
 
   return (
     <div className="request-layout">
