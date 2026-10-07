@@ -1,6 +1,6 @@
 # Integration status
 
-The owner authorized integration of the storefront, catalog acceptance report and image-first ordering into `main` on 2026-10-07. Current code and CI status are tracked in [PR #1](https://github.com/alexdubaev/Universal-Commerce-CMS/pull/1). The historical Draft/no-main-merge restriction below has been superseded by that instruction. Production deployment and 100k acceptance remain pending.
+The storefront, catalog acceptance report and image-first ordering were integrated into `main` through [PR #1](https://github.com/alexdubaev/Universal-Commerce-CMS/pull/1) on 2026-10-07. The owner subsequently replaced GitHub Actions with [local verification](../development/testing.md). The historical Draft/no-main-merge restriction below has been superseded. Production deployment and 100k acceptance remain pending.
 
 ## Historical local catalog acceptance
 

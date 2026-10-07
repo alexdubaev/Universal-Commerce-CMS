@@ -43,7 +43,8 @@ async function runCase(scenario) {
     async readByQuery() { return this.collection === 'directus_files' ? [{ id: file, folder }] : [{ id: user }]; }
   }
   class AssetsService {
-    async getAsset() {
+    async getAsset(...args) {
+      assert.deepEqual(args, [file, null, undefined, true]);
       return { file: { type: 'image/png', filename_download: 'fixture.png' }, stream: async () => {
         factoryCalls++;
         started();

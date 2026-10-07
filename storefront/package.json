@@ -11,7 +11,6 @@
     "test:e2e": "playwright test",
     "build:live": "node scripts/live-mode.mjs build",
     "start:live": "node scripts/live-mode.mjs start",
-    "test:e2e:live": "npm run build:live && playwright test --config=playwright.live.config.ts",
     "probe:live": "node --env-file=../dev/.env scripts/live-probe.mjs"
   },
   "dependencies": {

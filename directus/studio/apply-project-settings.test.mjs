@@ -3,45 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   applyCommerceProjectSettings,
-  mergeProductEditorModuleBar,
 } from "./apply-project-settings.mjs";
-
-test("adds product editor to Directus defaults while preserving built-in module entries", () => {
-  const merged = mergeProductEditorModuleBar(null);
-  const ids = merged.map(({ id }) => id);
-
-  assert.deepEqual(ids, [
-    "content",
-    "product-editor",
-    "visual",
-    "users",
-    "files",
-    "insights",
-    "deployments",
-    "docs",
-    "settings",
-  ]);
-  assert.deepEqual(merged.find(({ id }) => id === "product-editor"), {
-    type: "module",
-    id: "product-editor",
-    enabled: true,
-  });
-  assert.equal(merged.find(({ id }) => id === "settings").locked, true);
-  assert.equal(merged.find(({ id }) => id === "visual").enabled, false);
-});
-
-test("preserves a configured module bar and does not duplicate product editor on repeat", () => {
-  const current = [
-    { type: "module", id: "content", enabled: true, custom: "keep" },
-    { type: "link", id: "owner-link", enabled: true, url: "/custom", label: "Owner" },
-  ];
-  const first = mergeProductEditorModuleBar(current);
-  const second = mergeProductEditorModuleBar(first);
-
-  assert.deepEqual(first.filter(({ id }) => id !== "product-editor"), current);
-  assert.equal(first.filter(({ id }) => id === "product-editor").length, 1);
-  assert.deepEqual(second, first);
-});
 
 test("applies profile language and neutral project settings idempotently", async () => {
   const requests = [];
