@@ -2,7 +2,7 @@
 
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import { parseDelimitedText, rowsToRequestItems } from "@/lib/request-import";
-import { MAX_REQUEST_ITEMS, mergeRequestItems, readRequestItems, writeRequestItems } from "@/lib/request-store";
+import { mergeRequestItems, readRequestItems, writeRequestItems } from "@/lib/request-store";
 import type { ImportRow } from "@/lib/request-import";
 
 export function useBulkRequestImport() {
@@ -14,12 +14,11 @@ export function useBulkRequestImport() {
 
   const append = useCallback((items: ReturnType<typeof parseDelimitedText>, source: string) => {
     const current = readRequestItems();
-    const merged = mergeRequestItems(current, items);
-    const limited = merged.slice(0, MAX_REQUEST_ITEMS);
-    writeRequestItems(limited);
-    const added = Math.max(0, limited.length - current.length);
-    const truncated = merged.length > MAX_REQUEST_ITEMS;
-    setMessage(`${source}: добавлено ${added}, всего ${limited.length}.${truncated ? " Достигнут лимит 100 позиций." : ""}`);
+    let truncated = false;
+    const merged = mergeRequestItems(current, items, () => { truncated = true; });
+    writeRequestItems(merged);
+    const added = Math.max(0, merged.length - current.length);
+    setMessage(`${source}: добавлено ${added}, всего ${merged.length}.${truncated ? " Достигнут лимит 100 позиций." : ""}`);
   }, []);
 
   const addManual = useCallback(() => {

@@ -251,6 +251,37 @@ function makeItemsHandler(context) {
   };
 }
 
+async function streamAsset(asset, res) {
+  let source;
+  let closed = res.destroyed || res.writableEnded;
+  const onClose = () => {
+    closed = true;
+    if (!res.writableEnded) source?.destroy();
+  };
+  const cleanup = () => res.removeListener('close', onClose);
+  const onFailure = () => {
+    cleanup();
+    source?.unpipe(res);
+    source?.destroy();
+    if (closed || res.destroyed || res.writableEnded) return;
+    if (res.headersSent) return res.destroy();
+    res.removeHeader('Content-Type');
+    res.removeHeader('Content-Disposition');
+    return error(res, 404);
+  };
+  if (closed) return;
+  // A disconnect can occur while Directus opens the deferred storage stream.
+  res.once('close', onClose);
+  try {
+    source = await asset.stream();
+    source.once('error', onFailure);
+    source.once('close', () => source.readableEnded ? cleanup() : onFailure());
+    if (closed || res.destroyed || res.writableEnded) { source.destroy(); return; }
+    if (source.destroyed && !source.readableEnded) return onFailure();
+    return source.pipe(res);
+  } catch { return onFailure(); }
+}
+
 function makeAssetHandler(context) {
   return async (req, res) => {
     const config = gate(req, res, context.env); if (!config) return;
@@ -280,7 +311,7 @@ function makeAssetHandler(context) {
       const mime = /^image\/(?:png|jpeg|gif|webp|avif)$/.test(asset.file.type ?? '') || asset.file.type === 'application/pdf' ? asset.file.type : 'application/octet-stream';
       const filename = encodeURIComponent(String(asset.file.filename_download ?? 'download').replace(/[\r\n"\\]/g, '_'));
       res.set({ ...noStore, 'X-Content-Type-Options':'nosniff', 'Cross-Origin-Resource-Policy':'same-origin', 'Content-Security-Policy':"sandbox; default-src 'none'", 'Content-Type': mime, 'Content-Disposition': `${mime === 'application/octet-stream' ? 'attachment' : 'inline'}; filename*=UTF-8''${filename}` });
-      return (await asset.stream()).pipe(res);
+      return streamAsset(asset, res);
     } catch { return error(res, 404); }
   };
 }

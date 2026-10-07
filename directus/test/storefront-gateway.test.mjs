@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { Readable, Writable } from 'node:stream';
 import { registerStorefrontGateway } from '../extensions/commerce-api/src/storefront.mjs';
 import { leadFingerprint } from '../extensions/commerce-api/src/leads.mjs';
 
@@ -24,7 +25,7 @@ function harness(overrides = {}) {
   registerStorefrontGateway(router, context);
   const invoke = async (path, { method = 'GET', user = USER, admin = false, params = {}, query = {}, body } = {}) => {
     const handler = routes.get(`${method} ${path}`); assert.ok(handler, `${method} ${path} registered`);
-    const result = { statusCode: 200, headers: {}, body: undefined, status(code) { this.statusCode = code; return this; }, set(headers) { Object.assign(this.headers, headers); return this; }, json(body) { this.body = body; return this; }, send(body) { this.body = body; return this; } };
+    const result = Object.assign(new Writable({ write(chunk, encoding, done) { done(); } }), { statusCode: 200, headers: {}, body: undefined, status(code) { this.statusCode = code; return this; }, set(headers) { Object.assign(this.headers, headers); return this; }, json(body) { this.body = body; return this; }, send(body) { this.body = body; return this; } });
     await handler({ accountability: { user, admin }, params, query, body }, result);
     return result;
   };
@@ -324,7 +325,7 @@ test('asset streaming awaits the installed Directus deferred stream factory', as
         file: { type: 'image/png', filename_download: 'fixture.png' },
         stream: async () => {
           streamFactoryCalled = true;
-          return { pipe: destination => destination };
+          return Readable.from([Buffer.from('fixture bytes')]);
         },
       };
     }

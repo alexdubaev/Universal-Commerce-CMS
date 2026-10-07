@@ -41,7 +41,7 @@ export function writeRequestItems(items: RequestItem[]) {
   window.dispatchEvent(new Event("request-updated"));
 }
 
-export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[]) {
+export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[], onOverflow?: () => void) {
   const result = current.slice(0, MAX_REQUEST_ITEMS).map((item) => ({ ...item }));
 
   for (const item of incoming) {
@@ -63,7 +63,10 @@ export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[
       continue;
     }
 
-    if (result.length >= MAX_REQUEST_ITEMS) break;
+    if (result.length >= MAX_REQUEST_ITEMS) {
+      onOverflow?.();
+      break;
+    }
     result.push({ ...item, quantity: Math.max(1, item.quantity) });
   }
 

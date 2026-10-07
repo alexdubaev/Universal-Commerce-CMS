@@ -3,12 +3,13 @@ name: Storefront acceptance
 on:
   push:
     branches:
-      - feat/storefront-nextjs-dark
+      - main
   pull_request:
     paths:
       - "storefront/**"
       - "directus/**"
       - ".github/workflows/storefront-acceptance.yml"
+      - "AGENTS.md"
 
 permissions:
   contents: read
@@ -99,4 +100,3 @@ jobs:
           name: playwright-report
           path: storefront/playwright-report/
           if-no-files-found: ignore
-

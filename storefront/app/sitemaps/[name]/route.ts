@@ -1,5 +1,5 @@
 import { getBrands, getCategories, getProductsForSitemap } from "@/lib/catalog";
-import { getIndexableCmsPages } from "@/lib/content";
+import { getCmsHome, getCmsPage, getIndexableCmsPages } from "@/lib/content";
 import { absoluteUrl, escapeXml } from "@/lib/seo";
 
 const PRODUCT_CHUNK = 1000;
@@ -27,11 +27,20 @@ export async function GET(_: Request, context: { params: Promise<{ name: string 
   const { name } = await context.params;
 
   if (name === "static.xml") {
-    const [brandList, categories, cmsPages] = await Promise.all([getBrands(), getCategories(), getIndexableCmsPages()]);
+    const overrideSlugs = ["delivery", "payment", "about", "contacts"];
+    const [brandList, categories, cmsPages, home, overrides] = await Promise.all([
+      getBrands(), getCategories(), getIndexableCmsPages(), getCmsHome(),
+      Promise.all(overrideSlugs.map((slug) => getCmsPage(slug))),
+    ]);
     const staticRoutes = ["/", "/catalog", "/brands", "/delivery", "/payment", "/about", "/contacts"];
+    const indexableStaticRoutes = [
+      ...(home?.is_indexable === false ? [] : ["/"]),
+      "/catalog", "/brands",
+      ...overrideSlugs.filter((_, index) => overrides[index]?.is_indexable !== false).map((slug) => `/${slug}`),
+    ];
     const reserved = new Set(staticRoutes.map((path) => path.replace(/^\//, "")));
     return xmlResponse([
-      ...staticRoutes.map((path) => urlNode(path)),
+      ...indexableStaticRoutes.map((path) => urlNode(path)),
       ...brandList.map((brand) => urlNode(`/brand/${brand.slug}`)),
       ...categories.filter((category) => category.is_indexable !== false).map((category) => urlNode(`/category/${category.slug}`)),
       ...cmsPages.filter((page) => !reserved.has(page.slug)).map((page) => urlNode(`/${page.slug}`, page.updated_at)),

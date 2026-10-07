@@ -93,6 +93,47 @@ test("file import preserves CSV quantities and rejects oversized files", async (
   await expect(page.locator(".request-line")).toHaveCount(2);
 });
 
+test("bulk import warns when unique rows exceed the request limit", async ({ page }) => {
+  await page.goto("/request");
+  await page.getByLabel("Артикулы").fill(Array.from({ length: 101 }, (_, index) => `PART${index} 1`).join("\n"));
+  await page.getByRole("button", { name: "Добавить список" }).click();
+  await expect(page.locator(".request-line")).toHaveCount(100);
+  await expect(page.locator(".import-message")).toContainText("Достигнут лимит 100 позиций.");
+});
+
+test("RFQ acknowledgement preserves additions and quantity increments while sending", async ({ page }) => {
+  await page.goto("/request");
+  await page.getByLabel("Артикулы").fill("PARTA 2");
+  await page.getByRole("button", { name: "Добавить список" }).click();
+  await page.getByLabel("Контактное лицо").fill("Иван");
+  await page.getByLabel("Телефон").fill("+79990000000");
+  let release!: () => void;
+  const acknowledged = new Promise<void>((resolve) => { release = resolve; });
+  let submitted: { request_items: unknown[] } | undefined;
+  await page.route("**/api/lead", async (route) => {
+    submitted = route.request().postDataJSON();
+    await acknowledged;
+    await route.fulfill({ json: { id: "snapshot-acknowledged" } });
+  });
+  await page.getByRole("button", { name: "Отправить менеджеру" }).click();
+  await expect.poll(() => submitted?.request_items).toEqual([{ article: "PARTA", quantity: 2 }]);
+  // Simulate another tab adding B and incrementing A during the pending request.
+  await page.evaluate(() => {
+    const items = JSON.parse(localStorage.getItem("smtechno-request") ?? "[]");
+    items[0].quantity += 3;
+    items.push({ article: "PARTB", title: "Новая деталь", brand: "Не указан", quantity: 4 });
+    localStorage.setItem("smtechno-request", JSON.stringify(items));
+    window.dispatchEvent(new StorageEvent("storage", { key: "smtechno-request" }));
+  });
+  await expect(page.locator(".request-line")).toHaveCount(2);
+  release();
+  await expect(page.getByText("Заявка принята. Номер: snapshot-acknowledged")).toBeVisible();
+  await expect(page.locator(".request-line")).toHaveCount(2);
+  await expect(page.locator(".request-line").filter({ hasText: "PARTA" }).locator(".qty b")).toHaveText("3");
+  await expect(page.locator(".request-line").filter({ hasText: "PARTB" }).locator(".qty b")).toHaveText("4");
+  await expect(page.locator(".request-link b")).toHaveText("7");
+});
+
 test("request flow survives add, quantity edit and mock submission", async ({ page }) => {
   await page.goto("/product/jd-re568158");
   await page.getByRole("button", { name: "Добавить в заявку" }).click();

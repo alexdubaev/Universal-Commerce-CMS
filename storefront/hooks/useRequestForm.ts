@@ -2,6 +2,8 @@
 
 import { type FormEvent, useCallback } from "react";
 import type { RequestItem } from "@/lib/types";
+import { readRequestItems } from "@/lib/request-store";
+import { subtractAcknowledgedItems } from "@/lib/request-acknowledgement";
 import { useLeadSubmission } from "./useLeadSubmission";
 
 const requestSuccessMessage = (id: string) => `Заявка принята. Номер: ${id}`;
@@ -16,14 +18,15 @@ export function useRequestForm(items?: RequestItem[], persist?: (next: RequestIt
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const submittedItems = items?.map((item) => ({ ...item }));
 
-    await submitLead(() => items ? {
+    await submitLead(() => submittedItems ? {
       name: String(form.get("name") ?? ""),
       phone: String(form.get("phone") ?? ""),
       email: String(form.get("email") ?? ""),
       company: String(form.get("company") ?? ""),
       message: String(form.get("message") ?? ""),
-      request_items: items.map(({ article, quantity }) => ({ article, quantity })),
+      request_items: submittedItems.map(({ article, quantity }) => ({ article, quantity })),
       page_url: window.location.href,
     } : {
       company: String(form.get("company") ?? ""),
@@ -34,7 +37,7 @@ export function useRequestForm(items?: RequestItem[], persist?: (next: RequestIt
       request_items: [],
       page_url: window.location.href,
     }, () => {
-      if (items) persist?.([]);
+      if (submittedItems) persist?.(subtractAcknowledgedItems(readRequestItems(), submittedItems));
       formElement.reset();
     });
   }, [items, persist, submitLead]);
