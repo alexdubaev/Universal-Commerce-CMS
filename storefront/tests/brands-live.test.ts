@@ -52,7 +52,7 @@ describe("live multibrand catalog adapter", () => {
         meta: { filter_count: 1 },
       });
 
-    const result = await getProducts({ brand: "liugong", limit: 12 });
+    const result = await getProducts({ brand: "liugong", limit: 12, sort: "title" });
 
     expect(result.items).toHaveLength(1);
     expect(result.items[0].brand).toBe("LiuGong");

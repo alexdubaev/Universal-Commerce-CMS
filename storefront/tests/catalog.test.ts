@@ -65,6 +65,20 @@ describe("mock catalog contract", () => {
     expect(prices).toEqual([...prices].sort((a, b) => a - b));
   });
 
+  it("partitions mock default pages stably without changing search ordering", async () => {
+    const original = mockProducts.map(row => row.main_image);
+    try {
+      mockProducts.forEach((row, index) => { row.main_image = index === 4 || index === 7 ? `image-${index}` : null; });
+      const first = await getProducts({ limit: 3 });
+      const second = await getProducts({ page: 2, limit: 3, sort: "popular" });
+      expect([...first.items, ...second.items].map(row => row.id)).toEqual([
+        mockProducts[4].id, mockProducts[7].id, ...mockProducts.filter((_, i) => i !== 4 && i !== 7).slice(0, 4).map(row => row.id),
+      ]);
+      const search = await getProducts({ q: mockProducts[0].sku });
+      expect(search.items[0].id).toBe(mockProducts[0].id);
+    } finally { mockProducts.forEach((row, index) => { row.main_image = original[index]; }); }
+  });
+
   it("exposes unique indexable category routes", async () => {
     const categories = await getCategories();
     expect(categories.length).toBeGreaterThan(0);

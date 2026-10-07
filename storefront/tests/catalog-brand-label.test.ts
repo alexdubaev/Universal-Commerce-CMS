@@ -17,7 +17,8 @@ describe("known brand metadata", () => {
     mocks.directusFetch
       .mockResolvedValueOnce({ data: [{ brand: "caterpillar" }] })
       .mockResolvedValueOnce({ data: [{ brand: "caterpillar" }] })
-      .mockResolvedValueOnce({ data: [] });
+      .mockResolvedValueOnce({ data: [], meta: { filter_count: 0 } })
+      .mockResolvedValueOnce({ data: [], meta: { filter_count: 0 } });
 
     const brands = await getBrands();
     expect(brands.find((brand) => brand.slug === "caterpillar")?.name).toBe("caterpillar");

@@ -59,6 +59,37 @@ test('collection handler pins publication and fields and rejects unknown collect
   assert.ok(sent.fields.every(field => !field.includes('*'))); assert.equal(sent.limit, 12);
 });
 
+test('image partition queries accept narrow null filters and deterministic bounded offsets', async () => {
+  for (const operator of ['_null', '_nnull']) {
+    const h = harness();
+    const response = await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: {
+      fields: 'id,main_image', limit: '3', page: '1', offset: '27', sort: '-popularity_score,title,id',
+      filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { main_image: { [operator]: true } }] }),
+    } });
+    assert.equal(response.statusCode, 200);
+    const sent = h.calls.find(call => call.query)?.query;
+    assert.deepEqual(sent.filter.main_image, { [operator]: true });
+    assert.deepEqual(sent.sort, ['-popularity_score', 'title', 'id']);
+    assert.equal(sent.offset, 27); assert.equal(sent.limit, 3);
+    assert.equal(sent.filter.status._eq, 'published');
+  }
+  for (const [collection, expression] of [
+    ['products', { _null: false }], ['products', { _nnull: 'true' }],
+    ['products', { _null: true, _nnull: true }], ['products', { _eq: null }],
+    ['categories', { _null: true }],
+  ]) {
+    const h = harness();
+    assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection }, query: {
+      filter: JSON.stringify({ main_image: expression }),
+    } })).statusCode, 400);
+    assert.equal(h.calls.length, 0);
+  }
+  const h = harness();
+  assert.equal((await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: {
+    filter: JSON.stringify({ main_image: { _eq: FOLDER } }),
+  } })).statusCode, 200);
+});
+
 test('brand aggregate accepts Directus depth-limited query parsing and rejects unknown nested keys', async () => {
   const h = harness();
   const response = await h.invoke('/storefront/items/:collection', {

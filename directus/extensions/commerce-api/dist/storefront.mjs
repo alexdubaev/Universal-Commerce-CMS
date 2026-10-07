@@ -127,6 +127,10 @@ function decodeFilter(raw, collection) {
       page_sections: ['image'], home_page: ['hero_image','og_image'], site_settings: ['logo','favicon','default_og_image','company_image'],
     };
     if (mediaFields[collection]?.includes(field)) {
+      if (collection === 'products' && field === 'main_image' && plain(expression) && Object.keys(expression).length === 1 &&
+          (expression._null === true || expression._nnull === true)) {
+        result[field] = expression._null === true ? { _null: true } : { _nnull: true }; continue;
+      }
       if (!plain(expression) || Object.keys(expression).length !== 1 || typeof expression._eq !== 'string' || !UUID.test(expression._eq)) throw new Error('filter');
       result[field] = { _eq: expression._eq }; continue;
     }
@@ -182,7 +186,7 @@ function queryParams(req, collection) {
   const defaults = { products: aggregate ? '' : '-popularity_score,title', categories: 'sort_order,title', navigation_items: 'sort_order', page_sections: 'sort_order', product_images: 'sort_order', product_documents: 'sort_order', product_specifications: 'sort_order', product_codes: 'code_type,code', pages: query.fields === 'slug,updated_at' ? 'slug' : '' };
   const sort = (query.sort ?? defaults[collection] ?? '').split(',').filter(Boolean);
   const allowedSort = {
-    products: ['-popularity_score,title','price,title','-price,title','title','id'], categories: ['sort_order,title'], navigation_items: ['sort_order'], page_sections: ['sort_order'],
+    products: ['-popularity_score,title','-popularity_score,title,id','price,title','-price,title','title','id'], categories: ['sort_order,title'], navigation_items: ['sort_order'], page_sections: ['sort_order'],
     product_images: ['sort_order'], product_documents: ['sort_order'], product_specifications: ['sort_order'], product_codes: ['code_type,code'], pages: ['slug'],
   }[collection] ?? [];
   if (query.sort !== undefined && !allowedSort.includes(query.sort) || query.sort === undefined && sort.length && !allowedSort.includes(sort.join(','))) throw new Error('query');

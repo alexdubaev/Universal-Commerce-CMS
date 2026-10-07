@@ -64,6 +64,9 @@ function mockQuery({
   }
 
   items = sortMock(items, sort);
+  if (!q?.trim() && sort === "popular") {
+    items = [...items.filter(item => Boolean(item.main_image)), ...items.filter(item => !item.main_image)];
+  }
   const total = items.length;
   const start = (page - 1) * limit;
   return { items: items.slice(start, start + limit), total, page, limit, source: "mock" };
@@ -140,6 +143,41 @@ function directusSort(sort: SortOption = "popular") {
 
 const SEARCH_PAGE_LIMIT = 20;
 const SEARCH_CANDIDATE_LIMIT = 200;
+
+async function imageFirstPage(filters: Record<string, unknown>[], page: number, limit: number): Promise<ProductList> {
+  const partitionFilter = (hasImage: boolean) => JSON.stringify({
+    _and: [...filters, { main_image: { [hasImage ? "_nnull" : "_null"]: true } }],
+  });
+  const countPartition = async (hasImage: boolean) => {
+    const params = new URLSearchParams({
+      fields: "id", limit: "1", page: "1", meta: "filter_count", filter: partitionFilter(hasImage),
+    });
+    const result = await directusFetch<{ meta?: { filter_count?: number } }>(`/items/products?${params}`, { revalidate: 30 });
+    const count = result.meta?.filter_count;
+    if (typeof count !== "number" || !Number.isSafeInteger(count) || count < 0) {
+      throw new Error("Catalog partition count is missing or invalid");
+    }
+    return count;
+  };
+  const [photoCount, placeholderCount] = await Promise.all([countPartition(true), countPartition(false)]);
+  const start = (page - 1) * limit;
+  const photoLimit = Math.min(limit, Math.max(0, photoCount - start));
+  const placeholderOffset = Math.max(0, start - photoCount);
+  const placeholderLimit = Math.min(limit - photoLimit, Math.max(0, placeholderCount - placeholderOffset));
+  const readPartition = async (hasImage: boolean, offset: number, size: number) => {
+    if (!size) return [];
+    const params = new URLSearchParams({
+      fields: productFields, limit: String(size), page: "1", offset: String(offset),
+      sort: "-popularity_score,title,id", filter: partitionFilter(hasImage),
+    });
+    const result = await directusFetch<{ data: Record<string, unknown>[] }>(`/items/products?${params}`, { revalidate: 30 });
+    return result.data.map(mapProduct);
+  };
+  const [photos, placeholders] = await Promise.all([
+    readPartition(true, start, photoLimit), readPartition(false, placeholderOffset, placeholderLimit),
+  ]);
+  return { items: [...photos, ...placeholders], total: photoCount + placeholderCount, page, limit, source: "directus" };
+}
 
 async function getSearchCandidateIds(q: string) {
   const first = await directusFetch<{ data: Array<{ id: string }>; meta?: { total?: number } }>(
@@ -234,6 +272,10 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
     if (query.category) filters.push({ category: { slug: { _eq: query.category } } });
     if (query.availability) filters.push({ availability_status: { _eq: query.availability } });
     if (query.partType) filters.push({ part_type: { _eq: query.partType } });
+
+    if (!query.q?.trim() && (!query.sort || query.sort === "popular")) {
+      return await imageFirstPage(filters, page, limit);
+    }
 
     const hasPostSearchFilters = Boolean(query.brand || query.category || query.availability || query.partType);
 
