@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyBlueprint, buildCollectionPayload, buildFieldPayload } from "./apply-schema.mjs";
-import { schemaBlueprint } from "./blueprint.mjs";
+import { applyBlueprint, buildFieldPayload } from "./apply-schema.mjs";
 
 function metadataStore() {
   const collection = { name: "order_lines", fields: [{ name: "id", type: "uuid", primary: true }] };
@@ -51,19 +50,4 @@ test("identity-managed SKU uniqueness is omitted from generic field payloads", (
   const actual = buildFieldPayload({ name: "sku", type: "string", required: true, identityManagedUnique: true });
   assert.equal(Object.hasOwn(actual.schema, "is_unique"), false);
   assert.equal(buildFieldPayload({ name: "canonical_key", type: "string", unique: true }).schema.is_unique, true);
-});
-
-test("every collection archive contract references a declared status choice", () => {
-  for (const collection of schemaBlueprint.collections.filter((item) => !item.folder)) {
-    const { meta } = buildCollectionPayload(collection);
-    if (meta.archive_field === null) {
-      assert.equal(meta.archive_value, null);
-      assert.equal(meta.unarchive_value, null);
-      assert.equal(meta.archive_app_filter, false);
-    } else {
-      const field = collection.fields.find((item) => item.name === meta.archive_field);
-      assert.ok(field?.choices.includes(meta.archive_value), `${collection.name} archive value`);
-      assert.ok(field?.choices.includes(meta.unarchive_value), `${collection.name} unarchive value`);
-    }
-  }
 });

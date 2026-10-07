@@ -35,7 +35,7 @@ Responsive Next.js storefront prepared for the existing Universal Commerce CMS.
 - Directus asset proxy with UUID validation and allowlisting of files referenced by published storefront content; the server token never reaches the browser;
 - health endpoint without upstream error-detail leakage;
 - request-size/search guard rails and sanitized public API errors;
-- Vitest regression tests, Playwright desktop/mobile E2E and Directus race tests in CI.
+- Local route/adapter integration tests, minimal domain tests, two critical Chromium journeys and Directus concurrency tests.
 
 The storefront does **not** change Directus schema, roles, permissions, Docker, database or deployment configuration.
 
@@ -93,15 +93,15 @@ The storefront preserves the current CMS schema. No duplicate storefront-only ca
 
 ## Quality checks
 
+From the repository root, install storefront dependencies with `npm ci --prefix storefront` and Chromium with `npx --prefix storefront playwright install chromium`. Before every push or merge into `main`, run:
+
 ```powershell
-npm ci
-npm test
-npm run typecheck
-npm run build
-npm run test:e2e
+node scripts/verify-local.mjs
 ```
 
-The committed `package-lock.json` is the dependency source of truth for storefront CI; GitHub Actions uses `npm ci`. GitHub Actions also runs the existing Directus suite and explicit concurrent lead/order race tests.
+Checks run locally only; there are no GitHub Actions workflows. The gate includes backend/storefront integrations, minimal domain tests, TypeScript, one dependency audit, a mock production build, deployed-extension/client-secret checks and two short Chromium E2E journeys. The committed lockfile remains the dependency source of truth.
+
+The opt-in `npm run probe:live -- --runtime-approved` remains available for authorized runtime checks. It uses owned fixture journals and can write fixtures or restart a local storefront; it is outside the normal push gate. See [test policy and review](../docs/development/testing.md).
 
 ## Fast design changes
 

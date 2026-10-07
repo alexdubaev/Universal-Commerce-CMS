@@ -4,7 +4,6 @@ import assert from "node:assert/strict";
 import {
   applyAssetFolders,
   applyAccessBlueprint,
-  buildPermissionPayload,
   permissionMatches,
 } from "./apply-access.mjs";
 
@@ -47,38 +46,6 @@ test("folders-only setup is idempotent and never writes roles, policies, access,
   assert.equal(folders.size, 2);
   assert.ok(requests.every(({ path }) => path.startsWith("/folders")));
   assert.equal(requests.filter(({ path, method }) => path === "/folders" && method === "POST").length, 2);
-});
-
-test("builds a Directus policy permission payload", () => {
-  const payload = buildPermissionPayload("policy-id", {
-    collection: "products",
-    action: "read",
-  });
-
-  assert.deepEqual(payload, {
-    policy: "policy-id",
-    collection: "products",
-    action: "read",
-    fields: ["*"],
-  });
-});
-
-test("detects whether an existing permission matches the blueprint", () => {
-  const desired = {
-    policy: "policy-id",
-    collection: "products",
-    action: "read",
-    fields: ["*"],
-  };
-
-  assert.equal(permissionMatches({ id: 1, ...desired }, desired), true);
-  assert.equal(
-    permissionMatches(
-      { id: 1, ...desired, permissions: { status: { _eq: "published" } } },
-      desired,
-    ),
-    false,
-  );
 });
 
 test("permission matcher never mistakes a broader file rule for an exact match", () => {

@@ -120,6 +120,10 @@ A design-only PR should ideally show:
 - no changes to data adapters unless explicitly required
 - visual/component/page-layout files only
 
+## Local checks
+
+Follow the root local-only verification policy: run `node scripts/verify-local.mjs` from the repository root before pushing or merging into `main`. Do not add GitHub Actions or CI-specific browser matrices. Keep only short critical Chromium E2E journeys, backend/route integration coverage and a minimal set of domain unit tests; avoid tests of source strings, visual markup and helper call counts. Additional browser/visual checks are scoped to the change, not a permanent copy of every test in every browser.
+
 ## Dynamic-data stress cases
 
 Any design must remain usable with:

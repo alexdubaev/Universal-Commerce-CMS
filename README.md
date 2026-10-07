@@ -6,7 +6,7 @@ See [storefront setup and checks](storefront/README.md) and [the design contract
 
 ## Requirements
 
-- Node.js 20.6.0 or newer
+- Node.js 20.9.0 or newer
 - Docker Compose
 
 ## Local development
@@ -49,8 +49,8 @@ Run from `directus/`:
 
 | Command | Purpose |
 | --- | --- |
-| `npm test` | Standalone schema, access, Studio, extension, and guarded-mutation tests |
-| `npm run schema:check` | Focused blueprint and profile checks |
+| `npm test` | Backend handler, concurrent-write and tooling integration tests |
+| `npm run schema:check` | Core collection limit and schema-application checks |
 | `npm run schema:apply` | Idempotently install schema and neutral draft content |
 | `npm run schema:studio` | Idempotently apply collection and field metadata |
 | `npm run studio:workspace` | Install the local workspace, dashboard, panels, and bookmarks |
@@ -61,6 +61,20 @@ Run from `directus/`:
 | `npm run cms:bootstrap` | Run schema, Studio, project settings, workspace, versioning, local folders, constraints, and product-editor metadata |
 
 The bootstrap uses the credentials loaded from `dev/.env`; it never prints them. It applies clean-database SQL constraints and product-editor metadata after creating local access folders. Existing seed keys are checked before insertion, so re-running setup preserves edited records.
+
+## Local verification before pushing
+
+GitHub Actions CI/CD is removed. Run all checks locally before every push or PR merge into `main`:
+
+```powershell
+# Install once, and again when the lockfile changes:
+npm ci --prefix storefront
+npx --prefix storefront playwright install chromium
+# Run from the repository root:
+node scripts/verify-local.mjs
+```
+
+The gate runs backend/storefront integration tests, a small domain-unit set, TypeScript, a dependency audit, a mock production build, deployed-extension/client-secret checks and two critical Chromium E2E journeys. It starts only a disposable mock storefront, without using runtime credentials or mutating a CMS. See [test policy and review](docs/development/testing.md).
 
 ## Extension contracts
 

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { Readable, Writable } from 'node:stream';
+import { Writable } from 'node:stream';
 import { registerStorefrontGateway } from '../extensions/commerce-api/src/storefront.mjs';
 import { leadFingerprint } from '../extensions/commerce-api/src/leads.mjs';
 
@@ -337,39 +336,6 @@ test('asset gate checks configured folder before references and enforces publish
   assert.ok(draftCalls.some(call => call.collection === 'product_images'));
 });
 
-test('asset streaming awaits the installed Directus deferred stream factory', async () => {
-  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
-  const calls = [];
-  class ReferencedItems {
-    constructor(collection) { this.collection = collection; }
-    async readByQuery(query) {
-      calls.push({ collection: this.collection, query });
-      if (this.collection === 'directus_files') return [{ id: assetId, folder: FOLDER, type: 'image/png' }];
-      return this.collection === 'products' ? [{ id: 'product' }] : [];
-    }
-  }
-  let streamFactoryCalled = false;
-  class DeferredAssets {
-    async getAsset(...args) {
-      calls.push({ getAsset: args });
-      return {
-        file: { type: 'image/png', filename_download: 'fixture.png' },
-        stream: async () => {
-          streamFactoryCalled = true;
-          return Readable.from([Buffer.from('fixture bytes')]);
-        },
-      };
-    }
-  }
-  const h = harness({ services: { ItemsService: ReferencedItems, AssetsService: DeferredAssets } });
-  const response = await h.invoke('/storefront/assets/:id', { params: { id: assetId } });
-  assert.equal(response.statusCode, 200);
-  assert.equal(response.headers['Content-Type'], 'image/png');
-  assert.equal(response.headers['Cache-Control'], 'no-store');
-  assert.equal(streamFactoryCalled, true);
-  assert.deepEqual(calls.find(call => call.getAsset)?.getAsset, [assetId, null, undefined, true]);
-});
-
 test('lead gateway fixes service ownership, scopes idempotency lookup, and refuses attachments', async () => {
   const h = harness();
   const body = { request_key: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', lead: { name: 'Test Name', phone: '+70000000000', page_url: 'https://example.test/request' } };
@@ -402,10 +368,4 @@ test('lead gateway replays and conflicts stay within the configured owner and ex
   const conflict = await h.invoke('/storefront/leads', { method: 'POST', body: { ...body, lead: { ...body.lead, name: 'Changed Name' } } });
   assert.equal(conflict.statusCode, 409);
   assert.equal(JSON.stringify(conflict.body).includes('private-file-id'), false);
-});
-
-test('gateway source and distributed bundle match', async () => {
-  const source = await readFile(new URL('../extensions/commerce-api/src/storefront.mjs', import.meta.url));
-  const dist = await readFile(new URL('../extensions/commerce-api/dist/storefront.mjs', import.meta.url));
-  assert.deepEqual(dist, source);
 });

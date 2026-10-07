@@ -4,3 +4,4 @@ node_modules
 .env.local
 test-results-live/
 test-results/
+tsconfig.tsbuildinfo

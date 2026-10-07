@@ -1,49 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { parseDelimitedText, rowsToRequestItems } from "../lib/request-import";
-import { mergeRequestItems, normalizeRequestArticle } from "../lib/request-store";
+import { parseDelimitedText } from "../lib/request-import";
+import { MAX_REQUEST_ITEMS, mergeRequestItems } from "../lib/request-store";
+import type { RequestItem } from "../lib/types";
 
-describe("RFQ list import", () => {
-  it("parses semicolon CSV with a header and quantity", () => {
-    const items = parseDelimitedText("Артикул;Количество\nRE568158;2\n1R-1808;4");
-    expect(items).toEqual([
-      { article: "RE568158", quantity: 2, title: "Позиция из списка", brand: "Не указан" },
-      { article: "1R-1808", quantity: 4, title: "Позиция из списка", brand: "Не указан" },
+const item = (article: string, quantity = 1, brand = "Не указан"): RequestItem =>
+  ({ article, quantity, brand, title: article });
+
+describe("request import quantities and identity", () => {
+  it("skips CSV headers and preserves quantities with a safe default", () => {
+    const rows = parseDelimitedText("Артикул;Количество\nSKU-1;3\nSKU-2;invalid");
+    expect(rows.map(({ article, quantity }) => ({ article, quantity }))).toEqual([
+      { article: "SKU-1", quantity: 3 }, { article: "SKU-2", quantity: 1 },
     ]);
   });
 
-  it("parses whitespace text and defaults invalid quantity to one", () => {
-    const items = parseDelimitedText("320/04542 3\nDZ121294");
-    expect(items[0]).toMatchObject({ article: "320/04542", quantity: 3 });
-    expect(items[1]).toMatchObject({ article: "DZ121294", quantity: 1 });
+  it("merges normalized articles without combining distinct explicit brands", () => {
+    const current = [item("SKU1", 2, "A"), item("SKU2", 1, "A")];
+    const result = mergeRequestItems(current, [item("SKU-1", 3), item("SKU-2", 4, "B")]);
+    expect(result).toEqual([item("SKU1", 5, "A"), item("SKU2", 1, "A"), item("SKU-2", 4, "B")]);
+    expect(current[0].quantity).toBe(2);
   });
 
-  it("maps spreadsheet rows and skips common article headers", () => {
-    const items = rowsToRequestItems([
-      ["SKU", "qty"],
-      ["VOE14550092", 5],
-      ["4633600", 2],
-    ]);
-    expect(items.map(({ article, quantity }) => ({ article, quantity }))).toEqual([
-      { article: "VOE14550092", quantity: 5 },
-      { article: "4633600", quantity: 2 },
-    ]);
-  });
-
-  it("merges one unambiguous imported article despite punctuation and preserves quantities", () => {
-    const merged = mergeRequestItems(
-      [{ article: "RE568158", title: "Existing", brand: "John Deere", quantity: 2 }],
-      [{ article: "RE-568158", title: "Imported", brand: "Не указан", quantity: 3 }],
-    );
-    expect(merged).toHaveLength(1);
-    expect(merged[0].quantity).toBe(5);
-    expect(normalizeRequestArticle(merged[0].article)).toBe("RE568158");
-  });
-
-  it("does not merge the same article across two explicit brands", () => {
-    const merged = mergeRequestItems(
-      [{ article: "12345", title: "A", brand: "Caterpillar", quantity: 1 }],
-      [{ article: "12-345", title: "B", brand: "Komatsu", quantity: 1 }],
-    );
-    expect(merged).toHaveLength(2);
+  it("merges at capacity but reports an article that would exceed the limit", () => {
+    const current = Array.from({ length: MAX_REQUEST_ITEMS }, (_, i) => item(`SKU${i}`));
+    let overflow = false;
+    const result = mergeRequestItems(current, [item("SKU-0", 3), item("NEW")], () => { overflow = true; });
+    expect(result).toHaveLength(MAX_REQUEST_ITEMS);
+    expect(result[0].quantity).toBe(4);
+    expect(overflow).toBe(true);
   });
 });

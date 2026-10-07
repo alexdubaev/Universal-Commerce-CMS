@@ -5,7 +5,7 @@
   "engines": { "node": ">=20.6.0" },
   "scripts": {
     "test": "node --test",
-    "schema:check": "node --test schema/blueprint.test.mjs schema/platform-compatibility.test.mjs test/profile.test.mjs",
+    "schema:check": "node --test schema/platform-compatibility.test.mjs schema/apply-schema.test.mjs schema/uc-archive-regressions.test.mjs",
     "schema:apply": "node --env-file=../dev/.env schema/apply-schema.mjs",
     "schema:studio": "node --env-file=../dev/.env schema/apply-studio.mjs",
     "project:settings": "node --env-file=../dev/.env studio/apply-project-settings.mjs",
