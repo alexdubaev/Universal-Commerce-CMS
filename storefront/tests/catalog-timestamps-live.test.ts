@@ -47,6 +47,10 @@ describe("live product timestamp adapter", () => {
     mocks.directusFetch.mockImplementation(async (request: string) => {
       if (!request.startsWith("/items/products?")) return { data: [] };
       const url = assertValidProductFieldQuery(request);
+      if (url.searchParams.get("fields") === "id") {
+        const hasImage = (url.searchParams.get("filter") ?? "").includes('"_nnull"');
+        return { data: [], meta: { filter_count: hasImage ? 0 : 1 } };
+      }
       if (url.searchParams.get("fields") === "slug,updated_at,is_indexable") {
         return { data: [{ slug: "part-one", updated_at: "2026-10-05T12:00:00.000Z" }] };
       }
@@ -57,14 +61,16 @@ describe("live product timestamp adapter", () => {
   it("requests the blueprint timestamp and maps it to the stable list and detail property", async () => {
     const list = await getProducts();
     expect(list.items[0].date_updated).toBe("2026-10-05T12:00:00.000Z");
-    const listUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[0][0]));
+    const listRequest = mocks.directusFetch.mock.calls.find(([request]) =>
+      new URL(String(request), "https://store.test").searchParams.get("fields")?.includes("updated_at"));
+    const listUrl = assertValidProductFieldQuery(String(listRequest?.[0]));
     expect(listUrl.searchParams.get("fields")).toContain("updated_at");
     expect(listUrl.searchParams.get("fields")).not.toContain("date_updated");
 
     const detail = await getProductDetail("part-one");
     expect(detail?.date_updated).toBe("2026-10-05T12:00:00.000Z");
     expect(detail?.is_indexable).toBe(true);
-    const detailUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
+    const detailUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[3][0]));
     expect(detailUrl.searchParams.get("fields")).toContain("updated_at");
   });
 
@@ -72,6 +78,10 @@ describe("live product timestamp adapter", () => {
     mocks.directusFetch.mockImplementation(async (request: string) => {
       if (!request.startsWith("/items/products?")) return { data: [] };
       const url = assertValidProductFieldQuery(request);
+      if (url.searchParams.get("fields") === "id") {
+        const hasImage = (url.searchParams.get("filter") ?? "").includes('"_nnull"');
+        return { data: [], meta: { filter_count: hasImage ? 0 : 2 } };
+      }
       if (url.searchParams.get("fields") === "slug,updated_at,is_indexable") {
         return { data: [
           { slug: "dated", updated_at: "2026-10-05T12:00:00.000Z" },
@@ -91,7 +101,7 @@ describe("live product timestamp adapter", () => {
       { slug: "null-date", date_updated: null },
       { slug: "missing-date", date_updated: null },
     ]);
-    const sitemapUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[1][0]));
+    const sitemapUrl = assertValidProductFieldQuery(String(mocks.directusFetch.mock.calls[3][0]));
     expect(sitemapUrl.searchParams.get("fields")).toBe("slug,updated_at,is_indexable");
     expect(JSON.parse(sitemapUrl.searchParams.get("filter") ?? "{}")).toEqual({
       _and: [

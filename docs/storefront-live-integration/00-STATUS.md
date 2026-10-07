@@ -1,30 +1,27 @@
-PHASE: Local acceptance closeout
-STATUS: PASS — local synthetic scope; production pending
-CURRENT HEAD: 4c99e6f43ad31b244363fe99cea4e95651278953 (verified PR snapshot; final evidence commit follows)
+PHASE: Owner-supplied local catalog acceptance
+STATUS: PASS — authorized local catalog import and targeted Chromium acceptance
+CURRENT HEAD: 1e83ac2be10a80f13757bcc1463e694607dafcee
 BRANCH: feat/storefront-directus-acceptance
 
 DONE:
-- Own zero-grant technical identity; sole human Administrator, no staff roles.
-- Real CMS fixtures15 products/3brands/3categories, mocks/fallback disabled.
-- Unit62, Directus205, race4, TypeScript/builds/audits/canaries PASS.
-- Mock30/30 and real Directus21/21 browsers PASS in Chromium/mobile/WebKit.
-- All15 journaled RFQ rows verified; restart/retry/conflict/invalid/outage/revocation PASS.
-- Fresh review: no unresolved P0/P1/P2; full evidence in11-FINAL-HANDOFF.
-- Draft PR synchronized; push and PR CI all six checks SUCCESS at4c99e6f.
+- Imported12967 products,18categories,1269WebPassets,968publishedgalleryrecords.
+- Lead+independent full-record verification PASS; existing15leads preserved.
+- Interrupted journal resumed safely, zero duplicates/pending writes.
+- Private database backup and durable ownership archive retained outsideGit.
+- Fresh live production build PASS; site3001 and admin18056 running.
 
 IN PROGRESS:
-- None in the accepted local scope.
-
+- None in the authorized local import scope.
 BLOCKERS:
-- Production acceptance needs genuine catalog, topology and100k/load/security evidence.
-
+- None for authorized local scope.
 P0:
 - None unresolved.
 P1:
 - None unresolved.
 P2:
-- None unresolved in accepted local scope.
+- Four conflicting input records quarantined for later price/SKU adjudication.
 
 NEXT:
-- Retain local fixtures/evidence and Draft PR; no main merge/deploy.
-- Owner's next stage: genuine catalog and production acceptance.
+- See16-CATALOG-IMPORT for evidence and private quarantine location.
+- Production/100k acceptance pending; PR stays Draft, no main merge/deploy.
+
