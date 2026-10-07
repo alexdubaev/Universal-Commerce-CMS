@@ -1,3 +1,9 @@
+# Integration status
+
+The owner authorized integration of the storefront, catalog acceptance report and image-first ordering into `main` on 2026-10-07. Current code and CI status are tracked in [PR #1](https://github.com/alexdubaev/Universal-Commerce-CMS/pull/1). The historical Draft/no-main-merge restriction below has been superseded by that instruction. Production deployment and 100k acceptance remain pending.
+
+## Historical local catalog acceptance
+
 PHASE: Owner-supplied local catalog acceptance
 STATUS: PASS — authorized local catalog import and targeted Chromium acceptance
 CURRENT HEAD: 1e83ac2be10a80f13757bcc1463e694607dafcee
@@ -23,5 +29,4 @@ P2:
 
 NEXT:
 - See16-CATALOG-IMPORT for evidence and private quarantine location.
-- Production/100k acceptance pending; PR stays Draft, no main merge/deploy.
-
+- Production/100k acceptance pending; at this historical checkpoint the PR remained Draft, with no main merge/deployment.
