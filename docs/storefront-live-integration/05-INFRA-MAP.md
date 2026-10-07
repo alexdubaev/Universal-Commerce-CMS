@@ -1,0 +1,18 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
+# Infrastructure map
+
+STATUS: AUDIT COMPLETE
+FINDINGS:
+- P1: No storefront service exists in `dev/compose.yml`; the smallest local path is a host-run Next app in `storefront/` pointed at `http://127.0.0.1:18056`. A Docker service is unnecessary for this acceptance; adding one would change protected Compose scope and require a deliberate host/container network decision.
+- P1: Safe live access is currently blocked: CMS anonymous health and item reads return 403, and the existing profile has no least-privilege storefront service identity. `/server/health` returning 200 with an authenticated request only proves process health; it does not prove required collection/endpoint/file capabilities. Storefront `/api/health` sends its configured bearer token, returns 503 on 403, and does not test catalog reads.
+- P1: Do not use the generated Administrator credential as `DIRECTUS_TOKEN`. ADR-002 says default bootstrap installs no business/public API permissions and reserves admin for provisioning/diagnostics. Core rejects the strict custom permission rules needed for published-only rows/private-file isolation; no safe service token can be asserted until supported entitlement/access policy is established.
+- P2: `storefront/.env.example` is for mock mode and has an empty token. For a live process, set `DIRECTUS_URL=http://127.0.0.1:18056`, a server-only `DIRECTUS_TOKEN` for the reviewed identity, `STOREFRONT_MOCK_MODE=false`, `STOREFRONT_ALLOW_MOCK_FALLBACK=false`, and `NEXT_PUBLIC_SITE_URL` to the local site URL. Explicit live mode fails closed if URL or reads are unavailable. Never use `NEXT_PUBLIC_` for the token.
+- P2: Existing `dev/compose.yml` binds Directus only to host loopback, persists DB/uploads in named volumes, mounts only CMS extensions, and defines a Postgres readiness check but no Directus healthcheck. Keep using its existing stack; no new DB, Directus, project, or volumes. A storefront container would not reach host `127.0.0.1` as intended and is unnecessary for host-run local acceptance.
+- P2: `dev/bootstrap.mjs` refuses any `DIRECTUS_URL` except this repo's exact loopback URL; `dev/generate-env.mjs` refuses to overwrite existing `dev/.env`, creates random credentials/IDs, and writes ignored mode-0600 env. Only `dev/.env.example` was read; generated secret values were not read or printed.
+- P2: Next app can run via `npm ci` and `npm run dev` from `storefront/`, or `npm run build` then `npm run start`; no bind mount is needed for host execution. Existing Playwright config explicitly forces mock mode. Build-time/static rendering may call CMS reads, so build-only green checks with mock mode do not constitute live acceptance; provide live server env at build/runtime as applicable and verify `/api/health` plus actual read capabilities.
+CHANGED: `docs/storefront-live-integration/05-INFRA-MAP.md` only.
+TESTED: Read-only inspection of ADR-002, decisions/status, Compose, env templates (not generated `.env`), bootstrap/env guards, storefront README/package/config/directus adapter/health route, and targeted references. No Docker commands run.
+BLOCKERS: Supported least-privilege service policy and identity; real published catalog/media are absent per existing acceptance record.
+NEXT: Resolve licensed/reviewed access path before live token issuance and live read acceptance.
+DETAILS: Existing runtime inventory was supplied by lead and intentionally not repeated.

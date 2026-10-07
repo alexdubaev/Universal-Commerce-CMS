@@ -1,0 +1,49 @@
+# Decisions
+
+D001 — Preserve CMS schema, registered extensions, public routes and visual design. Prefer adapters for proven field mismatches.
+
+D002 — Directus credentials stay server-side and ignored. Administrator is diagnostic/provisioning only, never the storefront identity.
+
+D003 — Keep exact SKU/OEM `/commerce/search` and its 200-candidate ceiling; no search engine added.
+
+D004 — Explicit live mode stays live if configuration is missing; fictional fallback remains disabled for integration/production.
+
+D005 — Reuse only the existing `universal-commerce-cms-dev` stack. Activate the reviewed integration checkout's `dev/compose.yml` with its ignored local env, recreating only Directus to mount the reviewed extensions. Preserve project name, pinned images, PostgreSQL, networks, named volumes and loopback port. The original checkout remains unchanged. Source-site instances/content are read-only and excluded.
+
+D006 — User approved specially created synthetic fixtures in the local CMS on 2026-10-07. Real catalog/100k production acceptance remains a later stage. Label synthetic content and test results explicitly; no invented legal/company facts.
+
+D007 — Do not bypass Core licensing or strip permission filters into unrestricted access. Establish a supported least-privilege path before running storefront with a service token.
+
+D008 — Preserve reviewed timestamp/config fixes. Do not repeat completed discovery; reuse evidence in reports and ask agents only unresolved questions.
+
+D009 — PR #1 stays Draft. Main, merge and production deployment are outside authorization.
+
+D010 — Three child slots are available. Schedule independent audits immediately as slots free; file ownership is exclusive. Full logs remain local/ignored, summaries stay compact.
+
+D011 — For this local Core integration, implement an explicit default-off `/commerce/storefront` gateway using supported custom extension authorization. The dedicated service identity has ZERO generic business/file grants. Authenticate its exact configured user ID before deliberate internal elevated queries; no Core entitlement checks are modified. Native adapter mode remains available for an entitled instance. This is not production acceptance or licensing advice.
+
+D012 — Gateway reads force published/visible predicates and parent publication, fixed field/query allowlists and bounded pagination. No arbitrary privileged query proxy. Assets additionally require the configured public folder and a current allowed reference. Missing configuration and unknown callers deny before elevated service construction.
+
+D013 — Gateway RFQ reuses the existing validation/transaction/idempotency contract with explicit caller-owned lookup/write context. Attachments and orders stay disabled in this local gateway. Native commerce routes keep original accountability. The browser receives acknowledgement IDs only, never credentials/customer records.
+
+D014 — Fix hydration and explicit skip tabindex in presentation components only as necessary functional corrections, preserving design. Keep browser assertions and timeouts; do not add private React-property waits to committed tests.
+
+D015 — Enforce request limits in bytes while streaming; fresh asset authorization and no-store delivery are the initial safe local revocation policy. Production cache topology remains a separate acceptance stage.
+
+D016 — Keep `COMMERCE_ENABLE_ADDITIONAL_CODES=false` in the existing stack. Verify canonical MPN/OEM search and display product_codes; alias-only search is not promised. Gateway global candidate ceiling stays200.
+
+D017 — Allow the small Vitest alias configuration needed to import actual presentation components for hydration regression tests. This is test support within the frontend workstream, not a design or runtime contract change.
+
+D018 — Honor existing product `is_indexable` in sitemap counts/chunks while keeping non-indexable published products browsable. Verify count/chunk consistency; no CMS migration is needed.
+
+D019 — Owner clarified that the sole human CMS operator is the Administrator. Do not provision staff/content-manager/sales roles or run the generic access blueprint. Keep only the technical zero-grant storefront identity needed for server integration, separate from human administration.
+
+D020 — Directus relation predicates use boolean groups at filter root with relation-path leaves. Installed 12.1.1 silently ignores relation-nested `_and`; protect all child/analog/reference paths and verify negative cases against actual CMS.
+
+D021 — Remove the root loading boundary so CMS `notFound()` can produce HTTP404 before streaming. Keep the existing 404 UI and strict status assertion; no duplicate query/proxy preflight.
+
+D022 — Native and gateway asset reference queries both require published-or-absent product categories. Gateway accepts only the exact flat category predicate shapes needed by the adapter and always forces its own visibility gates.
+
+D023 — Owner approved publishing imported gallery rows and explicitly authorized the supplied catalog/WebP upload on2026-10-07. Apply only to the own local CMS; no production or source-instance writes. Fresh target IDs and private remapping; no source data in Git.
+
+D024 — Quarantine all four records in the two normalized-SKU collision pairs. Do not pick prices, merge distinct records or change brand identity without owner adjudication. Import nonconflicting12967 records first.

@@ -57,11 +57,12 @@ function validate(body) {
  * A lookup uses the same fingerprint before Next uploads files on a retry.
  * All record reads/writes retain caller accountability on one transaction.
  */
-export function createAtomicLeadHandler({ database, services, getSchema, logger }) {
+export function createAtomicLeadHandler({ database, services, getSchema, logger, ownerId = null, allowAttachments = true, acknowledgeOnly = false }) {
   return async (req, res) => {
     if (!req.accountability?.user) return res.status(403).json({ errors: [{ code: 'FORBIDDEN', message: 'Требуется авторизация.' }] });
     try {
       const { key, lead, attachments, manifest, action } = validate(req.body);
+      if (!allowAttachments && (attachments.length || manifest.length)) throw fail(400, 'Вложения заявок недоступны.');
       const fingerprint = leadFingerprint(lead, manifest), schema = await getSchema();
       const result = await database.transaction(async trx => {
         await trx.raw("SET LOCAL lock_timeout = '5s'");
@@ -70,7 +71,10 @@ export function createAtomicLeadHandler({ database, services, getSchema, logger 
         await trx.raw('SELECT pg_advisory_xact_lock(?, ?)', [lock.readInt32BE(0), lock.readInt32BE(4)]);
         const service = collection => new services.ItemsService(collection, { schema, accountability: req.accountability, knex: trx });
         const leads = service('leads');
-        const previous = await leads.readByQuery({ filter: { request_key: { _eq: key } }, fields: ['id', 'request_fingerprint', 'attachments'], limit: 1 });
+        const ownerFilter = ownerId ? { user_created: { _eq: ownerId } } : null;
+        const previous = await leads.readByQuery({ filter: ownerFilter
+          ? { _and: [{ request_key: { _eq: key } }, ownerFilter] }
+          : { request_key: { _eq: key } }, fields: ['id', 'request_fingerprint', 'attachments'], limit: 1 });
         if (previous.length) {
           if (previous[0].request_fingerprint !== fingerprint) throw fail(409, 'Этот идентификатор уже относится к другой заявке.', 'IDEMPOTENCY_CONFLICT');
           return { id: previous[0].id, replayed: true, attachments: previous[0].attachments ?? [] };
@@ -94,10 +98,11 @@ export function createAtomicLeadHandler({ database, services, getSchema, logger 
             }
           });
         }
-        const id = await leads.createOne({ ...lead, status: 'new', attachments, request_key: key, request_fingerprint: fingerprint });
+        const id = await leads.createOne({ ...lead, status: 'new', attachments, request_key: key, request_fingerprint: fingerprint,
+          ...(ownerId ? { user_created: ownerId } : {}) });
         return { id, replayed: false, attachments };
       });
-      return res.json({ data: result });
+      return res.json({ data: acknowledgeOnly ? { id: result.id, replayed: result.replayed } : result });
     } catch (error) {
       const status = error.status ?? (error.code === 'FORBIDDEN' ? 403 : ['RECORD_NOT_UNIQUE', '23505'].includes(error.code) ? 409 : 500);
       logger?.warn?.({ code: error.code ?? 'LEAD_WRITE_FAILED' }, 'Atomic lead request failed');

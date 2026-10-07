@@ -1,0 +1,49 @@
+> Historical Wave 1 audit. Its statuses and test counts describe discovery before implementation. Current results and resolved findings are in [11-FINAL-HANDOFF.md](11-FINAL-HANDOFF.md) and [09-FINDINGS.md](09-FINDINGS.md).
+
+# Storefront permission matrix
+
+Scope: map the current adapter and commerce endpoints to the Directus permissions they use, and record a safe Core-compatible path. This report changes no runtime, identity, permissions, schema, or extension code. The present local Core instance has only Administrator and no storefront policy. Do not use Administrator as the storefront identity.
+
+## Directus Core rule gate
+
+The installed Directus 12.1.1 implementation was inspected in the original `universal-commerce-cms-dev` container. `PermissionsService.createOne` rejects a permission without `custom_permission_rules_enabled` when `hasCustomRule(permission)` is true; `updateMany` applies the same check. A rule is custom when `fields` does not include `"*"`, or when `permissions`, `validation`, or `presets` has any keys. `isRecommendedAppPermission` exempts only a matching Directus-recommended app permission without validation/presets. Core therefore still permits ordinary collection-wide `fields: ["*"]` rules with no row filter. It does not permit the blueprint's published-row filter or folder-scoped asset filter under this gate. Reads also hide custom permission rules without entitlement. Evidence: installed `dist/services/permissions.js` and `dist/license/entitlements/lib/custom-permission-rules-enabled.js`.
+
+This is not a blanket ban on filtered API queries: it is a restriction on storing custom permission rules. A storefront query can request `status=published`, but that query parameter is caller-controlled and does not stop a service token with collection-wide access from requesting drafts through another query.
+
+## Required access for the current adapters
+
+| Resource | Action | Required row filter | Fields needed by current adapter | Reason | Risk if granted as plain Core collection permission |
+| --- | --- | --- | --- | --- | --- |
+| `products` | read | `status=published` | Catalog/product fields, `popularity_score`, `updated_at`; `brand` aggregation | Listing, facets, brand discovery, detail, related products, sitemap, search candidate hydration, order validation | Collection-wide read exposes drafts/archived rows and all allowed product fields through generic `/items/products`. |
+| `categories` | read | `status=published` | `id,slug,title,description,h1,intro,image,seo_title,seo_description,is_indexable,sort_order` | Catalog facets and category routes | Exposes unpublished categories and fields through generic Items API. |
+| `product_codes` | read | product is current product; `is_active=true` | `product,code,code_type,source_name` | Product identifiers and SKU/OEM detail | Collection-wide read exposes inactive and draft-associated codes. |
+| `product_images` | read | child and parent product published | `product,image,alt_text,sort_order,status` | Product gallery and asset authorization | Exposes references for unpublished products and any fields permitted by schema. |
+| `product_specifications` | read | child and parent product published | `product,group_name,name,value,unit,sort_order,status` | Product detail | Exposes draft product specifications. |
+| `product_documents` | read | child and parent product published | `product,file,title,sort_order,status` | Product files and asset authorization | Exposes unpublished document references; combined with broad file read could disclose unpublished files. |
+| `products_analogs` | read | either endpoint is a published product | `product_from,product_to,relation_type` and joined published product fields | Analog, compatible, OEM cross, supersession display | Exposes relationships and possibly joined draft product data. |
+| `site_settings` | read | singleton | `company_name,phone,email,CTA,address/legal/footer fields`; `commerce_profile` for commerce endpoints | Header/footer and endpoint feature/currency checks | Contains private configuration fields outside the storefront selection; generic collection read is not field-limited. |
+| `navigation_items` | read | published, visible, requested location, top-level parent | `id,label,url,location,open_in_new_tab,sort_order,is_visible,parent,status` | Header/footer/legal navigation | Exposes drafts, hidden, or nested records via generic Items API. |
+| `pages` | read | published; requested slug | `id,title,slug,page_type,h1,eyebrow,intro,SEO,updated_at,status` | CMS routes and sitemap | Draft pages become readable through generic Items API. |
+| `page_sections` | read | published, visible; parent page/home published | `id,owner,status,is_visible,section_type,title,subtitle,text,image,image_alt,button_text,button_url,items,settings,sort_order` | CMS page/home rendering and asset authorization | Exposes hidden/draft sections and their file references. |
+| `home_page` | read | published singleton | Fields selected by `getCmsHome`, including hero/SEO and sections relation | Home hero and CMS sections | Singleton read includes draft hero/content when not filtered by the adapter. |
+| `directus_files` | read + field/folder rules | Storefront-published reference in public asset folder | `id,folder,type,filename_download,filesize` (plus asset bytes) | Asset proxy checks references, then calls `/assets/:id` | Plain collection read exposes private files, including lead attachments; folder-specific rules are custom and rejected on Core. |
+| `directus_folders` | read | ideally public storefront asset folder only | `id,name` | Directus file metadata/permission operations | Plain read reveals all folder names; file folder isolation still needs custom rule. |
+| `leads` | read + create | read only matching `request_key`; create valid submitted lead | `id,request_key,request_fingerprint,attachments` for replay; submitted lead fields | `/commerce/leads` requires an authenticated user, queries prior key before create, then persists atomically | Plain read exposes other customers' requests; plain create exposes unrestricted generic lead creation. |
+| `orders` | read + create | read only matching `request_key`/caller; create validated order | `id,request_key,request_fingerprint`; order header fields | `/commerce/orders` requires authenticated user and reads prior key before atomic write | Existing blueprint's own-user filter is custom; unrestricted read exposes orders. Generic create permits bypassing endpoint validation. |
+| `order_items` | create | items linked only to validated order | `order,product,sku_snapshot,title_snapshot,brand_snapshot,unit_price,quantity,currency` | Atomic order endpoint creates line items after server-side price/product validation | Generic create permits attaching lines to arbitrary orders. No storefront read is currently needed. |
+
+The exact adapter selections and filters are in `storefront/lib/catalog.ts`, `storefront/lib/content.ts`, and `storefront/lib/assets.ts`. The current commerce permission blueprint in `directus/access/blueprint.mjs` is broader than this matrix; it includes additional content collections and file mutation permissions and should not be applied as a storefront-only service policy without review.
+
+## Can an endpoint-only identity be safe?
+
+Yes, as an architecture, but it is not the current storefront contract and has not been implemented or verified. Directus policy permissions are collection/action based; they do not grant access only to selected custom endpoint paths. Giving this token collection-wide read to support the present `/items/*` adapter also grants the token generic Items API access to drafts and other rows. Directus Core does not provide a supported way to express the required row/folder filters in the existing permission blueprint.
+
+A Core-compatible endpoint-only design gives the service identity ZERO generic business/file collection permissions. It moves reads/assets behind narrowly defined custom endpoints, with deliberate internal privileged service use only after exact service-user authorization, fixed published/visible predicates, explicit fields/query caps, parent publication and public-folder checks. The existing native commerce handlers retain caller accountability and are denied to this zero-grant token. A separate guarded RFQ entry must reuse the validated atomic contract with explicit caller ownership on lookup/create/audit; adding native lead/order grants would defeat endpoint-only isolation. Attachments and orders remain disabled in the selected local gateway. Dedicated live direct-API denial and transaction/idempotency tests are required before security acceptance. See decisions D011–D013 and the gateway contract; no runtime behavior is claimed from this design alone.
+
+Practical paths:
+
+1. Keep this as a blocker until a supported least-privilege design is built and tested; do not issue a storefront token with Administrator or broad collection access.
+2. Rework the adapter to use guarded custom read/asset endpoints and prove generic `/items/*` and `/assets/*` access is denied. This is the Core-compatible path, but it is meaningful extension/API work, not a permission-only setup.
+3. If the target instance has the `custom_permission_rules_enabled` entitlement, validate the existing published-row and folder-scoped rules on that exact instance and keep the permissions least-privilege. Do not infer entitlement from version number or bypass the gate.
+
+Public collection reads or removing row/folder filters are not safe substitutes. This matrix does not establish production acceptance; synthetic local data can validate routes only after a safe identity/path exists.

@@ -3,7 +3,7 @@
  * updates and deletes are performed through ItemsService with the caller's
  * accountability and the same transaction. Requires PostgreSQL (deployment).
  */
-const COLLECTIONS = new Set(['products', 'pages', 'home_page', 'page_sections', 'site_settings', 'products_analogs', 'product_codes', 'product_images', 'product_specifications', 'product_documents', 'categories', 'articles']);
+const COLLECTIONS = new Set(['products', 'pages', 'home_page', 'page_sections', 'site_settings', 'products_analogs', 'product_codes', 'product_images', 'product_specifications', 'product_documents', 'categories', 'articles', 'navigation_items']);
 const FORBIDDEN = new Set(['id', 'created_at', 'updated_at', 'user_created', 'user_updated']);
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const keySafe = key => /^[a-z][a-z0-9_]*$/.test(key) && !['constructor', 'prototype', '__proto__'].includes(key);

@@ -1,5 +1,6 @@
 dev/.env
 dev/.env.*.local
+dev/.storefront-acceptance/
 directus/uploads/**
 !directus/uploads/.gitkeep
 directus/extensions/**/node_modules/

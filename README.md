@@ -1,6 +1,8 @@
 # Universal Commerce CMS
 
-Standalone Directus administration for commerce sites. Every website uses a separate Directus instance, PostgreSQL database, file storage, credentials, roles, and integrations. The shared project contains a neutral schema, Studio setup, access tooling, extension closure, and synthetic draft content. It does not include a public frontend or site catalogue.
+Standalone Directus administration and a headless Next.js storefront for commerce sites. Every website uses a separate Directus instance, PostgreSQL database, file storage, credentials, roles, and integrations. The shared project contains a neutral schema, Studio setup, access tooling, extension closure, synthetic draft content and the reusable storefront. Site catalogues and runtime credentials remain instance-local.
+
+See [storefront setup and checks](storefront/README.md) and [the design contract](storefront/DESIGN-CONTRACT.md). The storefront can run in explicit mock mode or connect to a dedicated Directus instance using a server-only technical identity. The fixed storefront gateway is disabled by default. Merging code into `main` does not establish production acceptance or deploy a website.
 
 ## Requirements
 

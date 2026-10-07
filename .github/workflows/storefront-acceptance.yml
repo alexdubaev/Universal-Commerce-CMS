@@ -1,0 +1,102 @@
+name: Storefront acceptance
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - "storefront/**"
+      - "directus/**"
+      - ".github/workflows/storefront-acceptance.yml"
+      - "AGENTS.md"
+
+permissions:
+  contents: read
+
+jobs:
+  directus-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: directus
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Race tests
+        run: node --test test/commerce-races.test.mjs
+      - name: Full Directus test suite
+        run: npm test
+
+  storefront-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: storefront
+    env:
+      STOREFRONT_MOCK_MODE: "true"
+      NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000"
+      DIRECTUS_URL: "http://127.0.0.1:18056"
+      DIRECTUS_TOKEN: "ci-directus-token-canary-never-ship"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Critical dependency audit including dev tools
+        run: npm audit --audit-level=critical
+      - name: Unit / TDD regression tests
+        run: npm test
+      - name: TypeScript
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Server token must not be in client static bundle
+        run: |
+          if grep -R -F "ci-directus-token-canary-never-ship" .next/static; then
+            echo "DIRECTUS_TOKEN leaked into .next/static"
+            exit 1
+          fi
+
+  storefront-e2e:
+    needs: storefront-quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: storefront
+    env:
+      STOREFRONT_MOCK_MODE: "true"
+      NEXT_PUBLIC_SITE_URL: "http://127.0.0.1:3000"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: storefront/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium webkit
+      - name: Build
+        run: npm run build
+      - name: E2E desktop + Chromium mobile + WebKit mobile + concurrent API retries
+        run: npm run test:e2e
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: storefront/playwright-report/
+          if-no-files-found: ignore
