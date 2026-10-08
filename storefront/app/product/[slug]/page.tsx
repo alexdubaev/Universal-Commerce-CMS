@@ -111,7 +111,7 @@ export default async function ProductPage({ params }: Props) {
         <div className="product-info">
           <div className="product-tags">
             <span>{product.brand}</span>
-            {product.part_type && <span>{product.part_type.toUpperCase()}</span>}
+            {product.part_type && <span>{product.part_type === "original" ? "Оригинал" : product.part_type === "analog" ? "Аналог" : "OEM"}</span>}
             <span className={product.availability_status === "in_stock" ? "ok" : ""}>{availability}</span>
           </div>
           <h1>{product.title}</h1>
@@ -119,23 +119,23 @@ export default async function ProductPage({ params }: Props) {
           <p>{product.short_description ?? "Описание и применяемость уточняются по запросу."}</p>
           <div className="product-price">{price}</div>
           <AddToRequest product={product} full />
-          <Link className="button secondary wide" href="/request">Открыть заявку</Link>
+          <Link className="button secondary wide" href="/request">Открыть корзину</Link>
           <div className="product-trust">
-            <div><strong>Доставка</strong><span>по России транспортными компаниями</span></div>
-            <div><strong>Документы</strong><span>счёт, НДС и закрывающие документы</span></div>
+            <div><strong>Поставка</strong><span>уточняется для выбранной позиции</span></div>
+            <div><strong>Документы</strong><span>состав документов согласуется при оформлении</span></div>
           </div>
         </div>
       </section>
 
       <section className="product-details">
         <article className="panel">
-          <span className="eyebrow">Описание</span>
+
           <h2>О товаре</h2>
           <p>{product.full_description ?? product.short_description ?? "Дополнительную информацию по детали можно запросить у менеджера."}</p>
           {product.category && <Link className="text-link" href={`/category/${product.category.slug}`}>Категория: {product.category.title} →</Link>}
         </article>
         <article className="panel">
-          <span className="eyebrow">Характеристики</span>
+
           <h2>Основные данные</h2>
           <dl className="spec-list">
             <div><dt>Бренд</dt><dd>{product.brand}</dd></div>
@@ -160,7 +160,7 @@ export default async function ProductPage({ params }: Props) {
         <section className="product-extra-grid">
           {product.codes.length > 0 && (
             <article className="panel product-extra">
-              <span className="eyebrow">Кросс-номера</span>
+
               <h2>Дополнительные номера</h2>
               <div className="code-list">
                 {product.codes.map((code, index) => (
@@ -171,7 +171,7 @@ export default async function ProductPage({ params }: Props) {
           )}
           {product.documents.length > 0 && (
             <article className="panel product-extra">
-              <span className="eyebrow">Документы</span>
+
               <h2>Файлы товара</h2>
               <div className="document-list">
                 {product.documents.map((document, index) => (
@@ -188,7 +188,7 @@ export default async function ProductPage({ params }: Props) {
       {product.relations.length > 0 && (
         <section className="section product-relations">
           <div className="section-heading">
-            <div><span className="eyebrow">Кроссы и замены</span><h2>Аналоги и совместимые позиции</h2></div>
+            <div><h2>Аналоги и совместимые позиции</h2></div>
           </div>
           <div className="product-grid">
             {product.relations.slice(0, 4).map((relation) => (
@@ -204,7 +204,7 @@ export default async function ProductPage({ params }: Props) {
       {related.length > 0 && (
         <section className="section related-section">
           <div className="section-heading">
-            <div><span className="eyebrow">Ещё в категории</span><h2>Связанные товары</h2></div>
+            <div><h2>Связанные товары</h2></div>
           </div>
           <div className="product-grid">
             {related.map((item) => <ProductCard product={item} key={item.id} />)}

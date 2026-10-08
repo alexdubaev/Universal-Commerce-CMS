@@ -3,7 +3,9 @@ import "./theme.css";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getCmsSiteSettings, getNavigation } from "@/lib/content";
+import { MotionEnhancements } from "@/components/MotionEnhancements";
+import { getCmsHome, getCmsSiteSettings, getNavigation } from "@/lib/content";
+import { getBrands, getCategories } from "@/lib/catalog";
 import { getSiteUrl, safeJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -22,11 +24,14 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [settings, headerNav, footerNav, legalNav] = await Promise.all([
+  const [settings, headerNav, footerNav, legalNav, categories, brands, cmsHome] = await Promise.all([
     getCmsSiteSettings(),
     getNavigation("header"),
     getNavigation("footer"),
     getNavigation("legal"),
+    getCategories().catch(() => []),
+    getBrands().catch(() => []),
+    getCmsHome().catch(() => null),
   ]);
 
   const organization = {
@@ -43,9 +48,17 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="ru">
       <body>
+        <MotionEnhancements />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(organization) }} />
         <a className="skip-link" href="#main-content" tabIndex={0}>К основному содержимому</a>
-        <Header settings={settings} navigation={headerNav} />
+        <Header
+          settings={settings}
+          navigation={headerNav}
+          categories={categories}
+          brands={brands}
+          searchPlaceholder={cmsHome?.hero_search_placeholder || undefined}
+          searchButtonLabel={cmsHome?.hero_search_button_text || undefined}
+        />
         <main id="main-content" tabIndex={-1}>{children}</main>
         <Footer settings={settings} navigation={footerNav} legal={legalNav} />
       </body>

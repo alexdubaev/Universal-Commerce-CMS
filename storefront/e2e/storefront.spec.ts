@@ -16,9 +16,9 @@ const brands = [
 
 test("home, catalog, categories and every brand route render", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Движение вашего бизнеса");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Запчасти для вашей техники");
   await expect(page.locator(".site-header")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Категории запчастей" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Категории запчастей" })).toHaveCount(0);
 
   await page.goto("/catalog");
   await expect(page.getByRole("heading", { name: "Каталог запчастей" })).toBeVisible();
@@ -67,6 +67,7 @@ test("catalog facets and price sort affect results", async ({ page }) => {
 
 test("bulk manual import updates the same RFQ list immediately", async ({ page }) => {
   await page.goto("/request");
+  await page.getByText("Добавить позиции списком или из файла").click();
   await page.getByLabel("Артикулы").fill("RE568158 2\n1R-1808 4");
   await page.getByRole("button", { name: "Добавить список" }).click();
   await expect(page.getByText(/Список: добавлено 2/)).toBeVisible();
@@ -76,7 +77,7 @@ test("bulk manual import updates the same RFQ list immediately", async ({ page }
 
 test("request flow survives add, quantity edit and mock submission", async ({ page }) => {
   await page.goto("/product/jd-re568158");
-  await page.getByRole("button", { name: "Добавить в заявку" }).click();
+  await page.getByRole("button", { name: "Добавить в корзину" }).click();
   await expect(page.getByRole("button", { name: /Добавлено/ })).toBeVisible();
 
   await page.goto("/request");
@@ -90,7 +91,7 @@ test("request flow survives add, quantity edit and mock submission", async ({ pa
   await page.getByLabel("Телефон").fill("+79990000000");
   await page.getByLabel("Email").fill("test@example.com");
   await page.getByLabel("Комментарий").fill("E2E acceptance");
-  await page.getByRole("button", { name: "Отправить менеджеру" }).click();
+  await page.getByRole("button", { name: "Отправить заявку" }).click();
 
   await expect(page.getByText(/Заявка принята\. Номер:/)).toBeVisible();
   await expect(page.getByText("Список пока пуст")).toBeVisible();

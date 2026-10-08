@@ -53,7 +53,6 @@ export function QuickLeadForm({ title = "Связаться с менеджер�
 
   return (
     <form className="lead-form panel" onSubmit={submit}>
-      <span className="eyebrow">Обратная связь</span>
       <h2>{title}</h2>
       <label>Компания<input name="company" placeholder="ООО «Пример»" /></label>
       <label>Контактное лицо<input name="name" required minLength={2} placeholder="Имя" /></label>

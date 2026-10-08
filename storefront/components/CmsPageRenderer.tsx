@@ -84,7 +84,6 @@ function CmsSection({ section }: { section: CmsPageSection }) {
     return (
       <section className="panel callout cms-section cms-cta">
         <div>
-          {section.subtitle && <span className="eyebrow">{section.subtitle}</span>}
           {section.title && <h2>{section.title}</h2>}
           {section.text && <p>{section.text}</p>}
         </div>
@@ -96,7 +95,6 @@ function CmsSection({ section }: { section: CmsPageSection }) {
   return (
     <section className={`panel cms-section cms-section-${section.section_type}`}>
       <div className="cms-section-copy">
-        {section.subtitle && <span className="eyebrow">{section.subtitle}</span>}
         {section.title && <h2>{section.title}</h2>}
         {section.text && <p>{section.text}</p>}
         <SectionButton section={section} />
@@ -128,7 +126,6 @@ export function CmsPageRenderer({ page }: { page: CmsPage }) {
       </div>
 
       <div className="page-title">
-        {page.eyebrow && <span className="eyebrow">{page.eyebrow}</span>}
         <h1>{page.h1 || page.title}</h1>
         {page.intro && <p>{page.intro}</p>}
       </div>

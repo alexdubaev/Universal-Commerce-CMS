@@ -2,11 +2,12 @@ import Link from "next/link";
 import type { NavigationItem, SiteSettings } from "@/lib/types";
 
 function FooterLink({ item }: { item: NavigationItem }) {
+  const label = item.url === "/request" ? "Корзина" : item.label;
   const external = !item.url.startsWith("/");
   if (external) {
-    return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined}>{item.label}</a>;
+    return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined}>{label}</a>;
   }
-  return <Link href={item.url}>{item.label}</Link>;
+  return <Link href={item.url}>{label}</Link>;
 }
 
 export function Footer({
@@ -18,34 +19,27 @@ export function Footer({
   navigation: NavigationItem[];
   legal: NavigationItem[];
 }) {
-  const midpoint = Math.ceil(navigation.length / 2);
-  const first = navigation.slice(0, midpoint);
-  const second = navigation.slice(midpoint);
-
   return (
     <footer className="site-footer">
       <div className="shell footer-grid">
         <div>
           <div className="brand footer-brand">
-            <span className="brand-mark" aria-hidden="true">◆</span>
-            <span>
-              <strong>{settings.company_name}</strong>
-              <small>запчасти для спецтехники</small>
-            </span>
+            <img className="brand-logo" src="/images/sm-techno-logo-transparent.webp" alt={settings.company_name} width="240" height="93" />
           </div>
           <p>{settings.footer_text || "B2B-каталог и поставка запчастей для спецтехники."}</p>
         </div>
 
         <div>
-          <strong>Навигация</strong>
-          {first.map((item) => <FooterLink item={item} key={item.id} />)}
+          <strong>Разделы</strong>
+          {navigation.map((item) => <FooterLink item={item} key={item.id} />)}
         </div>
 
         <div>
-          <strong>Компания</strong>
-          {second.map((item) => <FooterLink item={item} key={item.id} />)}
+          <strong>Контакты</strong>
           <a href={`mailto:${settings.email}`}>{settings.email}</a>
           <a href={`tel:${settings.phone.replace(/[^+\d]/g, "")}`}>{settings.phone}</a>
+          {settings.address && <span>{[settings.city, settings.address].filter(Boolean).join(", ")}</span>}
+          {settings.working_hours && <span>{settings.working_hours}</span>}
         </div>
 
         <div className="footer-note">

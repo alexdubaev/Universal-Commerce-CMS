@@ -18,10 +18,10 @@ export function ProductCard({ product }: { product: Product }) {
 
   return (
     <article className="product-card">
-      <Link className="product-art" href={`/product/${product.slug}`}>
+      <Link className="product-art" href={`/product/${product.slug}`} aria-label={product.title}>
         {product.main_image
-          ? <img src={`/api/assets/${product.main_image}`} alt="" loading="lazy" />
-          : <span>{product.brand.slice(0, 3).toUpperCase()}</span>}
+          ? <img src={`/api/assets/${product.main_image}`} alt={`${product.title} — ${product.brand}`} loading="lazy" />
+          : <span><b aria-hidden="true">⚙</b><small>Фото не предоставлено</small></span>}
       </Link>
       <div className="product-meta">
         <span>{product.brand}</span>
