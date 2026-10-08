@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-08T00:00:00+03:00",
+  "title": "Design System: СМ ТЕХНО",
+  "extensions": {
+    "shadows": [{"name":"panel","value":"0 18px 50px rgba(24,35,38,.1)","purpose":"Раскрывающиеся панели."}],
+    "motion": [{"name":"reveal","value":".65s cubic-bezier(.2,.7,.2,1)","purpose":"Появление разделов при обычной прокрутке; reduced-motion отключает движение."}],
+    "breakpoints": [{"name":"mobile","value":"520px"},{"name":"stacked","value":"820px"},{"name":"compact-desktop","value":"1024px"}]
+  },
+  "components": [
+    {"name":"Основная кнопка","kind":"button","refersTo":"button-primary","description":"Основное действие.","html":"<button class=\"ds-primary\">Открыть каталог</button>","css":".ds-primary{background:var(--accent,#f2c400);color:var(--accent-ink,#211c00);border:1px solid transparent;border-radius:0;min-height:54px;padding:0 25px;font-family:var(--font-sans,sans-serif);font-weight:750;cursor:pointer}.ds-primary:hover{background:var(--accent-strong,#ffd426)}.ds-primary:focus-visible{outline:2px solid #927900;outline-offset:3px}"},
+    {"name":"Вторичная кнопка","kind":"button","description":"Дополнительное действие.","html":"<button class=\"ds-secondary\">Отправить список</button>","css":".ds-secondary{background:#fff;color:var(--text,#20282b);border:1px solid var(--line-strong,#c7cecf);border-radius:0;min-height:54px;padding:0 25px;font-family:var(--font-sans,sans-serif);font-weight:750;cursor:pointer}.ds-secondary:hover{border-color:#927900}.ds-secondary:focus-visible{outline:2px solid #927900;outline-offset:3px}"},
+    {"name":"Поиск","kind":"input","description":"Поиск по артикулу/OEM.","html":"<input class=\"ds-search\" aria-label=\"Поиск запчастей\" placeholder=\"Введите артикул или OEM-номер\">","css":".ds-search{background:#fff;color:var(--text,#20282b);border:1px solid var(--line-strong,#c7cecf);border-radius:0;min-height:42px;padding:0 11px;font:16px var(--font-sans,sans-serif)}.ds-search:hover{border-color:#927900}.ds-search:focus-visible{outline:2px solid #927900;outline-offset:3px}"},
+    {"name":"Ссылка бренда","kind":"nav","description":"Равнозначный переход к бренду.","html":"<a class=\"ds-brand\" href=\"#\">Komatsu</a>","css":".ds-brand{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;background:#fff;border:1px solid var(--line,#e1e5e5);color:#394246;font:700 14px var(--font-sans,sans-serif);text-decoration:none}.ds-brand:hover{border-color:#927900}.ds-brand:focus-visible{outline:2px solid #927900;outline-offset:3px}"},
+    {"name":"Карточка","kind":"card","description":"Нейтральная поверхность карточки каталога.","html":"<article class=\"ds-card\"><strong>Запчасть</strong><p>Артикул</p></article>","css":".ds-card{background:#fff;border:1px solid var(--line,#e1e5e5);border-radius:0;padding:16px;color:var(--text,#20282b);font-family:var(--font-sans,sans-serif)}.ds-card:hover{border-color:#c6a500}.ds-card:focus-within{outline:2px solid #927900;outline-offset:3px} .ds-card p{color:var(--muted,#667277)}"}
+  ]
+}

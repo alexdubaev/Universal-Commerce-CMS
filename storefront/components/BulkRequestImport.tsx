@@ -8,7 +8,6 @@ export function BulkRequestImport() {
   return (
     <section className="bulk-import panel">
       <div>
-        <span className="eyebrow">Быстрый запрос</span>
         <h2>Загрузить список артикулов</h2>
         <p>Первая колонка — артикул, вторая — количество. Можно вставить список вручную или выбрать XLSX/CSV/TXT.</p>
       </div>

@@ -24,7 +24,7 @@ export default async function AboutPage() {
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>О компании</span></div>
       <section className="about-grid">
         <div className="page-title">
-          <span className="eyebrow">СМ ТЕХНО</span>
+
           <h1>Поставка запчастей без лишней сложности</h1>
           <p>Помогаем быстро найти нужную позицию по артикулу, собрать несколько товаров в одну заявку и согласовать поставку с менеджером.</p>
           <Link className="button primary" href="/contacts">Связаться с нами</Link>
@@ -43,12 +43,12 @@ export default async function AboutPage() {
       </section>
       <section className="two-columns">
         <article className="panel prose">
-          <span className="eyebrow">Подбор</span>
+
           <h2>Поиск начинается с номера детали</h2>
           <p>Введите артикул или OEM-номер. Если точной позиции нет в выдаче, отправьте запрос — менеджер сможет проверить замену или совместимый вариант.</p>
         </article>
         <article className="panel prose">
-          <span className="eyebrow">Закупка</span>
+
           <h2>Несколько позиций — одна заявка</h2>
           <p>Товары можно добавлять из каталога или загрузить списком. Это удобнее для закупок, где одновременно требуется несколько десятков артикулов.</p>
         </article>

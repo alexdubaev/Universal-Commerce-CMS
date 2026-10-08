@@ -61,7 +61,7 @@ export default async function ContactsPage() {
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Контакты</span></div>
       <div className="page-title">
-        <span className="eyebrow">Связаться с нами</span>
+
         <h1>Контакты</h1>
         <p>Позвоните, напишите или отправьте заявку через сайт — контактные данные берутся из настроек магазина.</p>
       </div>

@@ -8,7 +8,7 @@ export function AddToRequest({ product, full = false }: { product: Product; full
 
   return (
     <button className={full ? "button primary wide" : "card-action"} type="button" onClick={add}>
-      {added ? "Добавлено ✓" : full ? "Добавить в заявку" : "В заявку"}
+      {added ? "Добавлено ✓" : full ? "Добавить в корзину" : "В корзину"}
     </button>
   );
 }

@@ -26,14 +26,14 @@ export default async function DeliveryPage() {
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Доставка</span></div>
       <div className="page-title">
-        <span className="eyebrow">Логистика</span>
+
         <h1>Доставка {region}</h1>
         <p>Способ, стоимость и срок доставки согласуются при подтверждении заявки с учётом склада, веса и габаритов заказа.</p>
       </div>
 
       <section className="info-hero panel">
         <div>
-          <span className="eyebrow">B2B поставка</span>
+
           <h2>От комплектации до передачи перевозчику</h2>
           <p>После согласования заказа менеджер подтверждает вариант отгрузки и передаёт информацию для отслеживания.</p>
         </div>
@@ -49,13 +49,13 @@ export default async function DeliveryPage() {
 
       <section className="two-columns">
         <article className="panel prose">
-          <span className="eyebrow">Варианты</span>
+
           <h2>До терминала или до адреса</h2>
           <p>Конкретный перевозчик и способ доставки выбираются при согласовании заказа. Для крупногабаритных и тяжёлых деталей условия рассчитываются отдельно.</p>
           <ul><li>Отправка до терминала</li><li>Доставка до адреса</li><li>Дополнительная упаковка при необходимости</li><li>Отдельный расчёт негабаритных грузов</li></ul>
         </article>
         <article className="panel prose">
-          <span className="eyebrow">Расчёт</span>
+
           <h2>Нужен срок и стоимость?</h2>
           <p>Добавьте позиции в заявку — менеджер сможет рассчитать поставку по конкретному составу заказа.</p>
           <Link className="button primary" href="/request">Рассчитать поставку</Link>

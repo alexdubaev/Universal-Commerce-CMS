@@ -24,7 +24,7 @@ export default async function PaymentPage() {
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Оплата</span></div>
       <div className="page-title">
-        <span className="eyebrow">B2B расчёты</span>
+
         <h1>Оплата по согласованным условиям</h1>
         <p>После проверки состава заявки менеджер подтверждает цену, срок поставки и формирует документы для оплаты.</p>
       </div>
@@ -34,7 +34,7 @@ export default async function PaymentPage() {
         <article className="panel"><span className="feature-number">03</span><h2>Документы</h2><p>{settings.vat_info || "Налоговые условия и комплект документов указываются в предложении и счёте."}</p></article>
       </section>
       <section className="panel callout">
-        <div><span className="eyebrow">Нужен расчёт?</span><h2>Отправьте список позиций</h2><p>Артикулы из каталога, ручной список, CSV или XLSX попадут в одну заявку.</p></div>
+        <div><h2>Отправьте список позиций</h2><p>Артикулы из каталога, ручной список, CSV или XLSX попадут в одну заявку.</p></div>
         <Link className="button primary" href="/request">Создать заявку</Link>
       </section>
     </div>
