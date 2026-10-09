@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Writable } from 'node:stream';
+import { Readable, Writable } from 'node:stream';
 import { registerStorefrontGateway } from '../extensions/commerce-api/src/storefront.mjs';
 import { leadFingerprint } from '../extensions/commerce-api/src/leads.mjs';
 
@@ -368,4 +368,143 @@ test('lead gateway replays and conflicts stay within the configured owner and ex
   const conflict = await h.invoke('/storefront/leads', { method: 'POST', body: { ...body, lead: { ...body.lead, name: 'Changed Name' } } });
   assert.equal(conflict.statusCode, 409);
   assert.equal(JSON.stringify(conflict.body).includes('private-file-id'), false);
+});
+
+
+// Exercise the handler with records and an in-memory Directus query boundary.
+// Removing the server publication predicate would expose draft/future records.
+function articleHarness({ folder = FOLDER, articleRows } = {}) {
+  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const rows = articleRows ?? [
+    { id: USER, slug: 'published', title: 'Public', status: 'published', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
+    { id: FOLDER, slug: 'draft', title: 'Private', status: 'draft', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
+    { id: assetId, slug: 'future', title: 'Scheduled', status: 'published', published_at: '2999-01-01T00:00:00.000Z', og_image: assetId },
+    { id: assetId, slug: 'archived', status: 'archived', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
+    { id: assetId, slug: 'missing-date', status: 'published', published_at: null, cover_image: assetId },
+  ];
+  const matches = (row, filter) => Object.entries(filter).every(([field, expression]) => {
+    if (field === '_and') return expression.every(term => matches(row, term));
+    if (field === '_or') return expression.some(term => matches(row, term));
+    return Object.entries(expression).every(([operator, value]) => {
+      if (operator === '_eq') return row[field] === value;
+      if (operator === '_nnull') return row[field] != null;
+      if (operator === '_lte') return row[field] != null && Date.parse(row[field]) <= Date.parse(value);
+      throw new Error(`Unsupported fixture operator ${operator}`);
+    });
+  });
+  class ItemsService {
+    constructor(collection) { this.collection = collection; }
+    async readByQuery(query) {
+      if (this.collection === 'directus_files') return matches({ id: assetId, folder }, query.filter) ? [{ id: assetId, folder }] : [];
+      if (this.collection !== 'articles') return [];
+      const filtered = rows.filter(row => matches(row, query.filter));
+      if (query.aggregate) return [{ count: { id: filtered.length } }];
+      return filtered.slice((query.page - 1 || 0) * query.limit, (query.page || 1) * query.limit).map(row => Object.fromEntries(query.fields.filter(field => field in row).map(field => [field, row[field]])));
+    }
+  }
+  class AssetsService {
+    async getAsset() { return { file: { type: 'image/png', filename_download: 'cover.png' }, stream: async () => Readable.from(['article cover']) }; }
+  }
+  return { ...harness({ services: { ItemsService, AssetsService } }), assetId };
+}
+
+test('articles independently pin publication and due date for list, detail and count', async () => {
+  const h = articleHarness();
+  for (const filter of [undefined, JSON.stringify({ published_at: { _lte: '2999-12-01T00:00:00.000Z' } })]) {
+    const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug,title', meta: 'filter_count', limit: '1', ...(filter ? { filter } : {}) } });
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.body, { data: [{ slug: 'published', title: 'Public' }], meta: { filter_count: 1 } });
+    assert.equal(res.headers['Cache-Control'], 'no-store');
+  }
+  for (const slug of ['draft','future','archived','missing-date']) {
+    const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug', filter: JSON.stringify({ slug: { _eq: slug } }) } });
+    assert.equal(res.statusCode, 200); assert.deepEqual(res.body.data, []);
+  }
+  const beforePublication = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { published_at: { _lte: '2019-01-01T00:00:00.000Z' } }] }) } });
+  assert.deepEqual(beforePublication.body.data, []);
+});
+
+test('articles deny status, relation, fields, date and query escalations before reads', async () => {
+  const h = harness();
+  const invalidQueries = [
+    { fields: '*' }, { fields: 'content_blocks' }, { fields: 'author.email' },
+    { filter: JSON.stringify({ status: { _eq: 'draft' } }) },
+    { filter: JSON.stringify({ _or: [{ status: { _eq: 'published' } }, { status: { _eq: 'draft' } }] }) },
+    { filter: JSON.stringify({ product: { status: { _eq: 'published' } } }) },
+    { filter: JSON.stringify({ published_at: { _gte: '2020-01-01T00:00:00.000Z' } }) },
+    ...['invalid','2026-02-30T00:00:00.000Z','2026-01-01','2026-01-01T25:00:00.000Z'].map(date => ({ filter: JSON.stringify({ published_at: { _lte: date } }) })),
+    { sort: '-updated_at' }, { limit: '25' }, { limit: '500', fields: 'slug,content', sort: 'slug' },
+    { limit: '501', fields: 'slug,published_at', sort: 'slug' }, { offset: '1' }, { deep: '{}' },
+  ];
+  for (const query of invalidQueries) {
+    const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query });
+    assert.equal(res.statusCode, 400, JSON.stringify(query));
+  }
+  assert.equal(h.calls.length, 0);
+});
+
+test('article normal paging and narrow sitemap return only public due rows', async () => {
+  const h = articleHarness();
+  for (const query of [{ limit: '24', page: '1', sort: '-published_at,slug' }, { limit: '500', fields: 'slug,published_at', sort: 'slug', page: '1' }]) {
+    const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query });
+    assert.equal(res.statusCode, 200); assert.equal(res.body.data.length, 1);
+    assert.equal(res.body.data[0].slug, 'published');
+  }
+  const res = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { limit: '1', page: '2', meta: 'filter_count' } });
+  assert.deepEqual(res.body, { data: [], meta: { filter_count: 1 } });
+});
+
+test('article assets require approved folder and published due cover or OG reference', async () => {
+  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  for (const field of ['cover_image','og_image']) {
+    const article = { id: USER, status: 'published', published_at: '2020-01-01T00:00:00.000Z', [field]: assetId };
+    for (const changed of [{}, { status: 'draft' }, { status: 'archived' }, { published_at: '2999-01-01T00:00:00.000Z' }, { published_at: null }]) {
+      const h = articleHarness({ articleRows: [{ ...article, ...changed }] });
+      const response = await h.invoke('/storefront/assets/:id', { params: { id: assetId } });
+      assert.equal(response.statusCode, Object.keys(changed).length ? 404 : 200, `${field} ${JSON.stringify(changed)}`);
+      const reference = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'id', limit: '1', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { published_at: { _lte: new Date().toISOString() } }, { [field]: { _eq: assetId } }] }) } });
+      assert.equal(reference.statusCode, 200);
+      assert.equal(reference.body.data.length, Object.keys(changed).length ? 0 : 1);
+    }
+    const privateFolder = articleHarness({ folder: USER, articleRows: [article] });
+    assert.equal((await privateFolder.invoke('/storefront/assets/:id', { params: { id: assetId } })).statusCode, 404);
+  }
+});
+
+test('article sitemap adapter projection includes status for independent client validation', async () => {
+  const h = articleHarness();
+  const query = {
+    fields: 'status,slug,published_at', sort: 'slug', limit: '500',
+    filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { published_at: { _lte: new Date().toISOString() } }] }),
+  };
+  const response = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query });
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body.data, [{ status: 'published', slug: 'published', published_at: '2020-01-01T00:00:00.000Z' }]);
+  for (const changed of [{ limit: '501' }, { fields: 'id,status,slug,published_at' }, { fields: 'status,slug,published_at,content' }, { sort: '-published_at,slug' }]) {
+    const invalid = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { ...query, ...changed } });
+    assert.equal(invalid.statusCode, 400);
+  }
+});
+
+test('article pagination after page 1000 preserves publication within a bounded record window', async () => {
+  const publicRow = { id: USER, status: 'published', published_at: '2020-01-01T00:00:00.000Z' };
+  const h = articleHarness({ articleRows: [
+    ...Array.from({ length: 1000 }, (_, index) => ({ ...publicRow, slug: `a-${index}` })),
+    { ...publicRow, slug: 'private-draft', status: 'draft' },
+    { ...publicRow, slug: 'private-future', published_at: '2999-01-01T00:00:00.000Z' },
+    { ...publicRow, slug: 'zz-page-1001' },
+  ] });
+  const query = {
+    fields: 'status,slug,published_at', page: '1001', limit: '1', meta: 'filter_count', sort: '-published_at,slug',
+    filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { published_at: { _lte: new Date().toISOString() } }] }),
+  };
+  const response = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query });
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body, { data: [{ status: 'published', slug: 'zz-page-1001', published_at: publicRow.published_at }], meta: { filter_count: 1001 } });
+  for (const changed of [{ page: '1000002' }, { page: '41668', limit: '24' }, { page: '9007199254740992' }]) {
+    const rejected = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { ...query, ...changed } });
+    assert.equal(rejected.statusCode, 400);
+  }
+  const otherCollection = await h.invoke('/storefront/items/:collection', { params: { collection: 'products' }, query: { page: '1001', limit: '1' } });
+  assert.equal(otherCollection.statusCode, 400);
 });

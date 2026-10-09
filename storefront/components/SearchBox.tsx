@@ -8,11 +8,13 @@ export function SearchBox({
   initial = "",
   placeholder = "Введите артикул или OEM-номер",
   buttonLabel = "Найти",
+  inputId,
 }: {
   compact?: boolean;
   initial?: string;
   placeholder?: string;
   buttonLabel?: string;
+  inputId?: string;
 }) {
   const {
     query, suggestions, history, hydrated, showHistory, showSuggestions,
@@ -24,6 +26,7 @@ export function SearchBox({
       <form className={compact ? "search-box compact" : "search-box"} onSubmit={submit} role="search">
         <span className="search-icon" aria-hidden="true">⌕</span>
         <input
+          id={inputId}
           disabled={!hydrated}
           value={query}
           onChange={(event) => changeQuery(event.target.value)}

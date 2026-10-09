@@ -1,18 +1,25 @@
-/*
- * Active storefront visual theme.
- *
- * DESIGN-ONLY SAFE SURFACE:
- * Future redesigns should start here before changing component/layout CSS.
- * Business logic, Directus adapters and API routes must not depend on these values.
- */
+/* Canonical light storefront palette. */
+@font-face {
+  font-family: "Oswald";
+  src: url("/fonts/Oswald-Variable.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 200 700;
+  font-display: swap;
+}
 
 :root {
   /* Typography */
   --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: "Oswald", Impact, "Arial Narrow", sans-serif;
+  --font-body-size: 16px;
+  --font-secondary-size: 13px;
+  --font-control-size: 14px;
+  --line-height-body: 1.55;
+  --space-section: 48px;
 
   /* Canvas */
-  --bg: #090e12;
-  --bg-soft: #0e151b;
+  --bg: #fff;
+  --bg-soft: #f6f7f7;
   --bg-gradient-start: #0a1014;
 
   /* RGB primitives for translucent borders, overlays and shadows. */
@@ -20,9 +27,9 @@
   --black-rgb: 0, 0, 0;
 
   /* Surfaces */
-  --surface: #121a20;
-  --surface-2: #172128;
-  --surface-3: #1d2931;
+  --surface: #fff;
+  --surface-2: #f6f7f7;
+  --surface-3: #ecefef;
   --surface-light: #fff;
   --surface-media: #e9ecec;
   --surface-product-art: #e8ebeb;
@@ -47,12 +54,12 @@
   --hero-image-overlay-end: rgba(5,9,12,.78);
 
   /* Borders */
-  --line: rgba(var(--white-rgb),.09);
-  --line-strong: rgba(var(--white-rgb),.16);
+  --line: #e1e5e5;
+  --line-strong: #c7cecf;
 
   /* Text */
-  --text: #f4f7f8;
-  --muted: #8d9aa2;
+  --text: #20282b;
+  --muted: #566267;
   --text-navigation: #c8d0d5;
   --text-hero-copy: #b7c1c6;
   --text-search-icon: #1d272d;
@@ -74,26 +81,120 @@
   --text-footer-bottom: #56636b;
 
   /* Brand accent */
-  --accent: #f6c916;
-  --accent-strong: #ffd51f;
-  --accent-ink: #171300;
-  --accent-rgb: 246, 201, 22;
+  --accent: #f2c400;
+  --accent-strong: #ffd426;
+  --accent-ink: #211c00;
+  --accent-rgb: 242, 196, 0;
 
   /* Status */
-  --success: #4fd17a;
+  --success: #18834b;
   --success-rgb: 79, 209, 122;
-  --danger: #ff7272;
+  --danger: #b83232;
   --availability-on-request: #d4a94b;
 
   /* Standalone global error uses browser canvas/text defaults. */
   --global-error-border: #333;
 
   /* Shape */
-  --radius: 16px;
-  --radius-sm: 11px;
+  --radius: 0;
+  --radius-sm: 0;
 
   /* Depth */
-  --shadow: 0 22px 60px rgba(var(--black-rgb),.28);
+  --shadow: 0 18px 50px rgba(24, 35, 38, .1);
+
+  /* Light industrial components and translucent overlays. */
+  --surface-header-light: rgba(255,255,255,.96);
+  --surface-hero-links: rgba(255,255,255,.97);
+  --hero-overlay-start: rgba(255,255,255,.18);
+  --hero-overlay-middle: rgba(255,255,255,.05);
+  --hero-cms-overlay-middle: rgba(255,255,255,.74);
+  --hero-cms-overlay-end: rgba(255,255,255,.15);
+  --hero-mobile-overlay-start: rgba(241,242,242,.12);
+  --hero-cms-overlay-start: rgba(255,255,255,.9);
+  --category-overlay-end: rgba(11,14,15,.78);
+  --shadow-card-color: #19272908;
+  --shadow-card-hover-color: #19272914;
+  --shadow-input-focus-color: #f2c40025;
+  --shadow-category-hover-color: #20282b12;
+  --shadow-hero-links-color: #131a1c12;
+  --surface-accent-open: #fff9df;
+  --border-accent-open: #c8ab13;
+  --text-catalog-menu: #536064;
+  --text-catalog-menu-hover: #705d00;
+  --surface-accent-icon: #fff4bd;
+  --text-category-icon: #715d00;
+  --text-product-art-label: #657174;
+  --text-product-art-symbol: #a0a9aa;
+  --surface-row: #f8f9f9;
+  --text-active-filter: #485457;
+  --text-link: #6d5a00;
+  --text-placeholder-label: #788386;
+  --text-placeholder-brand: #596467;
+  --text-placeholder-sku: #7a8587;
+  --surface-about: #f0f2f2;
+  --text-about-heading: #313a3d;
+  --text-prose: #566267;
+  --text-step-number: #796300;
+  --text-accent-link: #766100;
+  --text-nav-light: #3d484c;
+  --text-nav-hover: #806900;
+  --border-request-hover: #c4a100;
+  --text-machine-kicker: #ffda25;
+  --text-service-icon: #8a7100;
+  --text-brand-link: #596468;
+  --border-card-hover: #d7b000;
+  --surface-product-art-start: #f4f5f5;
+  --surface-product-art-end: #e9eded;
+  --text-product-fallback: #6e777a;
+  --text-stock-on-request: #7a6200;
+  --text-sku-light: #344044;
+  --border-card-action: #d0ad00;
+  --text-card-action: #251f00;
+  --surface-card-action-hover: #ffda35;
+  --surface-service-tint: #fffbe9;
+  --border-button-hover: #b19600;
+  --text-button-hover: #6c5900;
+  --text-breadcrumb-light: #718084;
+  --surface-filters: #fafbfb;
+  --text-filter-heading: #303b3f;
+  --text-filter-link: #59666a;
+  --surface-filter-active: #fff4bf;
+  --text-filter-active: #635000;
+  --text-filter-note-light: #748084;
+  --surface-footer-light: #f5f6f6;
+  --text-source-light: #4d595d;
+  --text-pagination: #586468;
+  --text-pagination-active: #554600;
+  --border-pagination-active: #c7a600;
+  --surface-brand-hero: #f8f8f5;
+  --surface-brand-monogram-start: #fff7c9;
+  --text-brand-stat: #776100;
+  --surface-product-media-light: #f1f3f3;
+  --text-product-tag: #526064;
+  --text-form-label: #465357;
+  --border-input-focus: #b69a00;
+  --text-form-hint-light: #69767a;
+  --surface-info: #f7f8f8;
+  --surface-search-hover: #fff8d9;
+  --surface-cms-cta-start: #fffbe8;
+  --border-category: #d9dede;
+  --border-category-hover: #c6a500;
+  --focus-ring: #927900;
+  --text-menu-toggle: #303a3d;
+  --surface-hero: #f1f3f5;
+  --text-hero-eyebrow: #394145;
+  --text-hero-heading: #101214;
+  --text-hero-description: #30383b;
+  --border-hero-links: #eceeee;
+  --surface-hero-link-hover: #fffbea;
+  --text-brand-strip: #394246;
+  --text-all-brands: #655400;
+  --surface-category-art: #e9ebeb;
+  --text-cart-link: #171a1b;
+  --surface-hero-mobile: #f1f2f2;
+  --surface-hero-image-mobile: #ebeded;
+  --surface-cart-hover: #e3b800;
+  --text-brand-mark: #222;
 
   /* Layout */
   --shell: 1320px;

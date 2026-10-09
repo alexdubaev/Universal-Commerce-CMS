@@ -1,20 +1,21 @@
 import { expect, test } from "@playwright/test";
 
 test("search to product to request submission", async ({ page }) => {
+  await page.route("**/api/lead", route => route.fulfill({ json: { id: "accepted-critical-journey" } }));
   await page.goto("/");
   const search = page.getByRole("search");
   await search.getByRole("textbox").fill("RE-568158");
   await search.getByRole("button", { name: "Найти" }).click();
   await page.locator(".product-card").filter({ hasText: "RE568158" })
-    .getByRole("link", { name: "Фильтр масляный" }).click();
-  await page.getByRole("button", { name: "Добавить в заявку" }).click();
+    .getByRole("link", { name: "Фильтр масляный" }).first().click();
+  await page.locator(".product-info").getByRole("button", { name: "Добавить в заявку", exact: true }).click();
   await page.goto("/request");
   const line = page.locator(".request-line").filter({ hasText: "RE568158" });
   await line.getByRole("button", { name: /Увеличить количество/ }).click();
   await expect(line.locator(".qty b")).toHaveText("2");
   await page.getByLabel("Контактное лицо").fill("Иван");
   await page.getByLabel("Телефон").fill("+79990000000");
-  await page.getByRole("button", { name: "Отправить менеджеру" }).click();
+  await page.getByRole("button", { name: "Отправить заявку" }).click();
   await expect(page.getByText(/Заявка принята\. Номер:/)).toBeVisible();
   await expect(page.getByText("Список пока пуст")).toBeVisible();
 });
@@ -37,11 +38,12 @@ test("retry preserves its key and acknowledges only submitted quantities", async
       : { json: { id: "accepted-retry" } });
   });
   await page.goto("/request");
-  await page.getByLabel("Артикулы").fill("RE568158 3");
+  await page.getByText("Добавить позиции списком или из файла").click();
+  await page.getByLabel("Артикул и количество, по одной позиции в строке").fill("RE568158 3");
   await page.getByRole("button", { name: "Добавить список" }).click();
   await page.getByLabel("Контактное лицо").fill("Иван");
   await page.getByLabel("Телефон").fill("+79990000000");
-  const submit = page.getByRole("button", { name: "Отправить менеджеру" });
+  const submit = page.getByRole("button", { name: "Отправить заявку" });
   await submit.click();
   await expect(page.locator(".lead-form").getByRole("alert")).toHaveText("Временная ошибка");
   await expect(page.locator(".request-line .qty b")).toHaveText("3");

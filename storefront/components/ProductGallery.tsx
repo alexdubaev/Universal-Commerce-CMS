@@ -36,9 +36,9 @@ export function ProductGallery({
 
   if (!current) {
     return (
-      <div className="product-placeholder">
-        <span>{brand}</span>
-        <strong>{sku}</strong>
+      <div className="product-placeholder product-placeholder-compact" aria-label={`Для ${brand} ${sku} фото не предоставлено`}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="1" /><circle cx="8" cy="8" r="1.5" /><path d="m3 17 5-5 4 4 4-6 5 7" /></svg>
+        <span>Фото не предоставлено</span>
       </div>
     );
   }

@@ -4,16 +4,21 @@ import { CmsPageRenderer } from "@/components/CmsPageRenderer";
 import { QuickLeadForm } from "@/components/QuickLeadForm";
 import { getSiteSettings } from "@/lib/catalog";
 import { getCmsPage } from "@/lib/content";
-import { safeCanonicalUrl } from "@/lib/seo";
+import { absoluteUrl, safeCanonicalUrl } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getCmsPage("contacts");
+  const title = page?.seo_title || page?.title || "Контакты";
+  const description = page?.seo_description || page?.intro || "Контакты СМ ТЕХНО для заявок и подбора запчастей для спецтехники.";
   return {
-    title: page?.seo_title || page?.title || "Контакты",
-    description: page?.seo_description || page?.intro || "Контакты СМ ТЕХНО для заявок и подбора запчастей для спецтехники.",
+    title,
+    description,
     alternates: { canonical: safeCanonicalUrl(page?.canonical_url, "/contacts") },
     robots: page?.is_indexable === false ? { index: false, follow: true } : undefined,
-    openGraph: page?.og_image ? { images: [{ url: `/api/assets/${page.og_image}` }] } : undefined,
+    openGraph: {
+      type: "website", title, description, url: absoluteUrl("/contacts"),
+      images: [{ url: absoluteUrl(page?.og_image ? `/api/assets/${page.og_image}` : "/images/hero-industrial-v3.webp") }],
+    },
   };
 }
 
@@ -35,7 +40,7 @@ function ContactGrid({ settings }: { settings: Awaited<ReturnType<typeof getSite
         <div className="contact-map">
           <span>КОНТАКТЫ</span>
           <strong>{settings.city || settings.company_name}</strong>
-          <small>{settings.address || "Адрес и схема проезда указываются в настройках магазина"}</small>
+          <small>{settings.address || "Перед посещением уточните адрес по телефону или email"}</small>
         </div>
       </section>
       <QuickLeadForm title="Написать нам" />
@@ -61,9 +66,9 @@ export default async function ContactsPage() {
     <div className="shell page-shell">
       <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Контакты</span></div>
       <div className="page-title">
-        <span className="eyebrow">Связаться с нами</span>
+
         <h1>Контакты</h1>
-        <p>Позвоните, напишите или отправьте заявку через сайт — контактные данные берутся из настроек магазина.</p>
+        <p>Свяжитесь с нами по телефону, email или через форму. Для расчёта укажите артикулы и количество; сведения о технике добавьте в комментарий.</p>
       </div>
       <ContactGrid settings={settings} />
     </div>

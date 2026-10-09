@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
-import { SearchBox } from "@/components/SearchBox";
+import { ResponsiveFilters } from "@/components/ResponsiveFilters";
 import { getBrands, getCategories, getProducts } from "@/lib/catalog";
 import type { Availability, PartType, SortOption } from "@/lib/types";
 
@@ -62,18 +62,55 @@ export default async function CatalogPage({ searchParams }: Props) {
 
   return (
     <div className="shell page-shell">
-      <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Каталог</span></div>
-      <div className="catalog-head">
-        <div>
-          <span className="eyebrow">Мультибрендовый каталог</span>
+      <div className="breadcrumbs catalog-breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Каталог</span></div>
+      <div className="catalog-layout">
+        <div className="catalog-heading-row">
+        <div className="catalog-head">
           <h1>Каталог запчастей</h1>
           <p>Артикулы, OEM-коды, бренды, категории, наличие и тип запчасти.</p>
         </div>
-        <SearchBox compact initial={params.q ?? ""} />
-      </div>
+        <div className="catalog-controls">
+          {(params.q || params.brand || params.category || params.availability || params.partType) && <div className="active-filters" aria-label="Активные фильтры">
+            {params.q && <Link href={href(params, { q: undefined, page: undefined })}>Поиск: {params.q} <b aria-hidden="true">×</b></Link>}
+            {params.brand && <Link href={href(params, { brand: undefined, page: undefined })}>Бренд: {brandList.find((item) => item.slug === params.brand)?.name ?? params.brand} <b aria-hidden="true">×</b></Link>}
+            {params.category && <Link href={href(params, { category: undefined, page: undefined })}>Категория: {categories.find((item) => item.slug === params.category)?.title ?? params.category} <b aria-hidden="true">×</b></Link>}
+            {params.availability && <Link href={href(params, { availability: undefined, page: undefined })}>Наличие: {params.availability === "in_stock" ? "В наличии" : params.availability === "out_of_stock" ? "Нет в наличии" : "Под заказ"} <b aria-hidden="true">×</b></Link>}
+            {params.partType && <Link href={href(params, { partType: undefined, page: undefined })}>Тип: {params.partType === "original" ? "Оригинал" : params.partType === "analog" ? "Аналог" : "OEM"} <b aria-hidden="true">×</b></Link>}
+            <Link className="active-filters-reset" href="/catalog">Сбросить все</Link>
+          </div>}
+          <div className="catalog-toolbar">
+            <span>Найдено: <strong>{result.total}</strong></span>
+            <div className="catalog-toolbar-right">
+              <form action="/catalog" method="get">
+                {params.q && <input type="hidden" name="q" value={params.q} />}
+                {params.brand && <input type="hidden" name="brand" value={params.brand} />}
+                {params.category && <input type="hidden" name="category" value={params.category} />}
+                {params.availability && <input type="hidden" name="availability" value={params.availability} />}
+                {params.partType && <input type="hidden" name="partType" value={params.partType} />}
+                <select name="sort" defaultValue={params.sort ?? "popular"} aria-label="Сортировка">
+                  <option value="popular">По умолчанию</option>
+                  <option value="price_asc">Сначала дешевле</option>
+                  <option value="price_desc">Сначала дороже</option>
+                  <option value="title">По названию</option>
+                </select>
+                <button className="sort-apply" type="submit">Применить</button>
+              </form>
+            </div>
+          </div>
 
-      <div className="catalog-layout">
+        </div>
+        </div>
+        <ResponsiveFilters>
+        <summary>Фильтры и подбор</summary>
         <aside className="filters panel">
+          <details open>
+            <summary>Категории</summary>
+            <div className="filter-links">
+              <Link className={!params.category ? "active" : ""} href={href(params, { category: undefined, page: undefined })}>Все категории</Link>
+              {categories.map((category) => <Link className={params.category === category.slug ? "active" : ""} href={href(params, { category: category.slug, page: undefined })} key={category.slug}>{category.title}</Link>)}
+            </div>
+          </details>
+
           <details open>
             <summary>Бренд</summary>
             <div className="filter-links">
@@ -93,15 +130,8 @@ export default async function CatalogPage({ searchParams }: Props) {
           <form className="facet-form" action="/catalog" method="get">
             {params.q && <input type="hidden" name="q" value={params.q} />}
             {params.brand && <input type="hidden" name="brand" value={params.brand} />}
+            {params.category && <input type="hidden" name="category" value={params.category} />}
             {params.sort && <input type="hidden" name="sort" value={params.sort} />}
-
-            <label>
-              Категория
-              <select name="category" defaultValue={params.category ?? ""}>
-                <option value="">Все категории</option>
-                {categories.map((category) => <option value={category.slug} key={category.slug}>{category.title}</option>)}
-              </select>
-            </label>
 
             <label>
               Наличие
@@ -124,35 +154,12 @@ export default async function CatalogPage({ searchParams }: Props) {
             </label>
 
             <button className="button secondary wide" type="submit">Применить фильтры</button>
-            {(params.category || params.availability || params.partType) && (
-              <Link className="reset-filters" href={href(params, { category: undefined, availability: undefined, partType: undefined, page: undefined })}>
-                Сбросить фильтры
-              </Link>
-            )}
+            {(params.q || params.brand || params.category || params.availability || params.partType || params.sort) && <Link className="reset-filters" href="/catalog">Сбросить все фильтры</Link>}
           </form>
         </aside>
+        </ResponsiveFilters>
 
         <section className="catalog-content">
-          <div className="catalog-toolbar">
-            <span>Найдено: <strong>{result.total}</strong></span>
-            <div className="catalog-toolbar-right">
-              <form action="/catalog" method="get">
-                {params.q && <input type="hidden" name="q" value={params.q} />}
-                {params.brand && <input type="hidden" name="brand" value={params.brand} />}
-                {params.category && <input type="hidden" name="category" value={params.category} />}
-                {params.availability && <input type="hidden" name="availability" value={params.availability} />}
-                {params.partType && <input type="hidden" name="partType" value={params.partType} />}
-                <select name="sort" defaultValue={params.sort ?? "popular"} aria-label="Сортировка" onChange={undefined}>
-                  <option value="popular">Популярные</option>
-                  <option value="price_asc">Сначала дешевле</option>
-                  <option value="price_desc">Сначала дороже</option>
-                  <option value="title">По названию</option>
-                </select>
-                <button className="sort-apply" type="submit">ОК</button>
-              </form>
-            </div>
-          </div>
-
           {result.items.length ? (
             <div className="product-grid catalog-grid">
               {result.items.map((product) => <ProductCard product={product} key={product.id} />)}
@@ -160,21 +167,21 @@ export default async function CatalogPage({ searchParams }: Props) {
           ) : (
             <div className="panel empty-state">
               <h2>Ничего не найдено</h2>
-              <p>Измените фильтры, проверьте артикул или отправьте список менеджеру.</p>
-              <Link className="button primary" href="/request">Отправить заявку</Link>
+              <p>Проверьте артикул или измените фильтры. Вы также можете передать артикул для подбора в заявке.</p>
+              <Link className="button primary" href={`/request?import=1${params.q ? `&article=${encodeURIComponent(params.q)}` : ""}`}>{params.q ? "Передать артикул для подбора" : "Передать список для подбора"}</Link>
             </div>
           )}
 
           {maxPage > 1 && (
             <nav className="pagination" aria-label="Пагинация">
-              {page > 1 && <Link href={href(params, { page: String(page - 1) })}>←</Link>}
+              {page > 1 && <Link aria-label="Предыдущая страница" href={href(params, { page: String(page - 1) })}>←</Link>}
               {pageItems.map((number, index) => (
                 <span className="pagination-slot" key={number}>
                   {index > 0 && pageItems[index - 1] !== number - 1 && <span className="ellipsis">…</span>}
-                  <Link className={number === page ? "active" : ""} href={href(params, { page: String(number) })}>{number}</Link>
+                  <Link className={number === page ? "active" : ""} aria-current={number === page ? "page" : undefined} href={href(params, { page: String(number) })}>{number}</Link>
                 </span>
               ))}
-              {page < maxPage && <Link href={href(params, { page: String(page + 1) })}>→</Link>}
+              {page < maxPage && <Link aria-label="Следующая страница" href={href(params, { page: String(page + 1) })}>→</Link>}
             </nav>
           )}
         </section>

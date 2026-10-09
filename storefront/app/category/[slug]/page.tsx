@@ -33,7 +33,7 @@ export default async function CategoryPage({ params }: Props) {
         <span>{category.title}</span>
       </div>
       <div className="page-title category-title">
-        <span className="eyebrow">Категория</span>
+
         <h1>{category.h1 || category.title}</h1>
         <p>{category.intro || category.description || "Товары выбранной категории."}</p>
         <Link className="button secondary" href={`/catalog?category=${category.slug}`}>Открыть с фильтрами</Link>

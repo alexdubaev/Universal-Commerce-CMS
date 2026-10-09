@@ -4,23 +4,28 @@ import { BulkRequestImport } from "@/components/BulkRequestImport";
 import { RequestClient } from "@/components/RequestClient";
 
 export const metadata: Metadata = {
-  title: "Заявка по списку",
-  description: "Отправьте список артикулов запчастей: вручную, CSV или XLSX.",
+  title: "Ваша заявка",
+  description: "Проверьте список товаров и отправьте заявку на расчёт.",
   alternates: { canonical: "/request" },
   robots: { index: false, follow: false },
 };
 
-export default function RequestPage() {
+export default async function RequestPage({ searchParams }: {
+  searchParams: Promise<{ import?: string | string[]; article?: string | string[] }>;
+}) {
+  const query = await searchParams;
+  const article = typeof query.article === "string" ? query.article : "";
   return (
-    <div className="shell page-shell">
-      <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Заявка</span></div>
-      <div className="page-title">
-        <span className="eyebrow">RFQ / заявка по списку</span>
-        <h1>Запросить предложение</h1>
-        <p>Добавьте товары из каталога, вставьте артикулы вручную или загрузите XLSX/CSV. Всё собирается в одну B2B-заявку.</p>
+    <div className="shell page-shell request-page">
+      <div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>Ваша заявка</span></div>
+      <div className="page-title request-title">
+        <h1>Ваша заявка</h1>
+        <p>Проверьте артикулы и количество. Отправьте список для уточнения наличия и стоимости.</p>
       </div>
-      <BulkRequestImport />
-      <div className="request-spacer" />
+      <details className="bulk-request-details" id="request-import" open={query.import === "1"}>
+        <summary>Добавить позиции списком или из файла</summary>
+        <BulkRequestImport initialArticle={article} />
+      </details>
       <RequestClient />
     </div>
   );

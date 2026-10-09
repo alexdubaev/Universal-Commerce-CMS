@@ -28,6 +28,7 @@ export function allowMockFallback() {
 type DirectusInit = RequestInit & { revalidate?: number };
 
 const gatewayCollections = new Set([
+  "articles",
   "categories",
   "home_page",
   "navigation_items",
