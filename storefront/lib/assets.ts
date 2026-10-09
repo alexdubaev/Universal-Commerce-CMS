@@ -108,6 +108,13 @@ export async function isStorefrontAssetAllowed(id: string) {
         },
       ],
     }],
+    ...["cover_image", "og_image"].map((field): [string, Record<string, unknown>] => ["articles", {
+      _and: [
+        { status: { _eq: "published" } },
+        { published_at: { _lte: new Date().toISOString() } },
+        { [field]: { _eq: id } },
+      ],
+    }]),
     ["pages", {
       _and: [{ status: { _eq: "published" } }, { og_image: { _eq: id } }],
     }],

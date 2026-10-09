@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import "./theme.css";
 import "./globals.css";
+import "@/styles/home-ux.css";
+import "@/styles/catalog-ux.css";
+import "@/styles/request-ux.css";
+import "@/components/articles/articles.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MotionEnhancements } from "@/components/MotionEnhancements";

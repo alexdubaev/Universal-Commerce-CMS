@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDelimitedText } from "../lib/request-import";
+import { inspectDelimitedText, inspectImportRows, parseDelimitedText, rowsToRequestItems } from "../lib/request-import";
 import { MAX_REQUEST_ITEMS, mergeRequestItems } from "../lib/request-store";
 import type { RequestItem } from "../lib/types";
 
@@ -28,5 +28,41 @@ describe("request import quantities and identity", () => {
     expect(result).toHaveLength(MAX_REQUEST_ITEMS);
     expect(result[0].quantity).toBe(4);
     expect(overflow).toBe(true);
+  });
+});
+
+
+describe("request import problem rows", () => {
+  it("reports original text row numbers and every adjustment while preserving imported items", () => {
+    const result = inspectDelimitedText("Артикул;Количество\n\nOK;3\nBAD;invalid\nBIG;100001\nEXTRA;2;ignored\n;4\nSINGLE");
+    expect(result.items.map(({ article, quantity }) => ({ article, quantity }))).toEqual([
+      { article: "OK", quantity: 3 }, { article: "BAD", quantity: 1 },
+      { article: "BIG", quantity: 100000 }, { article: "EXTRA", quantity: 2 },
+      { article: "SINGLE", quantity: 1 },
+    ]);
+    expect(result.problems).toEqual([
+      { row: 4, article: "BAD", reasons: ["quantity_defaulted"] },
+      { row: 5, article: "BIG", reasons: ["quantity_clamped"] },
+      { row: 6, article: "EXTRA", reasons: ["extra_columns"] },
+      { row: 7, article: "", reasons: ["missing_article"] },
+    ]);
+    expect(parseDelimitedText("Артикул;Количество\n\nOK;3\nBAD;invalid\nBIG;100001\nEXTRA;2;ignored\n;4\nSINGLE")).toEqual(result.items);
+  });
+
+  it("reports spreadsheet issues together and skips blank or header rows", () => {
+    const rows = [["SKU", "Quantity", "Note"], [], [null, null], ["PART", -2, "comment"], ["DECIMAL", 2.5], ["EMPTY", ""], ["DEFAULT"], ["BIG", 100001], [null, 2]];
+    const result = inspectImportRows(rows);
+    expect(result.items.map(({ article, quantity }) => ({ article, quantity }))).toEqual([
+      { article: "PART", quantity: 1 }, { article: "DECIMAL", quantity: 1 },
+      { article: "EMPTY", quantity: 1 }, { article: "DEFAULT", quantity: 1 }, { article: "BIG", quantity: 100000 },
+    ]);
+    expect(result.problems).toEqual([
+      { row: 4, article: "PART", reasons: ["quantity_defaulted", "extra_columns"] },
+      { row: 5, article: "DECIMAL", reasons: ["quantity_defaulted"] },
+      { row: 6, article: "EMPTY", reasons: ["quantity_defaulted"] },
+      { row: 8, article: "BIG", reasons: ["quantity_clamped"] },
+      { row: 9, article: "", reasons: ["missing_article"] },
+    ]);
+    expect(rowsToRequestItems(rows)).toEqual(result.items);
   });
 });

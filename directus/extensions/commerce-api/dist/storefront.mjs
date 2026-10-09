@@ -4,6 +4,7 @@ import { createSearchHandler } from './index.js';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const noStore = { 'Cache-Control': 'no-store' };
 const fields = {
+  articles: ['id','status','title','slug','excerpt','content','cover_image','image_alt','published_at','author','seo_title','seo_description','og_image','related_categories','related_products'],
   products: ['id','slug','title','sku','mpn','brand','short_description','full_description','price','currency','price_status','availability_status','part_type','main_image','specifications','delivery_status','seo_title','seo_description','updated_at','is_indexable','category.id','category.slug','category.title','category.description','category.h1','category.intro','category.image','category.seo_title','category.seo_description','category.is_indexable'],
   categories: ['id','slug','title','description','h1','intro','image','seo_title','seo_description','is_indexable'],
   pages: ['id','title','slug','page_type','h1','eyebrow','intro','seo_title','seo_description','seo_text','og_image','canonical_url','is_indexable','updated_at'],
@@ -17,7 +18,7 @@ const fixedFields = {
   product_images: ['id','image','alt_text'], product_documents: ['id','file','title'], product_specifications: ['id','group_name','name','value','unit'], products_analogs: ['id','relation_type', ...relationProductFields.map(field => `product_from.${field}`), ...relationProductFields.map(field => `product_to.${field}`)], product_codes: ['id','code','code_type','source_name'],
 };
 const childCollections = new Set(['product_images','product_documents','product_specifications','products_analogs','product_codes']);
-const allowed = new Set(['products','categories','pages','navigation_items','page_sections','home_page','site_settings', ...childCollections]);
+const allowed = new Set(['articles','products','categories','pages','navigation_items','page_sections','home_page','site_settings', ...childCollections]);
 const error = (res, status = 403) => res.status(status).set(noStore).json({ error: status === 403 ? 'forbidden' : 'invalid_request' });
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const publishedProductRelationFilters = relation => [
@@ -63,12 +64,41 @@ function hasCategoryVisibilityBranches(branches, relation = null) {
   return kinds.includes('null') && kinds.includes('published');
 }
 
+// UTC ISO values only; round-trip validation rejects calendar rollover dates.
+function validPublicationDate(value) {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(value) &&
+    Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === (value.includes('.') ? value : value.replace(/Z$/, '.000Z'));
+}
+
+// The timestamp column is typed by PostgreSQL; no null or future date can pass.
+function articlePublicationFilter(now = new Date().toISOString()) {
+  return { status: { _eq: 'published' }, published_at: { _nnull: true, _lte: now } };
+}
+
+function decodeArticleFilter(input) {
+  const terms = Array.isArray(input._and) && Object.keys(input).length === 1 ? input._and : [input];
+  if (terms.length > 6) throw new Error('filter');
+  const result = {};
+  for (const term of terms) {
+    if (!plain(term) || Object.keys(term).length !== 1) throw new Error('filter');
+    const [field, expression] = Object.entries(term)[0];
+    if (field in result || !plain(expression) || Object.keys(expression).length !== 1) throw new Error('filter');
+    if (field === 'status' && expression._eq === 'published') result.status = { _eq: 'published' };
+    else if (field === 'published_at' && validPublicationDate(expression._lte)) result.published_at = { _lte: expression._lte };
+    else if (field === 'slug' && typeof expression._eq === 'string' && expression._eq.length > 0 && expression._eq.length <= 160) result.slug = { _eq: expression._eq };
+    else if (['id','cover_image','og_image'].includes(field) && typeof expression._eq === 'string' && UUID.test(expression._eq)) result[field] = { _eq: expression._eq };
+    else throw new Error('filter');
+  }
+  return result;
+}
+
 function decodeFilter(raw, collection) {
   if (raw === undefined || raw === null || raw === '') return {};
   if (typeof raw !== 'string' || raw.length > 16384) throw new Error('filter');
   let input;
   try { input = JSON.parse(raw); } catch { throw new Error('filter'); }
   if (!plain(input)) throw new Error('filter');
+  if (collection === 'articles') return decodeArticleFilter(input);
   const terms = Array.isArray(input._and) && Object.keys(input).length === 1 ? input._and : [input];
   if (terms.length > 6) throw new Error('filter');
   const result = {};
@@ -175,17 +205,20 @@ function queryParams(req, collection) {
   const hasIdWindow = collection === 'products' && Array.isArray(filters.id?._in);
   const productSitemap = collection === 'products' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'id';
   const pageSitemap = collection === 'pages' && ['slug,updated_at','slug,updated_at,is_indexable'].includes(query.fields) && query.sort === 'slug';
-  const maxLimit = aggregate ? 500 : productSitemap ? 1000 : pageSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
+  const articleSitemap = collection === 'articles' && ['slug,published_at','status,slug,published_at'].includes(query.fields) && query.sort === 'slug';
+  const maxLimit = articleSitemap ? 500 : aggregate ? 500 : productSitemap ? 1000 : pageSitemap ? 500 : collection === 'products' ? (hasIdWindow ? 200 : 24) : ({ categories: 200, navigation_items: 100, page_sections: 100, pages: 1, home_page: 1, site_settings: 1, product_images: 50, product_documents: 50, product_specifications: 200, products_analogs: 100, product_codes: 100 }[collection] ?? 24);
   const limit = Number(query.limit ?? (['home_page','site_settings'].includes(collection) ? 1 : collection === 'categories' ? 200 : 24));
   const page = Number(query.page ?? 1);
-  if (!Number.isInteger(limit) || limit < 1 || limit > maxLimit || !Number.isInteger(page) || page < 1 || page > 1000) throw new Error('query');
+  if (!Number.isInteger(limit) || limit < 1 || limit > maxLimit || !Number.isSafeInteger(page) || page < 1 ||
+      (collection === 'articles' ? (page - 1) * limit > 1000000 : page > 1000)) throw new Error('query');
   const offset = Number(query.offset ?? 0);
   if (!Number.isInteger(offset) || offset < 0 || offset > 1000000) throw new Error('query');
   if (offset && !['products','pages'].includes(collection)) throw new Error('query');
   if (query.meta !== undefined && query.meta !== 'filter_count') throw new Error('query');
-  const defaults = { products: aggregate ? '' : '-popularity_score,title', categories: 'sort_order,title', navigation_items: 'sort_order', page_sections: 'sort_order', product_images: 'sort_order', product_documents: 'sort_order', product_specifications: 'sort_order', product_codes: 'code_type,code', pages: query.fields === 'slug,updated_at' ? 'slug' : '' };
+  const defaults = { articles: '-published_at,slug', products: aggregate ? '' : '-popularity_score,title', categories: 'sort_order,title', navigation_items: 'sort_order', page_sections: 'sort_order', product_images: 'sort_order', product_documents: 'sort_order', product_specifications: 'sort_order', product_codes: 'code_type,code', pages: query.fields === 'slug,updated_at' ? 'slug' : '' };
   const sort = (query.sort ?? defaults[collection] ?? '').split(',').filter(Boolean);
   const allowedSort = {
+    articles: ['-published_at,slug','slug'],
     products: ['-popularity_score,title','-popularity_score,title,id','price,title','-price,title','title','id'], categories: ['sort_order,title'], navigation_items: ['sort_order'], page_sections: ['sort_order'],
     product_images: ['sort_order'], product_documents: ['sort_order'], product_specifications: ['sort_order'], product_codes: ['code_type,code'], pages: ['slug'],
   }[collection] ?? [];
@@ -205,6 +238,7 @@ function makeItemsHandler(context) {
       const serviceOptions = { schema, accountability: { user: config.userId, role: null, admin: true, app: false }, knex: context.database };
       const service = new context.services.ItemsService(collection, serviceOptions);
       let filter = { ...(['product_codes','products_analogs','site_settings'].includes(collection) ? {} : { status: { _eq: 'published' } }), ...parsed.filters };
+      if (collection === 'articles') filter = { _and: [parsed.filters, articlePublicationFilter()] };
       if (collection === 'products') {
         if (filter.category) filter.category = { ...filter.category, status: { _eq: 'published' } };
         const existingOr = filter._or;
@@ -298,12 +332,14 @@ function makeAssetHandler(context) {
       const file = (await files.readByQuery({ filter: { id: { _eq: id }, folder: { _eq: config.folderId } }, fields: ['id','folder','type','filesize','filename_download'], limit: 1 }))[0];
       if (!file) return error(res, 404);
       const publishedProductParent = publishedProductRelationFilters('product');
+      const publication = articlePublicationFilter();
       const refs = [
         ['products', 'main_image', { status: { _eq: 'published' }, _or: [{ category: { _null: true } }, { category: { status: { _eq: 'published' } } }] }], ['product_images', 'image', { status: { _eq: 'published' }, _and: publishedProductParent }],
         ['product_documents', 'file', { status: { _eq: 'published' }, _and: publishedProductParent }], ['categories', 'image', { status: { _eq: 'published' } }], ['categories', 'icon', { status: { _eq: 'published' } }], ['categories', 'og_image', { status: { _eq: 'published' } }],
         ['pages', 'og_image', { status: { _eq: 'published' } }], ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, page: { status: { _eq: 'published' } } }],
         ['home_page', 'hero_image', { status: { _eq: 'published' } }], ['home_page', 'og_image', { status: { _eq: 'published' } }], ['site_settings', 'logo', {}], ['site_settings', 'favicon', {}], ['site_settings', 'default_og_image', {}], ['site_settings', 'company_image', {}],
         ['page_sections', 'image', { status: { _eq: 'published' }, is_visible: { _eq: true }, home_page: { status: { _eq: 'published' } } }],
+        ['articles', 'cover_image', publication], ['articles', 'og_image', publication],
       ];
       let referenced = false;
       for (const [collection, field, parentFilter] of refs) {

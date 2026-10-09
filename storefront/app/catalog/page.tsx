@@ -87,13 +87,13 @@ export default async function CatalogPage({ searchParams }: Props) {
                 {params.category && <input type="hidden" name="category" value={params.category} />}
                 {params.availability && <input type="hidden" name="availability" value={params.availability} />}
                 {params.partType && <input type="hidden" name="partType" value={params.partType} />}
-                <select name="sort" defaultValue={params.sort ?? "popular"} aria-label="Сортировка" onChange={undefined}>
+                <select name="sort" defaultValue={params.sort ?? "popular"} aria-label="Сортировка">
                   <option value="popular">По умолчанию</option>
                   <option value="price_asc">Сначала дешевле</option>
                   <option value="price_desc">Сначала дороже</option>
                   <option value="title">По названию</option>
                 </select>
-                <button className="sort-apply" type="submit">ОК</button>
+                <button className="sort-apply" type="submit">Применить</button>
               </form>
             </div>
           </div>
@@ -167,21 +167,21 @@ export default async function CatalogPage({ searchParams }: Props) {
           ) : (
             <div className="panel empty-state">
               <h2>Ничего не найдено</h2>
-              <p>Измените фильтры, проверьте артикул или отправьте список менеджеру.</p>
-              <Link className="button primary" href="/request">Отправить заявку</Link>
+              <p>Проверьте артикул или измените фильтры. Вы также можете передать артикул для подбора в заявке.</p>
+              <Link className="button primary" href={`/request?import=1${params.q ? `&article=${encodeURIComponent(params.q)}` : ""}`}>{params.q ? "Передать артикул для подбора" : "Передать список для подбора"}</Link>
             </div>
           )}
 
           {maxPage > 1 && (
             <nav className="pagination" aria-label="Пагинация">
-              {page > 1 && <Link href={href(params, { page: String(page - 1) })}>←</Link>}
+              {page > 1 && <Link aria-label="Предыдущая страница" href={href(params, { page: String(page - 1) })}>←</Link>}
               {pageItems.map((number, index) => (
                 <span className="pagination-slot" key={number}>
                   {index > 0 && pageItems[index - 1] !== number - 1 && <span className="ellipsis">…</span>}
-                  <Link className={number === page ? "active" : ""} href={href(params, { page: String(number) })}>{number}</Link>
+                  <Link className={number === page ? "active" : ""} aria-current={number === page ? "page" : undefined} href={href(params, { page: String(number) })}>{number}</Link>
                 </span>
               ))}
-              {page < maxPage && <Link href={href(params, { page: String(page + 1) })}>→</Link>}
+              {page < maxPage && <Link aria-label="Следующая страница" href={href(params, { page: String(page + 1) })}>→</Link>}
             </nav>
           )}
         </section>

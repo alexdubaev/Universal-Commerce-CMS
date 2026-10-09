@@ -1,6 +1,7 @@
 import { getBrands, getCategories, getProductsForSitemap } from "@/lib/catalog";
 import { getCmsHome, getCmsPage, getIndexableCmsPages } from "@/lib/content";
 import { absoluteUrl, escapeXml } from "@/lib/seo";
+import { getArticlesForSitemap } from "@/lib/articles";
 
 const PRODUCT_CHUNK = 1000;
 
@@ -8,7 +9,7 @@ function urlNode(path: string, lastmod?: string | null) {
   return `<url><loc>${escapeXml(absoluteUrl(path))}</loc>${lastmod ? `<lastmod>${escapeXml(lastmod)}</lastmod>` : ""}</url>`;
 }
 
-function xmlResponse(nodes: string[]) {
+function xmlResponse(nodes: string[], publicationSensitive = false) {
   const xml = [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
@@ -18,7 +19,7 @@ function xmlResponse(nodes: string[]) {
   return new Response(xml, {
     headers: {
       "content-type": "application/xml; charset=utf-8",
-      "cache-control": "public, s-maxage=300, stale-while-revalidate=3600",
+      "cache-control": publicationSensitive ? "no-store" : "public, s-maxage=300, stale-while-revalidate=3600",
     },
   });
 }
@@ -28,14 +29,15 @@ export async function GET(_: Request, context: { params: Promise<{ name: string 
 
   if (name === "static.xml") {
     const overrideSlugs = ["delivery", "payment", "about", "contacts"];
-    const [brandList, categories, cmsPages, home, overrides] = await Promise.all([
+    const [brandList, categories, cmsPages, home, overrides, articles] = await Promise.all([
       getBrands(), getCategories(), getIndexableCmsPages(), getCmsHome(),
       Promise.all(overrideSlugs.map((slug) => getCmsPage(slug))),
+      getArticlesForSitemap(),
     ]);
-    const staticRoutes = ["/", "/catalog", "/brands", "/delivery", "/payment", "/about", "/contacts"];
+    const staticRoutes = ["/", "/catalog", "/brands", "/delivery", "/payment", "/about", "/contacts", "/articles"];
     const indexableStaticRoutes = [
       ...(home?.is_indexable === false ? [] : ["/"]),
-      "/catalog", "/brands",
+      "/catalog", "/brands", "/articles",
       ...overrideSlugs.filter((_, index) => overrides[index]?.is_indexable !== false).map((slug) => `/${slug}`),
     ];
     const reserved = new Set(staticRoutes.map((path) => path.replace(/^\//, "")));
@@ -44,7 +46,8 @@ export async function GET(_: Request, context: { params: Promise<{ name: string 
       ...brandList.map((brand) => urlNode(`/brand/${brand.slug}`)),
       ...categories.filter((category) => category.is_indexable !== false).map((category) => urlNode(`/category/${category.slug}`)),
       ...cmsPages.filter((page) => !reserved.has(page.slug)).map((page) => urlNode(`/${page.slug}`, page.updated_at)),
-    ]);
+      ...articles.map((article) => urlNode(`/articles/${encodeURIComponent(article.slug)}`, article.published_at)),
+    ], true);
   }
 
   const match = name.match(/^products-(\d+)\.xml$/);

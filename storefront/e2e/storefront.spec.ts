@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 test("search to product to request submission", async ({ page }) => {
+  await page.route("**/api/lead", route => route.fulfill({ json: { id: "accepted-critical-journey" } }));
   await page.goto("/");
   const search = page.getByRole("search");
   await search.getByRole("textbox").fill("RE-568158");
   await search.getByRole("button", { name: "Найти" }).click();
   await page.locator(".product-card").filter({ hasText: "RE568158" })
     .getByRole("link", { name: "Фильтр масляный" }).first().click();
-  await page.getByRole("button", { name: "Добавить в корзину" }).click();
+  await page.locator(".product-info").getByRole("button", { name: "Добавить в заявку", exact: true }).click();
   await page.goto("/request");
   const line = page.locator(".request-line").filter({ hasText: "RE568158" });
   await line.getByRole("button", { name: /Увеличить количество/ }).click();
@@ -38,7 +39,7 @@ test("retry preserves its key and acknowledges only submitted quantities", async
   });
   await page.goto("/request");
   await page.getByText("Добавить позиции списком или из файла").click();
-  await page.getByLabel("Артикулы").fill("RE568158 3");
+  await page.getByLabel("Артикул и количество, по одной позиции в строке").fill("RE568158 3");
   await page.getByRole("button", { name: "Добавить список" }).click();
   await page.getByLabel("Контактное лицо").fill("Иван");
   await page.getByLabel("Телефон").fill("+79990000000");

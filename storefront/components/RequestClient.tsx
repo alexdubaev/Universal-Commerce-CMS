@@ -37,7 +37,7 @@ function formatItemCount(count: number) {
 
 export function RequestClient() {
   const { items, persist, changeQuantity, remove } = useRequestItems();
-  const { status, message, submit } = useRequestForm(items, persist);
+  const { status, message, submit, formRef, change, invalid, fieldErrors } = useRequestForm(items, persist);
   const [prices, setPrices] = useState<Record<string, PriceEntry>>({});
   const [priceState, setPriceState] = useState<"loading" | "ready" | "error">("loading");
   const [retry, setRetry] = useState(0);
@@ -88,8 +88,11 @@ export function RequestClient() {
         </div>
         {items.length === 0 ? (
           <div className="empty-state">
-            <p>Добавьте товары из каталога, вставьте список выше или загрузите XLSX/CSV.</p>
-            <a className="button secondary" href="/catalog">Перейти в каталог</a>
+            <p>Найдите деталь в каталоге или добавьте свои артикулы списком.</p>
+            <div className="request-empty-actions">
+              <a className="button primary" href="/catalog">Перейти в каталог</a>
+              <a className="button secondary" href="/request?import=1#request-import">Добавить список</a>
+            </div>
           </div>
         ) : (
           <div className="request-lines">
@@ -118,7 +121,7 @@ export function RequestClient() {
           </div>
         )}
         {items.length > 0 && priceState !== "loading" && <div className="cart-totals" aria-live="polite">
-          <strong>{unpricedItemCount ? "Итого по товарам с ценой" : "Итого"}</strong>
+          <strong>{unpricedItemCount ? "Расчёт по позициям с ценой" : "Расчёт по ценам каталога"}</strong>
           {(() => {
             const totals = new Map<string, { amount: number; formatter: Intl.NumberFormat }>();
             for (const item of items) {
@@ -137,18 +140,26 @@ export function RequestClient() {
         </div>}
       </section>
 
-      <form className="lead-form panel" onSubmit={submit}>
+      <form className="lead-form panel" ref={formRef} onSubmit={submit} onChange={change} onInvalid={invalid} aria-busy={status === "sending"}>
         <h2>Данные для ответа</h2>
-        <label>Компания<input name="company" placeholder="ООО «Пример»" /></label>
-        <label>Контактное лицо<input name="name" required minLength={2} placeholder="Имя" /></label>
+        <p className="form-hint">* Обязательные поля. Уточним наличие и стоимость и свяжемся с вами.</p>
+        <label>Компания<input name="company" autoComplete="organization" disabled={status === "sending"} placeholder="ООО «Пример»" /></label>
+        <label>Контактное лицо *<input name="name" autoComplete="name" required minLength={2} disabled={status === "sending"} placeholder="Имя" aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? "request-name-error" : undefined} />
+          {fieldErrors.name && <span id="request-name-error" className="field-error">{fieldErrors.name}</span>}
+        </label>
         <div className="form-row">
-          <label>Телефон<input name="phone" required type="tel" placeholder="+7 ..." /></label>
-          <label>Email<input name="email" type="email" placeholder="mail@company.ru" /></label>
+          <label>Телефон *<input name="phone" autoComplete="tel" required type="tel" disabled={status === "sending"} placeholder="+7 …" aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? "request-phone-error" : undefined} />
+            {fieldErrors.phone && <span id="request-phone-error" className="field-error">{fieldErrors.phone}</span>}
+          </label>
+          <label>Email<input name="email" autoComplete="email" type="email" disabled={status === "sending"} placeholder="mail@company.ru" aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? "request-email-error" : undefined} />
+            {fieldErrors.email && <span id="request-email-error" className="field-error">{fieldErrors.email}</span>}
+          </label>
         </div>
-        <label>Комментарий<textarea name="message" rows={5} placeholder="Сроки, доставка, аналоги, реквизиты..." /></label>
+        <label>Комментарий<textarea name="message" rows={4} disabled={status === "sending"} placeholder="Сроки, доставка, аналоги, реквизиты…" /></label>
         <button className="button primary wide" type="submit" disabled={status === "sending"}>
-          {status === "sending" ? "Отправляем..." : "Отправить заявку"}
+          {status === "sending" ? "Отправляем…" : "Отправить заявку"}
         </button>
+        {status === "sending" && <p className="form-hint" role="status">Отправляем заявку…</p>}
         {message && <p role={status === "error" ? "alert" : "status"} className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
       </form>
     </div>
