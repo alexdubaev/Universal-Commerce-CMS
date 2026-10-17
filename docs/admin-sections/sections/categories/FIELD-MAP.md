@@ -8,7 +8,7 @@
 | status | status | string | Да | По правам и контракту | draft, published, archived |  |
 | title | title | string | Да | По правам и контракту | — |  |
 | slug | slug | string | Да | По правам и контракту | — |  |
-| parent | parent | uuid | Нет | По правам и контракту | "categories" |  |
+| parent | parent | uuid | Нет | Только просмотр в A1: серверный запрет циклов отсутствует | "categories" | select-dropdown-m2o (live) |
 | description | description | text | Нет | По правам и контракту | — |  |
 | image | image | uuid | Нет | По правам и контракту | "directus_files" |  |
 | image_alt | image_alt | string | Нет | По правам и контракту | — |  |

@@ -8,8 +8,9 @@ export { createEditorState, mergeTabValues } from "./admin-state.mjs";
 export { PageSectionEditor, createPageSectionController } from "./page-sections.js";
 
 import { AdminShell } from "./admin-shell.js";
+import { CategoriesSection } from "./sections/categories.js";
 
-export const sectionRegistry = Object.freeze({});
+export const sectionRegistry = Object.freeze({ categories: Object.freeze({ component: CategoriesSection }) });
 
 export const SectionRoute = defineComponent({
   name: "SectionRoute",
@@ -52,7 +53,7 @@ const ProductList = defineComponent({
     onMounted(load);
     const privateView = resolveComponent("private-view");
     return () => h(privateView, { title: "Товары" }, { default: () => h("section", { style: { padding: "24px", maxWidth: "1200px", margin: "0 auto" } }, [
-      h("div", { style: { display: "flex", justifyContent: "flex-end", marginBottom: "16px" } }, [h(vButton, { kind: "primary", onClick: () => router.push("/product-editor/+") }, { default: () => "Создать товар" })]),
+      h("div", { style: { display: "flex", justifyContent: "flex-end", gap: "12px", flexWrap: "wrap", marginBottom: "16px" } }, [h(vButton, { secondary: true, onClick: () => router.push("/product-editor/sections/categories") }, { default: () => "Категории" }), h(vButton, { kind: "primary", onClick: () => router.push("/product-editor/+") }, { default: () => "Создать товар" })]),
       h("form", { style: { display: "flex", gap: "8px", marginBottom: "16px" }, onSubmit: (event) => { event.preventDefault(); page.value = 0; load(); } }, [h("input", { style: { minWidth: "260px", padding: "8px 12px", border: "1px solid var(--theme--border-color)", borderRadius: "var(--theme--border-radius)" }, value: searchText.value, placeholder: "Поиск по названию и артикулу", "aria-label": "Поиск товаров", onInput: (event) => { searchText.value = event.target.value; } }), h(vButton, { type: "submit" }, { default: () => "Найти" })]),
       loading.value ? h("p", "Загрузка товаров…") : failed.value ? h("p", { role: "alert" }, "Не удалось загрузить список товаров.") : h("table", { style: { width: "100%", borderCollapse: "collapse" } }, [h("thead", [h("tr", ["Название", "Бренд", "Артикул", "Статус", "Изменено"].map((name) => h("th", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)", textAlign: "left" } }, name))) ]), h("tbody", rows.value.map((row) => h("tr", [h("td", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)" } }, [h("button", { type: "button", style: { color: "var(--theme--primary)", textDecoration: "underline", background: "none", border: 0, cursor: "pointer", padding: 0 }, onClick: () => router.push(`/product-editor/${encodeURIComponent(row.id)}`) }, row.title ?? "Без названия")]), h("td", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)" } }, row.brand ?? "—"), h("td", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)" } }, row.sku ?? "—"), h("td", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)" } }, ({ draft: "Черновик", published: "Опубликован", archived: "Архив" })[row.status] ?? row.status ?? "—"), h("td", { style: { padding: "12px", borderBottom: "1px solid var(--theme--border-color)" } }, row.updated_at ? new Date(row.updated_at).toLocaleString("ru-RU") : "—")]))) ]),
       h("div", { style: { display: "flex", justifyContent: "center", alignItems: "center", gap: "12px", marginTop: "16px" } }, [h(vButton, { disabled: page.value === 0 || loading.value, onClick: () => { page.value--; load(); } }, { default: () => "Назад" }), h("span", `Страница ${page.value + 1}`), h(vButton, { disabled: rows.value.length < 25 || loading.value, onClick: () => { page.value++; load(); } }, { default: () => "Дальше" })]),
