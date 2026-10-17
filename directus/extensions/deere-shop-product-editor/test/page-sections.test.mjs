@@ -37,6 +37,38 @@ test("lists with bounded fields, page size, stable sort, and both owner constrai
   assert.equal(controller.snapshot.total, 51);
 });
 
+test("display-only section fields are included in bounded reads and never become editable", async () => {
+  let listParams;
+  let detailParams;
+  const current = record(1);
+  const controller = setup({ get: async (url, config) => {
+    if (url === "/items/page_sections") { listParams = config.params; return listResponse([current]); }
+    detailParams = config.params;
+    return response(current);
+  } }, { editableFields: ["title", "section_type", "is_visible"], displayFields: ["status", "sort_order"] });
+
+  assert.equal((await controller.list()).ok, true);
+  assert.deepEqual(listParams.fields.slice(-5), ["title", "section_type", "is_visible", "status", "sort_order"]);
+  assert.equal((await controller.select(1)).ok, true);
+  assert.ok(detailParams.fields.includes("sort_order"));
+  assert.equal(controller.change(1, "status", "draft"), false);
+  assert.equal(controller.change(1, "sort_order", 99), false);
+  assert.equal(controller.change(1, "is_visible", false), true);
+  assert.equal(controller.change(1, "title", "Editable"), true);
+});
+
+test("display-only section reads obey field permissions", async () => {
+  let params;
+  const controller = setup({ get: async (_url, config) => { params = config.params; return listResponse([record(1)]); } }, {
+    editableFields: ["title", "section_type", "is_visible"], displayFields: ["status", "sort_order"],
+    permissions: { read: ["id", "updated_at", "page", "home_page", "title", "section_type", "is_visible"], update: ["title"] },
+  });
+  assert.equal((await controller.list()).ok, true);
+  assert.ok(params.fields.includes("is_visible"));
+  assert.equal(params.fields.includes("status"), false);
+  assert.equal(params.fields.includes("sort_order"), false);
+});
+
 test("requires permission to read identity and both owners before any request", async () => {
   let calls = 0;
   const controller = setup({ get: async () => { calls++; } }, { permissions: { read: ["title", "updated_at", "id", "page"], update: true } });
@@ -429,4 +461,63 @@ test("keeps native fields disabled after a child read fails", async () => {
   await rowButton.props.onClick();
   const native = walk(render(), (node) => node.type === NativeFieldGroup)[0];
   assert.equal(native.props.disabled, true);
+});
+
+test("opt-in section list shows only authorized display fields and localizes its save action", async () => {
+  const current = { ...record(1), page: null, home_page: "home-1", title: "Visible block", section_type: "custom_steps", status: "published", is_visible: true, sort_order: 14 };
+  const props = { parentCollection: "home_page", parentId: "home-1", metadata: {
+    title: { name: "Заголовок", meta: { group: "content" } }, text: { name: "Текст", meta: { group: "content" } },
+  }, editableFields: ["title", "text", "section_type", "is_visible"], displayFields: ["status", "sort_order"], permissions,
+    labels: { listTitle: "Секции главной", type: "Тип", status: "Статус", visible: "Видна", order: "Порядок", saveLabel: "Сохранить секцию", statusValues: { published: "Опубликована" } },
+    guardedContract: true, readonly: false,
+    api: { get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current) } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  const tree = render();
+  const strings = [];
+  const collect = (node) => {
+    if (typeof node === "string") strings.push(node);
+    else if (Array.isArray(node)) node.forEach(collect);
+    else if (node && typeof node === "object") collect(node.children);
+  };
+  collect(tree);
+  assert.ok(strings.some((value) => value.includes("Секции главной")));
+  assert.ok(strings.some((value) => value.includes("Тип: custom_steps")));
+  assert.ok(strings.some((value) => value.includes("Статус: Опубликована")));
+  assert.ok(strings.some((value) => value.includes("Порядок: 14")));
+  assert.ok(strings.includes("Видна"));
+  const rowButton = walk(tree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0];
+  await rowButton.props.onClick();
+  const toolbar = walk(render(), (node) => node.type === EditorToolbar)[0];
+  assert.equal(toolbar.props.saveLabel, "Сохранить секцию");
+});
+
+test("parent readonly changes lock child save controls without changing default page labels", async () => {
+  const current = { ...record(1), page: null, home_page: "home-1" };
+  const props = { parentCollection: "home_page", parentId: "home-1", metadata: {}, editableFields: ["title"], permissions,
+    guardedContract: true, readonly: false,
+    api: { get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current) } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  const row = walk(render(), (node) => node.type === "button" && node.props["aria-pressed"] === false)[0];
+  await row.props.onClick();
+  props.readonly = true;
+  const tree = render();
+  const toolbar = walk(tree, (node) => node.type === EditorToolbar)[0];
+  const native = walk(tree, (node) => node.type === NativeFieldGroup)[0];
+  assert.equal(toolbar.props.readonly, true);
+  assert.equal(native.props.disabled, true);
+  assert.ok(walk(tree, (node) => node.type === "h3").some((node) => node.children === "Page sections"));
 });
