@@ -110,7 +110,7 @@ const statusMessages = (state = {}, retry) => [
 /** Native Directus layout and navigation guard for controlled extension views. */
 export const AdminShell = defineComponent({
   name: "AdminShell",
-  props: { title: { type: String, default: "" }, state: { type: Object, default: () => ({}) }, dirty: { type: Boolean, default: null }, saving: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, guardNavigation: { type: Boolean, default: true } },
+  props: { title: { type: String, default: "" }, mode: { type: String, default: "editor" }, state: { type: Object, default: () => ({}) }, dirty: { type: Boolean, default: null }, saving: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, guardNavigation: { type: Boolean, default: true } },
   emits: ["save", "back", "retry", "reconcile"],
   setup(props, { slots, emit }) {
     const dirtyNow = () => props.dirty ?? Boolean(props.state?.dirty);
@@ -126,14 +126,15 @@ export const AdminShell = defineComponent({
     onUnmounted(() => typeof window !== "undefined" && window.removeEventListener("beforeunload", unload));
     return () => {
       const state = { ...props.state, dirty: dirtyNow(), saving: savingNow(), readonly: props.readonly || props.state?.readonly };
+      const listMode = props.mode === "list";
       const view = resolveComponent("private-view");
-      const toolbar = slots.toolbar?.({ state, title: props.title }) ?? h(EditorToolbar, { title: props.title, state, readonly: state.readonly, onSave: () => emit("save"), onBack: () => emit("back"), onReconcile: (choice) => emit("reconcile", choice) });
+      const toolbar = slots.toolbar?.({ state, title: props.title }) ?? (listMode ? null : h(EditorToolbar, { title: props.title, state, readonly: state.readonly, onSave: () => emit("save"), onBack: () => emit("back"), onReconcile: (choice) => emit("reconcile", choice) }));
       const context = slots.context?.({ state });
       const hasContext = context != null && (!Array.isArray(context) || context.length > 0);
       return h(view, { title: props.title }, { default: () => h("main", { class: "ac-shell" }, [
         h("style", null, shellStyle),
-        h("header", { class: "ac-shell__header" }, [h("div", [h("h1", props.title), h("p", { class: "ac-shell__status", "aria-live": "polite" }, statusText(state))]), toolbar]),
-        ...statusMessages(state, () => { if (slots.retry) slots.retry(); else emit("retry"); }),
+        h("header", { class: "ac-shell__header" }, [h("div", slots.heading?.({ state, title: props.title }) ?? [h("h1", props.title), listMode ? null : h("p", { class: "ac-shell__status", "aria-live": "polite" }, statusText(state))]), toolbar]),
+        ...statusMessages(listMode ? { loading: state.loading, readError: state.readError } : state, () => { if (slots.retry) slots.retry(); else emit("retry"); }),
         slots.conflict?.({ state }),
         h("div", { class: `ac-shell__grid${hasContext ? "" : " ac-shell__grid--single"}` }, [h("section", { class: "ac-shell__main" }, slots.main?.({ state }) ?? slots.default?.({ state })), hasContext ? h("aside", { class: "ac-shell__context" }, context) : null]),
       ]) });
@@ -210,19 +211,19 @@ export const CollectionList = defineComponent({
   name: "CollectionList",
   props: { rows: { type: Array, default: () => [] }, columns: { type: Array, default: () => [] }, page: { type: Number, default: 1 }, pageSize: { type: Number, default: 25 }, total: { type: Number, default: null }, loading: { type: Boolean, default: false }, error: { type: [String, Boolean], default: false }, search: { type: String, default: "" }, sort: { type: String, default: "" }, filters: { type: Object, default: () => ({}) } },
   emits: ["select", "update:page", "update:search", "update:sort", "update:filters", "retry"],
-  setup(props, { emit }) {
+  setup(props, { emit, slots = {} }) {
     return () => {
       const nextEnabled = props.total == null ? props.rows.length >= props.pageSize : props.page * props.pageSize < props.total;
       const filterControls = props.columns.filter((column) => Array.isArray(column.filterOptions) && column.filterOptions.length).map((column) => h("select", { value: props.filters[column.field] ?? "", "aria-label": `Фильтр: ${column.label}`, onChange: (event) => emit("update:filters", { ...props.filters, [column.field]: event.target.value || null }) }, [h("option", { value: "" }, `Все: ${column.label}`), ...column.filterOptions.map((option) => h("option", { value: option.value }, option.label))]));
-      const children = [h("form", { class: "ac-list__controls", onSubmit: (event) => event.preventDefault() }, [h("input", { value: props.search, type: "search", "aria-label": "Поиск", onInput: (event) => emit("update:search", event.target.value) }), props.columns.some((column) => column.sortable) ? h("select", { value: props.sort, "aria-label": "Сортировка", onChange: (event) => emit("update:sort", event.target.value) }, [h("option", { value: "" }, "Без сортировки"), ...props.columns.filter((column) => column.sortable).map((column) => h("option", { value: column.field }, column.label))]) : null, ...filterControls]),
-        props.loading ? h("p", { role: "status" }, "Загрузка списка…") : props.error ? h("div", { role: "alert" }, [h("span", typeof props.error === "string" ? props.error : "Не удалось загрузить список."), h("button", { type: "button", onClick: () => emit("retry") }, "Повторить")]) : props.rows.length ? h("div", { class: "ac-list__scroll", tabindex: 0, role: "region", "aria-label": "Таблица результатов" }, [h("table", [
+      const children = [slots.controls?.() ?? h("form", { class: "ac-list__controls", onSubmit: (event) => event.preventDefault() }, [h("input", { value: props.search, type: "search", "aria-label": "Поиск", onInput: (event) => emit("update:search", event.target.value) }), props.columns.some((column) => column.sortable) ? h("select", { value: props.sort, "aria-label": "Сортировка", onChange: (event) => emit("update:sort", event.target.value) }, [h("option", { value: "" }, "Без сортировки"), ...props.columns.filter((column) => column.sortable).map((column) => h("option", { value: column.field }, column.label))]) : null, ...filterControls]),
+        props.loading ? slots.loading?.() ?? h("p", { role: "status" }, "Загрузка списка…") : props.error ? slots.error?.({ error: props.error, retry: () => emit("retry") }) ?? h("div", { role: "alert" }, [h("span", typeof props.error === "string" ? props.error : "Не удалось загрузить список."), h("button", { type: "button", onClick: () => emit("retry") }, "Повторить")]) : props.rows.length ? h("div", { class: "ac-list__scroll", tabindex: 0, role: "region", "aria-label": "Таблица результатов" }, [h("table", [
           h("thead", [h("tr", props.columns.map((column) => h("th", { scope: "col" }, column.label)))]),
           h("tbody", props.rows.map((row) => h("tr", { key: row.id ?? JSON.stringify(row), tabindex: 0, onClick: () => emit("select", row), onKeydown: (event) => {
             if (event.key !== "Enter" && event.key !== " ") return;
             event.preventDefault(); emit("select", row);
-          } }, props.columns.map((column) => h("td", row[column.field] == null ? "—" : String(row[column.field])))))),
-        ])]) : h("p", { role: "status" }, "Нет записей."),
-        h("nav", { class: "ac-list__pagination", "aria-label": "Страницы списка" }, [h("button", { type: "button", disabled: props.page <= 1 || props.loading, onClick: () => emit("update:page", props.page - 1) }, "Назад"), h("span", `Страница ${props.page}`), h("button", { type: "button", disabled: !nextEnabled || props.loading, onClick: () => emit("update:page", props.page + 1) }, "Дальше")])];
+          } }, props.columns.map((column) => h("td", slots.cell?.({ row, column, value: row[column.field] }) ?? (row[column.field] == null ? "—" : String(row[column.field]))))))),
+        ])]) : slots.empty?.() ?? h("p", { role: "status" }, "Нет записей."),
+        slots.pagination?.({ page: props.page, pageSize: props.pageSize, total: props.total, nextEnabled, selectPage: (page) => emit("update:page", page) }) ?? h("nav", { class: "ac-list__pagination", "aria-label": "Страницы списка" }, [h("button", { type: "button", disabled: props.page <= 1 || props.loading, onClick: () => emit("update:page", props.page - 1) }, "Назад"), h("span", `Страница ${props.page}`), h("button", { type: "button", disabled: !nextEnabled || props.loading, onClick: () => emit("update:page", props.page + 1) }, "Дальше")])];
       return h("section", { class: "ac-list" }, children);
     };
   },

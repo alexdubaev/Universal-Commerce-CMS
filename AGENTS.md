@@ -33,3 +33,5 @@ Prefer backend handler/service integration tests that exercise externally meanin
 Do not add source-text/JSX/CSS snapshots, exact helper-call counts, tests of constant configuration, repeated browser matrices or tests that merely mirror an implementation. Remove obsolete tests and their helpers rather than skipping or quarantining them. Keep checks for concrete regressions and do not replace useful safety coverage with a smaller count alone.
 
 The opt-in live probe is for explicitly authorized changes to an own runtime. It may write owned fixtures or restart the storefront and is not part of the routine local gate. See [local verification and test review](docs/development/testing.md) for commands and scope.
+
+UI changes require comparison of actual screenshots of the checked candidate with a specific visual reference on desktop and mobile. Main-flow usability, readability and absence of visual defects are mandatory acceptance criteria. Green unit/build/E2E checks without visual verification do not authorize merge. Reports must explicitly distinguish the mockup, a test harness, an installed bundle and a production deployment.
