@@ -9,8 +9,9 @@ export { PageSectionEditor, createPageSectionController } from "./page-sections.
 
 import { AdminShell } from "./admin-shell.js";
 import { CategoriesSection } from "./sections/categories.js";
+import { HomePageSection } from "./sections/home_page.js";
 
-export const sectionRegistry = Object.freeze({ categories: Object.freeze({ component: CategoriesSection }) });
+export const sectionRegistry = Object.freeze({ categories: Object.freeze({ component: CategoriesSection }), home_page: Object.freeze({ component: HomePageSection }) });
 
 export const SectionRoute = defineComponent({
   name: "SectionRoute",
@@ -21,6 +22,7 @@ export const SectionRoute = defineComponent({
   setup(props) {
     return () => {
       if (Object.hasOwn(sectionRegistry, props.collection)) {
+        if (props.collection === "home_page" && props.id != null && String(props.id) !== "") return h(AdminShell, { title: "Главная страница", readonly: true }, { default: () => h("p", { role: "alert" }, "Редактор главной страницы работает только с singleton-записью без ID в маршруте.") });
         const section = sectionRegistry[props.collection];
         return h(section.component, props.id == null ? {} : { id: props.id });
       }
