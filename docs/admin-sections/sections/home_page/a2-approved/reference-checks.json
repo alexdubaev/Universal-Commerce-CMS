@@ -1,0 +1,176 @@
+{
+  "checks": [
+    {
+      "check": "desktop no horizontal overflow",
+      "ok": true,
+      "detail": "{'client': 1536, 'scroll': 1536}"
+    },
+    {
+      "check": "desktop hero screenshot / title",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "desktop sections tab active",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop section dirty separate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop independent section save",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop snippet reactive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop parent edit save enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop parent save clears dirty",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop search group expands",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "desktop no page errors end",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "mobile no horizontal overflow",
+      "ok": true,
+      "detail": "{'client': 390, 'scroll': 390}"
+    },
+    {
+      "check": "mobile hero screenshot / title",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile no console errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "mobile sections tab active",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile section dirty separate",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile independent section save",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile snippet reactive",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile parent edit save enabled",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile parent save clears dirty",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile search group expands",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "mobile no page errors end",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "check": "main tab reference shows core fields",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "conflict state disables parent save",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "readonly disables fields",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "empty singleton shows no create action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "320px long text stays in viewport",
+      "ok": true,
+      "detail": "{'client': 320, 'scroll': 320}"
+    },
+    {
+      "check": "350px long text stays in viewport",
+      "ok": true,
+      "detail": "{'client': 350, 'scroll': 350}"
+    },
+    {
+      "check": "430px long text stays in viewport",
+      "ok": true,
+      "detail": "{'client': 430, 'scroll': 430}"
+    },
+    {
+      "check": "768px long text stays in viewport",
+      "ok": true,
+      "detail": "{'client': 768, 'scroll': 768}"
+    },
+    {
+      "check": "1024px long text stays in viewport",
+      "ok": true,
+      "detail": "{'client': 1024, 'scroll': 1024}"
+    },
+    {
+      "check": "keyboard right selects sections",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "versions explains without publication",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "check": "versions dialog escape closes",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "pass": 34,
+  "fail": 0
+}

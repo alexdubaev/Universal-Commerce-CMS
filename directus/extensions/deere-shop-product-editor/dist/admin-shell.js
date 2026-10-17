@@ -167,7 +167,7 @@ export const SectionTabs = defineComponent({
 /** Toolbar actions stay controlled and only emit user intent. */
 export const EditorToolbar = defineComponent({
   name: "EditorToolbar",
-  props: { title: { type: String, default: "" }, state: { type: Object, default: () => ({}) }, readonly: { type: Boolean, default: true }, canPublish: { type: Boolean, default: false } },
+  props: { title: { type: String, default: "" }, state: { type: Object, default: () => ({}) }, readonly: { type: Boolean, default: true }, canPublish: { type: Boolean, default: false }, saveLabel: { type: String, default: "Сохранить" } },
   emits: ["save", "publish", "back", "reconcile"],
   setup(props, { emit, slots }) {
     return () => {
@@ -175,7 +175,7 @@ export const EditorToolbar = defineComponent({
       const saveDisabled = props.readonly || !s.canSave || s.loading || s.saving || s.conflict || s.writeUncertain || s.readError;
       const publishDisabled = props.readonly || !props.canPublish || s.loading || s.saving || s.conflict || s.writeUncertain || s.readError;
       return h("div", { class: "ac-toolbar" }, [h("div", [h("strong", props.title), h("p", { "aria-live": "polite" }, statusText(s))]), h("div", { class: "ac-toolbar__actions" }, [
-        h("button", { type: "button", disabled: Boolean(saveDisabled), onClick: () => emit("save") }, "Сохранить"),
+        h("button", { type: "button", disabled: Boolean(saveDisabled), onClick: () => emit("save") }, props.saveLabel),
         props.canPublish ? h("button", { type: "button", disabled: Boolean(publishDisabled), onClick: () => emit("publish") }, "Опубликовать") : null,
         h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("back") }, "Назад"),
         s.conflict ? h("div", { class: "ac-toolbar__conflict" }, [h("p", { role: "alert" }, "Обнаружен конфликт данных."), h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { keepEdits: true }) }, "Сохранить мои изменения"), h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { keepEdits: false }) }, "Загрузить актуальные данные")]) : null,
@@ -248,6 +248,11 @@ const shellStyle = `
 .ac-toolbar__actions>button:disabled,.ac-list__pagination>button:disabled,.page-sections-list>button:disabled,.page-sections-list>div>button:disabled,.ac-tabs__list>button:disabled{border-color:var(--theme--border-color-subdued,var(--theme--border-color,#d9e1e8));background:var(--theme--background-subdued,#f4f7fa);color:var(--theme--foreground-subdued,#66788a);opacity:.65;cursor:not-allowed}
 .page-sections-list{display:grid;gap:8px;min-width:0}
 .page-sections-list>button{max-width:100%;text-align:left;overflow-wrap:anywhere}
+.page-sections-list>.page-sections-list__item{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:76px;padding:14px 16px;border-color:var(--theme--border-color,#d9e1e8);border-radius:10px;background:var(--theme--background,#fff)}
+.page-sections-list__number{color:var(--theme--foreground-subdued,#7b8791);font-variant-numeric:tabular-nums}
+.page-sections-list__body{display:grid;gap:5px;min-width:0}.page-sections-list__body strong{overflow-wrap:anywhere}.page-sections-list__body small{color:var(--theme--foreground-subdued,#7b8791);font-size:12px}.page-sections-list__dirty{color:var(--theme--primary,#286b51)!important}
+.page-sections-list__visibility{white-space:nowrap;color:var(--theme--primary,#286b51);font-size:12px}.page-sections-list__visibility--hidden,.page-sections-list__visibility--unknown{color:var(--theme--foreground-subdued,#7b8791)}
+@media(max-width:560px){.page-sections-list>.page-sections-list__item{grid-template-columns:28px minmax(0,1fr);gap:8px;padding:12px}.page-sections-list__visibility{grid-column:2}}
 .ac-toolbar{flex-wrap:wrap;min-width:0}
 .ac-toolbar>div:first-child{min-width:0;max-width:100%;overflow-wrap:anywhere}
 .ac-toolbar strong{overflow-wrap:anywhere}

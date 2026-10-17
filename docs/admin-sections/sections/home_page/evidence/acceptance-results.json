@@ -1,0 +1,169 @@
+{
+  "date": "2026-10-18",
+  "base": "c594fd9ac874cd38cfb71abeedf932cfd785de55",
+  "target": "http://127.0.0.1:18056",
+  "mode": "browser-only candidate; installed bundle unchanged",
+  "runtimeRun": "0e469f39-3725-4d8f-9418-f0f04047235e",
+  "results": [
+    {
+      "name": "live singleton, all 34 business fields and native interfaces",
+      "status": "PASS"
+    },
+    {
+      "name": "exact source/dist parity of every candidate module",
+      "status": "PASS"
+    },
+    {
+      "name": "native singleton opens in hero tab with native file interface and five tabs",
+      "status": "PASS"
+    },
+    {
+      "name": "actual hero screenshots desktop, 1024 and mobile have no document overflow or media overlap",
+      "status": "PASS"
+    },
+    {
+      "name": "parent hero CAS persists without status change or child writes; saving visibly guards fields and tabs",
+      "status": "PASS"
+    },
+    {
+      "name": "sections use independent native child CAS and bounded 25-row paging",
+      "status": "PASS"
+    },
+    {
+      "name": "native section paging requests page two and restores page one without accumulating rows",
+      "status": "PASS"
+    },
+    {
+      "name": "SEO uses installed native plugin and marked local snippet",
+      "status": "PASS"
+    },
+    {
+      "name": "real parent 409 retains input and blocks another write",
+      "status": "PASS"
+    },
+    {
+      "name": "explicit conflict discard reloads current values",
+      "status": "PASS"
+    },
+    {
+      "name": "unknown acknowledgement keeps input and prevents blind repeat after actual commit",
+      "status": "PASS"
+    },
+    {
+      "name": "native media unlink is local, required validation blocks save, and file remains",
+      "status": "PASS"
+    },
+    {
+      "name": "child 409 retains staged section edits and can reconcile",
+      "status": "PASS"
+    },
+    {
+      "name": "child dirty state survives tab switches and blocks cancelled route departure",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled update denial renders populated readonly state",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled missing singleton blocks editing and offers retry without create",
+      "status": "PASS"
+    },
+    {
+      "name": "existing product and category routes remain usable in the same candidate",
+      "status": "PASS"
+    },
+    {
+      "name": "anonymous read and guarded update are denied by actual API",
+      "status": "PASS"
+    },
+    {
+      "name": "no uncaught native Vue errors or unresolved components",
+      "status": "PASS"
+    },
+    {
+      "name": "CAS restores exact original singleton content; existing singleton preserved",
+      "status": "PASS"
+    }
+  ],
+  "ownedChildCleanupCount": 26,
+  "additionalInspectResults": [
+    {
+      "name": "live singleton, all 34 business fields and native interfaces",
+      "status": "PASS"
+    },
+    {
+      "name": "exact source/dist parity of every candidate module",
+      "status": "PASS"
+    },
+    {
+      "name": "native singleton opens in hero tab with native file interface and five tabs",
+      "status": "PASS"
+    },
+    {
+      "name": "main, advanced hero and additional native fields are reachable without incidental writes",
+      "status": "PASS"
+    },
+    {
+      "name": "long local hero copy remains readable on mobile without a write",
+      "status": "PASS"
+    },
+    {
+      "name": "CAS restores exact original singleton content; existing singleton preserved",
+      "status": "PASS"
+    }
+  ],
+  "sourceAndDistSha256": {
+    "index.js": "0a63340ab257556c45beb03bbc2f834d55efc111f35edc17384ca1bc417c9d9d",
+    "editor-state.mjs": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+    "admin-state.mjs": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+    "admin-shell.js": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84",
+    "page-sections.js": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12",
+    "sections/categories.js": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f",
+    "sections/home_page.js": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e"
+  },
+  "cleanupAudit": {
+    "target": "http://127.0.0.1:18056",
+    "runsAudited": 12,
+    "exactOwnedChildrenAbsent": 182,
+    "exactOwnedFilesAbsent": 1,
+    "allJournalsClean": true,
+    "existingSingletonPreserved": true,
+    "originalContentRestored": true,
+    "updatedAtMayAdvance": true
+  },
+  "localGate": {
+    "command": "node scripts/verify-local.mjs",
+    "exitCode": 0,
+    "backendTests": 205,
+    "storefrontTests": 36,
+    "chromiumJourneys": 2,
+    "vulnerabilities": 0,
+    "build": true,
+    "serverTokenCanaryPassed": true
+  },
+  "focusedBoundaryTests": {
+    "passed": 88,
+    "failed": 0
+  },
+  "independentReview": {
+    "verdict": "production_ready",
+    "blockingFindings": 0,
+    "pairwiseScreenshots": 6
+  },
+  "screenshots": [
+    "actual-hero-1536.png",
+    "actual-hero-390.png",
+    "actual-hero-1024.png",
+    "actual-sections-1536.png",
+    "actual-sections-390.png",
+    "actual-seo-1536.png",
+    "actual-conflict-1536.png",
+    "actual-native-file-library.png",
+    "actual-readonly-1536.png",
+    "actual-empty-1536.png",
+    "actual-overview-1536.png",
+    "actual-search-expanded-1536.png",
+    "actual-long-copy-390.png"
+  ]
+}
