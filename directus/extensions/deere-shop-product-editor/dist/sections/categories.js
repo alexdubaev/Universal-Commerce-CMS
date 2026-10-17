@@ -85,7 +85,7 @@ export function validateCategory(values, metadata) {
 export function createCategoryController(api) {
   let state = null, metadata = [], permissions = { read: [], update: [], create: [] }, filePermissions = {}, identity = null;
   let generation = 0, busy = false, opening = false, failure = null, validation = [], comparison = null;
-  let creating = false, created = false, uncertainCreate = false, defaults = {}, draft = {}, createSaved = false;
+  let creating = false, created = false, uncertainCreate = false, defaults = {}, draft = {}, createSaved = false, createRecovery = null;
   const readable = () => ALL.filter(f => metadata.some(m => m.field === f) && has(permissions.read,f));
   const loader = async id => data(await api.get(endpoint(id), { params: { fields: readable().join(",") } }));
   const snapshot = () => ({ metadata: copy(metadata), permissions: copy(permissions), filePermissions: copy(filePermissions), creating,
@@ -93,7 +93,7 @@ export function createCategoryController(api) {
     values: creating ? copy(draft) : state?.values ?? {}, baseline: creating ? copy(defaults) : state?.baseline ?? {},
     dirty: creating ? !created && !same(draft,defaults) : Boolean(state?.dirty), dirtyFields: creating ? Object.keys(draft).filter(f => !same(draft[f],defaults[f])) : state?.dirtyFields ?? [],
     conflict: Boolean(state?.conflict), writeUncertain: uncertainCreate || Boolean(state?.writeUncertain), saveError: state?.saveError,
-    saved: createSaved || Boolean(state?.saved), validation: copy(validation), comparison: copy(comparison),
+    saved: createSaved || Boolean(state?.saved), validation: copy(validation), comparison: copy(comparison), createRecovery: copy(createRecovery),
     readonly: creating ? !has(permissions.create,"title") : !EDITABLE.some(f => state?.canWrite(f)),
     canCreate: ["title","slug","status"].every(f => has(permissions.create,f)) && metadata.some(f => f.field === "status" && f.schema?.default_value === "draft"),
     canSave: !failure && !opening && !busy && !validation.length && (creating ? !created && !uncertainCreate && ["title","slug","status"].every(f => has(permissions.create,f)) && !same(draft,defaults) : Boolean(state?.canSave)),
@@ -101,7 +101,7 @@ export function createCategoryController(api) {
   const canChange = field => !opening && !busy && !failure && EDITABLE.includes(field) && (creating ? !created && !uncertainCreate && field !== "status" && has(permissions.create,field) && has(permissions.read,field) && metadata.some(m => m.field === field && !m.meta?.readonly && m.type !== "alias") : state?.canWrite(field));
   async function open(id) {
     if (busy || state?.saving) return { ok:false,reason:"busy" };
-    const seq = ++generation; identity = id; opening = true; failure = null; state = null; comparison = null; validation = []; creating = id === "+"; created = false; uncertainCreate = false; createSaved = false;
+    const seq = ++generation; identity = id; opening = true; failure = null; state = null; comparison = null; validation = []; creating = id === "+"; created = false; uncertainCreate = false; createSaved = false; createRecovery = null;
     try {
       const [schema, effective] = await Promise.all([api.get("/fields/categories"),api.get("/permissions/me")]);
       if (seq !== generation) return { ok:false,stale:true };
@@ -160,12 +160,23 @@ export function createCategoryController(api) {
     busy = true;
     try { comparison = await loader(identity); return {ok:true}; } catch(e) { return {ok:false,error:e}; } finally { busy=false; }
   }
+  async function recoverCreate() {
+    if (!creating || !uncertainCreate || busy || opening || typeof draft.slug !== "string" || !draft.slug.trim()) return {ok:false};
+    const seq=generation; busy=true;
+    try {
+      const rows=data(await api.get("/items/categories",{params:buildCollectionQuery({fields:readable(),pageSize:2,filter:{slug:{_eq:draft.slug}}})}));
+      if(seq!==generation)return {ok:false,stale:true};
+      if(!Array.isArray(rows)||rows.length>1)throw Error("Ambiguous category result");
+      createRecovery={record:rows[0]??null};
+      return {ok:true};
+    } catch(error) {return {ok:false,error};} finally {busy=false;}
+  }
   async function reconcile(keepEdits) {
     if (!state || busy || opening || !comparison) return {ok:false};
     busy=true;
     try { const result=await state.reconcile(loader,identity,{keepEdits}); if(result.ok){comparison=null;validation=[];} return result; } finally {busy=false;}
   }
-  return { open, change, changeTab, save, compare, reconcile, snapshot, canChange, dispose:() => {generation++;} };
+  return { open, change, changeTab, save, compare, reconcile, recoverCreate, snapshot, canChange, dispose:() => {generation++;} };
 }
 
 const CategoryList = defineComponent({
@@ -195,8 +206,8 @@ const CategoryList = defineComponent({
     return () => h(AdminShell,{title:"Категории",readonly:true,state:{loading:loading.value}}, {
       toolbar:()=>h("div",{class:"ac-toolbar__actions"},[h("button",{type:"button",onClick:()=>router.push("/product-editor")},"Товары"),canCreate.value?h("button",{type:"button",onClick:()=>router.push("/product-editor/sections/categories/+")},"Создать категорию"):h("span","Создание недоступно по текущим правам.")]),
       default:()=>[h("style",categoryStyle),h("div",{class:"category-filters"},[
-        h("label",["Индексация",h("select",{value:filters.value.is_indexable??"",onChange:e=>{filters.value={...filters.value,is_indexable:e.target.value};reset();}},[h("option",{value:""},"Все"),...boolOptions.map(o=>h("option",{value:o.value},o.label))])]),
-        h("label",["Направление сортировки",h("select",{value:descending.value?"desc":"asc",onChange:e=>{descending.value=e.target.value==="desc";reset();}},[h("option",{value:"asc"},"По возрастанию"),h("option",{value:"desc"},"По убыванию")])]),
+        h("label",["Индексация",h("select",{"aria-label":"Индексация",value:filters.value.is_indexable??"",onChange:e=>{filters.value={...filters.value,is_indexable:e.target.value};reset();}},[h("option",{value:""},"Все"),...boolOptions.map(o=>h("option",{value:o.value},o.label))])]),
+        h("label",["Направление сортировки",h("select",{"aria-label":"Направление сортировки",value:descending.value?"desc":"asc",onChange:e=>{descending.value=e.target.value==="desc";reset();}},[h("option",{value:"asc"},"По возрастанию"),h("option",{value:"desc"},"По убыванию")])]),
         h("fieldset",[h("legend","Родительская категория"),h("form",{onSubmit:e=>{e.preventDefault();parentPage.value=1;loadParents();}},[h("input",{type:"search","aria-label":"Поиск родительской категории",value:parentSearch.value,onInput:e=>parentSearch.value=e.target.value}),h("button",{type:"submit",disabled:parentLoading.value},"Найти родителя")]),
           h("select",{"aria-label":"Фильтр: Родительская категория",value:filters.value.parent??"",disabled:parentLoading.value,onChange:e=>{filters.value={...filters.value,parent:e.target.value};reset();}},[h("option",{value:""},"Все родители"),h("option",{value:"__root__"},"Без родителя"),filters.value.parent&&!parents.value.some(p=>p.id===filters.value.parent)&&filters.value.parent!=="__root__"?h("option",{value:filters.value.parent},"Выбранный родитель"):null,...parents.value.map(p=>h("option",{value:p.id},p.title??p.id))]),
           h("div",[h("button",{type:"button",disabled:parentPage.value===1||parentLoading.value,onClick:()=>{parentPage.value--;loadParents();}},"Родители: назад"),h("span",` ${parentPage.value} `),h("button",{type:"button",disabled:parents.value.length<25||parentLoading.value,onClick:()=>{parentPage.value++;loadParents();}},"Родители: дальше")]),parentError.value?h("p",{role:"alert"},[parentError.value,h("button",{onClick:loadParents},"Повторить родителей")]):null]),
@@ -209,25 +220,34 @@ const CategoryList = defineComponent({
 const CategoryEditor=defineComponent({
   name:"CategoryEditor",props:{id:{type:[String,Number],required:true}},
   setup(props) {
-    const api=useApi(),router=useRouter(),controller=createCategoryController(api),revision=ref(0),active=ref("main"),notice=ref("");
+    const api=useApi(),router=useRouter(),controller=createCategoryController(api),revision=ref(0),active=ref("main"),notice=ref(""),assetErrors=ref({});
     const snapshot=computed(()=>{revision.value;return controller.snapshot();});
+    let assetRequest=0;
+    watch(()=>MEDIA.map(f=>unwrapId(snapshot.value.values[f])).join(","),async()=>{
+      const seq=++assetRequest, next={};
+      await Promise.all(MEDIA.map(async field=>{const id=unwrapId(snapshot.value.values[field]);if(!id)return;try{await api.get(`/files/${encodeURIComponent(id)}`,{params:{fields:"id"}});}catch{next[field]=true;}}));
+      if(seq===assetRequest)assetErrors.value=next;
+    });
     async function run(fn){const pending=fn();revision.value++;try{return await pending;}finally{revision.value++;}}
     watch(()=>props.id,id=>{notice.value="";active.value="main";run(()=>controller.open(id));},{immediate:true});
-    onUnmounted(()=>controller.dispose());
+    onUnmounted(()=>{assetRequest++;controller.dispose();});
     const change=(f,v)=>{controller.change(f,v);revision.value++;};
     const save=async()=>{notice.value="";const result=await run(()=>controller.save());if(result.error)notice.value=errorText(result.error);if(result.createdId)router.replace(`/product-editor/sections/categories/${encodeURIComponent(result.createdId)}`);};
     const compare=async()=>{const r=await run(()=>controller.compare());if(r.error)notice.value=errorText(r.error);};
+    const recoverCreate=async()=>{const r=await run(()=>controller.recoverCreate());if(r.error)notice.value=errorText(r.error);};
     return()=>{
       const s=snapshot.value, writable=s.permissions.update;
       const nativePermissions={read:s.permissions.read,update:s.creating?s.permissions.create:writable};
       const delta=Object.fromEntries(Object.keys(s.values).filter(f=>!same(s.values[f],s.baseline[f])).map(f=>[f,s.values[f]]));
       const form=(fields)=>h(NativeFieldGroup,{metadata:s.metadata.map(m=>m.field==="parent"||s.creating&&m.field==="status"?{...m,meta:{...m.meta,readonly:true,options:{...m.meta?.options,enableCreate:false,enableSelect:false}}}:m),fieldSubset:fields,primaryKey:props.id,initialValues:s.baseline,modelValue:delta,permissions:nativePermissions,readonly:s.readonly,disabled:s.loading||s.saving||s.writeUncertain,validationErrors:s.validation,"onUpdate:modelValue":v=>{controller.changeTab(fields,v);revision.value++;}});
-      const media=field=>{const metadata=s.metadata.find(m=>m.field===field);if(!metadata||!has(s.permissions.read,field))return null;return h(MediaPicker,{field:{...metadata,meta:{...metadata.meta,interface:"file-image",options:{...metadata.meta?.options}}},primaryKey:props.id,initialValue:{[field]:s.baseline[field]},modelValue:s.values[field],permissions:nativePermissions,readonly:s.readonly||!controller.canChange(field),disabled:s.loading||s.saving||s.writeUncertain,allowSelect:["full","partial"].includes(s.filePermissions.read?.access),allowUpload:s.filePermissions.create?.access==="full","onUpdate:modelValue":v=>change(field,v)});};
+      const media=field=>{const metadata=s.metadata.find(m=>m.field===field);if(!metadata||!has(s.permissions.read,field))return null;return h("div",[assetErrors.value[field]?h("p",{role:"status"},"Связанный файл отсутствует или недоступен. Связь сохранена до вашего явного изменения."):null,h(MediaPicker,{field:{...metadata,meta:{...metadata.meta,interface:"file-image",options:{...metadata.meta?.options}}},primaryKey:props.id,initialValue:{[field]:s.baseline[field]},modelValue:s.values[field],permissions:nativePermissions,readonly:s.readonly||!controller.canChange(field),disabled:s.loading||s.saving||s.writeUncertain,allowSelect:["full","partial"].includes(s.filePermissions.read?.access),allowUpload:s.filePermissions.create?.access==="full","onUpdate:modelValue":v=>change(field,v)})]);};
       const title=s.creating?"Новая категория":s.values.title||"Категория";
       return h(AdminShell,{title,state:{...s,readError:s.readError?true:null,saveError:s.saveError?errorText(s.saveError):null},readonly:s.readonly,onRetry:()=>{if(!s.dirty)run(()=>controller.open(props.id));else compare();}}, {
         toolbar:()=>h(EditorToolbar,{title:"Категории",state:s,readonly:s.readonly,onSave:save,onBack:()=>router.push("/product-editor/sections/categories"),onReconcile:compare}),
         default:()=>[h("style",categoryStyle),notice.value?h("p",{role:"alert"},notice.value):null,s.readError?h("p",{role:"alert"},errorText(s.readError)):null,
           s.writeUncertain&&!s.conflict&&!s.creating?h("button",{type:"button",disabled:s.saving,onClick:compare},"Сравнить с актуальными данными"):null,
+          s.writeUncertain&&s.creating?h("section",{class:"category-comparison"},[h("p","Ответ создания не подтверждён. Повторная отправка заблокирована. Проверьте запись по точному slug."),h("button",{type:"button",disabled:s.saving,onClick:recoverCreate},"Проверить результат создания"),
+            s.createRecovery?s.createRecovery.record?h("div",[h("p","Найдена запись с этим slug. Это не подтверждает, что она создана вашим запросом. Сравните данные перед переходом; локальный ввод остаётся в этой форме."),h(ReadonlyDetails,{values:s.createRecovery.record,fields:Object.keys(s.createRecovery.record).map(field=>({field,label:s.metadata.find(m=>m.field===field)?.name??field}))}),h("button",{type:"button",disabled:s.saving,onClick:()=>router.push(`/product-editor/sections/categories/${encodeURIComponent(s.createRecovery.record.id)}`)},"Открыть найденную категорию")]):h("p",{role:"status"},"Запись пока не найдена. Проверьте связь и повторите проверку. Автоматическое создание отключено."):null]):null,
           s.comparison?h("section",{class:"category-comparison"},[h("h2","Сравнение перед повторным сохранением"),...s.dirtyFields.map(f=>h("div",[h("h3",f),h(ReadonlyDetails,{values:{local:s.values[f],current:s.comparison[f]},fields:[{field:"local",label:"Ваше значение"},{field:"current",label:"На сервере"}]})])),h("button",{type:"button",disabled:s.saving,onClick:()=>run(()=>controller.reconcile(true))},"Применить актуальную версию и оставить мой ввод"),h("button",{type:"button",disabled:s.saving,onClick:()=>{if(!s.dirty||window.confirm("Отбросить введённые изменения?"))run(()=>controller.reconcile(false));}},"Отбросить мой ввод и загрузить актуальное"),h("p","Эти действия не записывают данные. После проверки нажмите «Сохранить» отдельно.")]):null,
           s.validation.length?h("ul",{role:"alert"},s.validation.map(e=>h("li",e.message))):null,
           !s.loading&&Object.keys(s.values).length?h(SectionTabs,{tabs:CATEGORY_TABS,modelValue:active.value,"onUpdate:modelValue":v=>active.value=v},{default:({tab})=>[
@@ -245,7 +265,7 @@ const CategoryEditor=defineComponent({
   },
 });
 
-export const CategoriesSection=defineComponent({name:"CategoriesSection",props:{id:{type:[String,Number],default:null}},setup:props=>()=>props.id==null?h(CategoryList):h(CategoryEditor,{id:props.id})});
+export const CategoriesSection=defineComponent({name:"CategoriesSection",props:{id:{type:[String,Number],default:null}},setup:props=>()=>props.id==null||props.id===""?h(CategoryList):h(CategoryEditor,{id:props.id})});
 export default CategoriesSection;
 
 const categoryStyle=`.category-filters{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px}.category-filters label{display:grid;gap:4px}.category-filters fieldset{min-width:0;max-width:100%;padding:8px;border:1px solid var(--theme--border-color)}.category-filters form{display:flex;flex-wrap:wrap;gap:8px}.category-filters select,.category-filters input{max-width:100%;border:1px solid var(--theme--border-color);padding:8px;border-radius:6px}.category-filters button,.category-comparison button{min-height:40px;padding:8px 12px;border:1px solid var(--theme--border-color);border-radius:6px}.category-note{color:var(--theme--foreground-subdued);margin:12px 0;overflow-wrap:anywhere}.category-comparison{max-width:100%;overflow-wrap:anywhere;border:1px solid var(--theme--border-color);padding:12px;margin:12px 0}.category-comparison button{margin:4px}.ac-list__controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}.ac-list__controls input,.ac-list__controls select{border:1px solid var(--theme--border-color);border-radius:6px;padding:8px;max-width:100%}.ac-shell__context>.field{margin-bottom:16px}.ac-shell .v-form{min-width:0}@media(max-width:720px){.category-filters{display:grid;grid-template-columns:minmax(0,1fr)}.category-filters input,.category-filters select{width:100%}.category-filters form input{min-width:0;flex:1 1 160px}.ac-tabs [role=tabpanel]{min-width:0}.ac-shell__context{max-width:100%}}`;

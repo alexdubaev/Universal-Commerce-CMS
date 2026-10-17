@@ -63,6 +63,24 @@ test('malformed acknowledgements block retry and preserve input until explicit r
   const api=apiFixture({post:async()=>({data:{data:{id:'own'}}})}); const c=createCategoryController(api); await c.open('own'); c.change('title','Keep local'); assert.equal((await c.save()).ok,false); assert.equal(c.snapshot().writeUncertain,true); assert.equal(c.snapshot().values.title,'Keep local'); await c.save(); assert.equal(api.calls.filter(v=>v[0]==='POST').length,1);
 });
 
+test('uncertain native create recovers by bounded exact slug read without retry or success claim', async () => {
+  const api=apiFixture({post:async()=>{throw Error('Lost create response');}});
+  const get=api.get;
+  api.get=async(path,options)=>{
+    if(path==='/fields/categories')return {data:{data:fields.map(f=>f.field==='status'?{...f,schema:{...f.schema,default_value:'draft'}}:f)}};
+    if(path==='/permissions/me')return {data:{data:{categories:{read:{access:'full',fields:['*']},create:{access:'full',fields:['*']}}}}};
+    if(path==='/items/categories'){api.calls.push(['GET',path,options]);return {data:{data:[{...record,slug:'new-draft',title:'Own candidate'}]}};}
+    return get(path,options);
+  };
+  const c=createCategoryController(api);await c.open('+');c.change('title','Own candidate');c.change('slug','new-draft');
+  assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().saved,false);assert.equal(c.snapshot().writeUncertain,true);
+  assert.equal((await c.recoverCreate()).ok,true);assert.equal(c.snapshot().createRecovery.record.id,'own');assert.equal(c.snapshot().values.title,'Own candidate');assert.equal(c.snapshot().saved,false);
+  await c.save();assert.equal(api.calls.filter(c=>c[0]==='POST').length,1);
+  const query=api.calls.find(c=>c[0]==='GET'&&c[1]==='/items/categories')[2].params;
+  assert.equal(query.limit,2);assert.deepEqual(query.filter,{slug:{_eq:'new-draft'}});
+  assert.equal(api.calls.find(c=>c[0]==='POST')[1],'/items/categories');assert.equal(Object.hasOwn(api.calls.find(c=>c[0]==='POST')[2],'id'),false);
+});
+
 test('source and deployed artifacts match', async () => {
   for(const name of ['sections/categories.js','index.js'])assert.deepEqual(await readFile(new URL(`../../src/${name}`,import.meta.url)),await readFile(new URL(`../../dist/${name}`,import.meta.url)));
 });
