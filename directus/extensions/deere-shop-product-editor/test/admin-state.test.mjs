@@ -504,4 +504,24 @@ test("AdminShell blocks navigation while saving and prompts for dirty route chan
   assert.equal(unloadRemoved, true);
 });
 
+test("list shell omits record save/readonly messages and keeps actual read errors", () => {
+  const props = {title:"Categories",mode:"list",state:{readonly:true,readError:true},readonly:true,dirty:null,saving:false,guardNavigation:true};
+  const render=AdminShell.setup(props,{emit:()=>{},slots:{}});
+  const tree=render().children.default();
+  const text=JSON.stringify(tree);
+  assert.equal(text.includes("Режим просмотра."),false);
+  assert.equal(text.includes("Доступен только просмотр."),false);
+  assert.equal(text.includes("Все изменения сохранены."),false);
+  assert.equal(text.includes("Не удалось загрузить данные."),true);
+});
+
+test("CollectionList slots use existing rows and controlled page/retry events", () => {
+  const emitted=[],controls={type:"custom-controls"},cell={type:"custom-cell"},empty={type:"custom-empty"};
+  const props={rows:[{id:"owned",title:"Actual title"}],columns:[{field:"title",label:"Title"}],page:1,pageSize:25,total:30,loading:false,error:false};
+  let seen, pager;
+  const render=CollectionList.setup(props,{emit:(...args)=>emitted.push(args),slots:{controls:()=>controls,cell:scope=>{seen=scope;return cell;},pagination:scope=>{pager=scope;return {type:"custom-pagination"};},empty:()=>empty}});
+  const tree=render();assert.equal(tree.children[0],controls);assert.equal(seen.row.id,"owned");assert.equal(seen.value,"Actual title");assert.equal(pager.nextEnabled,true);pager.selectPage(2);assert.deepEqual(emitted.at(-1),["update:page",2]);
+  props.rows=[];assert.equal(render().children[1],empty);
+});
+
 }
