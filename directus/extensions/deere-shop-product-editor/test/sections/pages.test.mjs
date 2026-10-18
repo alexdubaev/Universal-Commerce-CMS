@@ -4,13 +4,13 @@ import { readFile } from 'node:fs/promises';
 
 // Exercise production controllers and the real A0 state without a second Vue runtime.
 const uri = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
-const vue = uri('export const defineComponent=x=>x; export const h=()=>{}; export const ref=x=>({value:x}); export const computed=x=>x; export const watch=()=>{}; export const onMounted=()=>{}; export const onUnmounted=()=>{}; export const onBeforeUnmount=()=>{}; export const resolveComponent=x=>x;');
+const vue = uri('export const defineComponent=x=>x; export const h=(type,props,children)=>({type,props:props&&typeof props==="object"&&!Array.isArray(props)?props:{},children:children??props}); export const ref=x=>({value:x}); export const computed=x=>({get value(){return x();}}); export const watch=(getter,callback,options)=>{if(options?.immediate)callback(getter());}; export const onMounted=()=>{}; export const onUnmounted=()=>{}; export const onBeforeUnmount=()=>{}; export const resolveComponent=x=>x;');
 const router = uri('export const onBeforeRouteLeave=()=>{}; export const onBeforeRouteUpdate=()=>{}; export const useRouter=()=>({});');
-const sdk = uri('export const useApi=()=>({});');
+const sdk = uri('export const useApi=()=>globalThis.__a3Api;');
 const rewrite = source => source.replaceAll('"vue"',JSON.stringify(vue)).replaceAll('"vue-router"',JSON.stringify(router)).replaceAll('"@directus/extensions-sdk"',JSON.stringify(sdk));
 const shell = uri(rewrite(await readFile(new URL('../../src/admin-shell.js',import.meta.url),'utf8')));
 const source = await readFile(new URL('../../src/sections/pages.js',import.meta.url),'utf8');
-const { PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, createPageListController, createPageController } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={};')))));
+const { PagesSection, PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, createPageListController, createPageController } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={name:"PageSectionEditor"};')))));
 const response = data => ({data:{data}});
 const permit = (fields=['*'],access='full') => ({access,fields});
 const permissions = { pages:{read:permit(),update:permit(),create:permit()},home_page:{read:permit(['id','source_page'])},page_sections:{read:permit(),update:permit()},directus_files:{read:permit()} };
@@ -138,4 +138,38 @@ test('an uncertain status action remains guarded even when parent content has no
 });
 test('missing required route/status projections block editing even with claimed read permissions',async()=>{
  for(const field of ['slug','page_type','status']){const record={...initial};delete record[field];const c=createPageController(fixture({get:path=>path.startsWith('/items/pages/')?response(record):undefined}));assert.equal((await c.open('own-page')).ok,false);assert.equal(c.snapshot().readonly,true);}
+});
+
+
+const findNode=(node,predicate)=>{if(!node||typeof node!=="object")return null;if(predicate(node))return node;for(const child of Array.isArray(node)?node:Array.isArray(node.children)?node.children:node.children?[node.children]:[]){const found=findNode(child,predicate);if(found)return found;}return null;};
+test('view reports unsaved child edits through the actual shared toolbar',async()=>{
+ globalThis.__a3Api=fixture();
+ const editor=PagesSection.setup({id:'own-page'})().type;
+ const render=editor.setup({id:'own-page'});
+ await new Promise(r=>setImmediate(r));
+ const shellView=render(),main=shellView.children.main();
+ const tabs=findNode(main,n=>n.type?.name==='SectionTabs');
+ const child=findNode(tabs.children.default(),n=>n.type?.name==='PageSectionEditor');
+ child.props.onStateChange({dirty:true,saving:false});
+ const toolbar=render().children.toolbar();
+ const renderedToolbar=toolbar.type.setup(toolbar.props,{emit(){},slots:{}})();
+ assert.ok(JSON.stringify(renderedToolbar).includes('Есть несохранённые изменения.'));
+ assert.equal(JSON.stringify(renderedToolbar).includes('Все изменения сохранены.'),false);
+});
+test('guarded top-level unique/validation errors annotate native fields and retain reconciliation lock',async()=>{
+ for(const [code,field] of [['RECORD_NOT_UNIQUE','slug'],['FAILED_VALIDATION','h1']]){
+ const api=fixture({post:async()=>{throw Object.assign(Error(code),{response:{status:409,data:{errors:[{code,extensions:{field}}]}}});}}),c=await open(api);c.change(field,'already-used');await c.save();assert.ok(c.snapshot().validation.some(e=>e.field===field));assert.equal(c.snapshot().writeUncertain,true);assert.equal(c.snapshot().conflict,false);assert.equal(c.snapshot().values[field],'already-used');await c.save();assert.equal(posts(api).length,1);
+ }
+});
+test('conflicting scalar and native SEO projections are rejected before update or create without losing input',async()=>{
+ const projections=[['seo_title','Changed title',{title:'Old title'}],['seo_description','Changed description',{meta_description:'Old description'}],['og_image','new-id',{og_image:'old-id'}],['is_indexable',false,{no_index:false}],['canonical_url','/new',{additional_fields:{canonical_url:'/old'}}]];
+ for(const creating of [false,true])for(const [field,value,seo] of projections){
+  const api=fixture(),c=createPageController(api);await c.open(creating?'+':'own-page');if(creating){c.change('title','New');c.change('h1','H1');}
+  c.change(field,value);c.change('seo',{...seo,no_follow:true});const result=await c.save();assert.equal(result.reason,'validation');assert.equal(posts(api).length,0);assert.ok(c.snapshot().validation.some(e=>e.field===field));assert.deepEqual(c.snapshot().values[field],value);assert.deepEqual(c.snapshot().values.seo,{...seo,no_follow:true});
+ }
+});
+test('compatible native JSON and scalar edits survive the existing production SEO hook',async()=>{
+ const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');
+ const api=fixture({record:{seo_title:'Old title',seo:{title:'Old title',no_follow:false}},post:async(_path,body)=>{api.record={...api.record,...synchronizeSeoPayload(body.changes,api.record,'pages'),updated_at:'v2'};return response(api.record);}}),c=await open(api);
+ c.change('seo_title','New title');c.change('seo',{title:'New title',no_follow:true});assert.equal((await c.save()).ok,true);assert.equal(c.snapshot().values.seo_title,'New title');assert.equal(c.snapshot().values.seo.no_follow,true);assert.equal(c.snapshot().parentDirty,false);
 });

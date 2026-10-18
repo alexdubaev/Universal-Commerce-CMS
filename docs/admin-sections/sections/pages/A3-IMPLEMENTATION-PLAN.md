@@ -14,24 +14,24 @@ A2 accepted commits a4cf43a and 6f94264 are already in base. Use PageSectionEdit
 
 ## Task 1: server queries and controller
 
-- [ ] Add behavior tests to test/sections/pages.test.mjs, run RED before implementation.
-- [ ] Implement buildPagesQuery({page,search,sort,filters}) with explicit fields, 25 rows, filtered count, stable id order; createPageListController(api,{onChange}) rejects stale responses and unconfirmed permissions.
-- [ ] Implement createPageController(api,{onChange}): native draft+standard create, manual slug protection, guarded delta update, hooks refetch, explicit compare/reconcile, source-page check and separate status update.
-- [ ] Test denied/malformed/partial access, required/unique fields, double submit, uncertain POST, missing ID/version, races, published confirmation, parent/child updates retaining edits and separate status payload.
-- [ ] Run node --test directus/extensions/deere-shop-product-editor/test/sections/pages.test.mjs (also direct execution for visible per-case results), expect all cases PASS.
+- [x] Add behavior tests to test/sections/pages.test.mjs, run RED before implementation.
+- [x] Implement buildPagesQuery({page,search,sort,filters}) with explicit fields, 25 rows, filtered count, stable id order; createPageListController(api,{onChange}) rejects stale responses and unconfirmed permissions.
+- [x] Implement createPageController(api,{onChange}): native draft+standard create, manual slug protection, guarded delta update, hooks refetch, explicit compare/reconcile, source-page check and separate status update.
+- [x] Test denied/malformed/partial access, required/unique fields, double submit, uncertain POST, missing ID/version, races, published confirmation, parent/child updates retaining edits and separate status payload.
+- [x] Run node --test directus/extensions/deere-shop-product-editor/test/sections/pages.test.mjs (also direct execution for visible per-case results), expect all cases PASS.
 
 ## Task 2: views and registration
 
-- [ ] Build PagesSection list/card/create using actual useApi and accepted native components, explicit per-tab subsets, native OG picker, scoped styles matching the approved HTML/PNGs. Keep child editor mounted across tabs and aggregate dirty/saving flags.
-- [ ] Compact pending filter dialog: Apply/Cancel/Reset, removable chips, Escape/focus/Tab boundaries. Actual anchors preserve modified clicks/new tabs. Mobile hides secondary table columns, shares queries.
-- [ ] Register pages minimally after fetch/check of origin/main. Preserve categories and home_page.
+- [x] Build PagesSection list/card/create using actual useApi and accepted native components, explicit per-tab subsets, native OG picker, scoped styles matching the approved HTML/PNGs. Keep child editor mounted across tabs and aggregate dirty/saving flags.
+- [x] Compact pending filter dialog: Apply/Cancel/Reset, removable chips, Escape/focus/Tab boundaries. Actual anchors preserve modified clicks/new tabs. Mobile hides secondary table columns, shares queries.
+- [x] Register pages minimally after fetch/check of origin/main. Preserve categories and home_page.
 - [ ] Compare first actual screen with reference if an authorized runtime exists. Do not fabricate runtime acceptance from a harness.
 
 ## Task 3: final verification and handoff
 
-- [ ] Run pages tests and relevant A0/products/categories/home/children regressions; src/dist parity and git diff --check.
-- [ ] Run node scripts/verify-local.mjs on final candidate; no hosted CI.
-- [ ] One independent final code review; reviewer opens actual/reference screenshots if available; fix blocking findings and rerun affected checks.
+- [x] Run pages tests and relevant A0/products/categories/home/children regressions; src/dist parity and git diff --check.
+- [x] Run node scripts/verify-local.mjs on final candidate; no hosted CI.
+- [x] One independent final code review; reviewer opens actual/reference screenshots if available; fix blocking findings and rerun affected checks.
 - [ ] Live Directus/PostgreSQL tests only in confirmed owned runtime with exact-ID ledger and exclusive write lock. Current environment has no containers, dev/.env or ownership manifest: RUNTIME/VISUAL NOT VERIFIED. Do not create infrastructure.
 - [ ] Without real UI acceptance publish only a draft PR (no merge). Without safe target report DEPLOY BLOCKED. Keep unfinished branch/worktree for continuation; never remove other work.
 
@@ -46,3 +46,5 @@ A2 accepted commits a4cf43a and 6f94264 are already in base. Use PageSectionEdit
 ## Progress
 
 Baseline A0/category/home tests: successful direct A2 execution (22 cases); node --test reports file-level summaries on this Node build. Runtime unavailable; no data writes made. Reference PNGs inspected; no alternative design generated.
+
+Final code verification: 32 Pages cases, 96 related cases; complete local gate PASS (237 backend/tooling, 36 storefront, audit 0, production/TypeScript/canary and 2 Chromium journeys). Eight src/dist pairs match. Three independent review findings fixed by targeted RED→GREEN tests. No minor findings. Real Directus/visual acceptance and merge remain outstanding; see A3-ACCEPTANCE.md.

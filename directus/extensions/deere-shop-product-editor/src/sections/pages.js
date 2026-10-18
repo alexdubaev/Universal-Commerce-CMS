@@ -27,10 +27,26 @@ const has = (fields,f) => Array.isArray(fields) && (fields.includes("*") || fiel
 const permissionFields = p => ["full","partial"].includes(p?.access) && Array.isArray(p.fields) && p.fields.every(f=>typeof f==="string") ? [...p.fields] : [];
 const writableMeta = f => f && f.type !== "alias" && !f.readonly && !f.meta?.readonly && !f.schema?.is_generated;
 const choices = f => (f?.meta?.options?.choices??[]).map(c=>typeof c==="object"?c.value:c);
-const codeOf = e => e?.response?.data?.errors?.[0]?.extensions?.code ?? e?.code;
+const codeOf = e => e?.response?.data?.errors?.[0]?.extensions?.code ?? e?.response?.data?.errors?.[0]?.code ?? e?.code;
 const statusOf = e => e?.response?.status ?? e?.status;
 const deniedError = message => Object.assign(Error(message),{status:403});
 const errorText = e => statusOf(e)===403 ? "Недостаточно прав для этого действия." : statusOf(e)===404 ? "Запись отсутствует или недоступна." : codeOf(e)==="RECORD_NOT_UNIQUE" ? "Этот адрес уже занят. Укажите другой." : "Не удалось подтвердить операцию. Проверьте соединение и текущие данные.";
+const fieldErrors = error => {
+  const code=codeOf(error),field=code==="RECORD_NOT_UNIQUE"?"slug":error?.response?.data?.errors?.[0]?.extensions?.field;
+  if(!["RECORD_NOT_UNIQUE","FAILED_VALIDATION","INVALID_PAYLOAD"].includes(code))return [];
+  return [{field:EDITABLE.includes(field)?field:null,type:code,message:code==="RECORD_NOT_UNIQUE"?"Адрес страницы: этот адрес уже занят. Укажите другой после сверки данных.":"Проверьте обязательные поля и допустимые значения. Введённые данные сохранены на экране."}];
+};
+// Reject contradictory edits, rather than silently letting the JSON-first hook
+// overwrite a scalar. The server remains the sole owner of SEO projections.
+function seoProjectionErrors(values,baseline) {
+  if(same(values.seo,baseline.seo))return [];
+  const seo=values.seo&&typeof values.seo==="object"&&!Array.isArray(values.seo)?values.seo:{};
+  const text=value=>typeof (value?.id??value)==="string"&&(value?.id??value).trim()?(value?.id??value).trim():null;
+  const pairs=[["seo_title",seo,"title"],["seo_description",seo,"meta_description"],["og_image",seo,"og_image"],["canonical_url",seo.additional_fields??{},"canonical_url"],["is_indexable",seo,"no_index"]];
+  return pairs.filter(([field,owner,key])=>Object.hasOwn(values,field)&&!same(values[field],baseline[field])&&Object.hasOwn(owner,key)&&
+    (field==="is_indexable"?typeof owner[key]==="boolean"&&values[field]!==!owner[key]:!same(text(values[field]),text(owner[key]))))
+    .map(([field])=>({field,type:"FAILED_VALIDATION",message:`${FIELD_LABELS[field]} расходится со значением в SEO-панели. Согласуйте оба значения перед сохранением; ваш ввод сохранён.`}));
+}
 const recordFrom = r => { const value=data(r); if(!value || typeof value!=="object" || Array.isArray(value))throw Error("Invalid page response"); return value; };
 
 export function pagePermissions(effective, item) {
@@ -135,7 +151,7 @@ export function createPageController(api,{onChange}={}) {
     values:values(),baseline:creating?copy(defaults):state?.baseline??{},dirty:(creating?!createdId&&!same(draft,defaults):Boolean(state?.dirty))||child.dirty||uncertainCreate||Boolean(statusState?.writeUncertain),
     parentDirty:creating?!same(draft,defaults):Boolean(state?.dirty),childDirty:child.dirty,childSaving:child.saving,parentStale,sourceCheck,sourceLinked,sourceError,
     readError:failure||state?.readError,saveError:statusState?.saveError||state?.saveError,validation:copy(validation),comparison:copy(comparison),recovery:copy(recovery),
-    conflict:Boolean(state?.conflict||statusState?.conflict),writeUncertain:uncertainCreate||Boolean(state?.writeUncertain||statusState?.writeUncertain),saved:Boolean(createdId||state?.saved),
+    conflict:Boolean(state?.conflict&&!fieldErrors(state?.saveError).length||statusState?.conflict&&!fieldErrors(statusState?.saveError).length),writeUncertain:uncertainCreate||Boolean(state?.writeUncertain||statusState?.writeUncertain),saved:Boolean(createdId||state?.saved),
     readonly:protectedPage()||!EDITABLE.some(canChange),canSave:canSave(),canStatus:!creating&&!blocked()&&!protectedPage()&&!state?.dirty&&!child.dirty&&Boolean(state?.canWrite("status")),
     childMetadata:copy(childMetadata),childPermissions:copy(childPermissions),fileReadAccess:has(permissionFields(effective?.directus_files?.read),"id"),versioning});
   const notify=()=>{if(!disposed)onChange?.(snapshot());};
@@ -202,7 +218,7 @@ export function createPageController(api,{onChange}={}) {
   async function save({confirmPublished=false}={}){
     if(!canSave())return {ok:false,reason:"unavailable"};
     if(!creating&&state.baseline.status==="published"&&!confirmPublished)return {ok:false,reason:"confirmation"};
-    validation=validatePage(values(),metadata);if(validation.length){notify();return {ok:false,reason:"validation"};}
+    validation=[...validatePage(values(),metadata),...seoProjectionErrors(values(),creating?defaults:state.baseline)];if(validation.length){notify();return {ok:false,reason:"validation"};}
     if(creating){
       busy=true;notify();
       const body=Object.fromEntries(EDITABLE.filter(f=>!["status","page_type"].includes(f)&&has(permissions.create,f)&&has(permissions.read,f)&&writableMeta(metadata.find(m=>m.field===f))&&Object.hasOwn(draft,f)&&(!same(draft[f],defaults[f])||CORE.includes(f))).map(f=>[f,copy(draft[f])]));
@@ -221,7 +237,7 @@ export function createPageController(api,{onChange}={}) {
     busy=true;notify();
     try{
       const pending=state.save(async(_collection,identity,payload)=>data(await api.post(`/commerce/mutations/pages/${encodeURIComponent(identity)}`,payload)));notify();
-      const result=await pending;if(!result.ok)return result;
+      const result=await pending;if(!result.ok){validation=fieldErrors(result.error);return result;}
       return await refreshAfterWrite();
     }finally{busy=false;notify();}
   }
@@ -380,8 +396,8 @@ const PageEditor=defineComponent({
     return()=>{
       const s=snapshot.value,title=s.creating?"Новая страница":s.values.title||"Страница";
       const pendingOutcome=s.conflict||s.writeUncertain||s.parentStale||s.ready&&Boolean(s.readError);
-      // The parent toolbar reports parent outcome; child dirty/saving still feeds the guard.
-      const toolbarState={...s,dirty:s.parentDirty,saving:s.saving||s.childSaving,conflict:false,writeUncertain:false,saveError:null,readError:null,saved:s.saved&&!s.childDirty};
+      // Aggregate unsaved state prevents an all-saved message while a block is dirty.
+      const toolbarState={...s,dirty:s.dirty,saving:s.saving||s.childSaving,conflict:false,writeUncertain:false,saveError:null,readError:null,saved:s.saved&&!s.childDirty};
       const comparison=s.comparison?h("div",{class:"a3pages-diff"},EDITABLE.filter(f=>Object.hasOwn(s.values,f)&&Object.hasOwn(s.comparison,f)&&!same(s.values[f],s.comparison[f])).map(f=>h("article",[h("h3",FIELD_LABELS[f]??"Статус"),h(ReadonlyDetails,{values:{local:s.values[f],remote:s.comparison[f]},fields:[{field:"local",label:"Ваше значение"},{field:"remote",label:"На сервере"}]})]))):null;
       const conflict=pendingOutcome?h("section",{class:"a3pages-note a3pages-conflict",role:"region","aria-label":"Сверка страницы"},[
         h("h2",s.creating?"Создание не подтверждено":s.conflict?"Страница изменена в другом окне":s.parentStale?"После сохранения блока сверьте страницу":"Результат сохранения нужно проверить"),
