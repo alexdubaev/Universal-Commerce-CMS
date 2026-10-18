@@ -1,0 +1,18 @@
+{
+  "reviewMode": "one fresh independent reviewer, one bounded fix, narrow closure",
+  "reviewedBase": "f98b5209602eed273fc46fda2ec441b6f0620d6a",
+  "reviewedProduct": "6d97af89693725a0eff328d1ea559133588717d7",
+  "closureProduct": "144c26b8ff2554ccb243870df1e1f4df62b5df04",
+  "confirmedCodeFindingsP0P1P2": [],
+  "checks": ["22 focused tests passed", "git diff --check passed", "src/dist parity passed"],
+  "visual": {
+    "passed": ["list desktop/mobile", "main desktop/mobile", "material desktop/mobile", "writing desktop", "relations desktop/mobile", "SEO desktop/mobile", "create", "CAS conflict", "readonly", "native right panel open"],
+    "finding": "Filters appeared at viewport corner instead of desktop center/mobile bottom sheet",
+    "fix": "Scoped A4 dialog CSS only, mirrored dist; no filter logic changes",
+    "closure": "PASS on actual bc13cf65 desktop1536 and mobile390 screenshots; centered desktop, bottom mobile, controls visible, no horizontal overflow",
+    "nativeDifferences": "Native Directus chrome, theme and toolbar; mobile filter sheet has 16px side gutters rather than full bleed"
+  },
+  "verdict": "draft; do not merge until existing runtime Articles public gateway is verified",
+  "remainingBlocker": "Mounted older storefront API returns404 for articles, preventing actual draft/future/due public verification; protected runtime upgrade outside A4 scope",
+  "bundleMode": "browser-substituted candidate in real Directus, not installed or deployed"
+}

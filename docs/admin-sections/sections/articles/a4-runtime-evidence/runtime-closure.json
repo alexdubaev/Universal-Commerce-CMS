@@ -1,0 +1,48 @@
+{
+  "run": "8122679d-7303-4bd9-ae68-d04b4b7976df",
+  "hashes": {
+    "index.js": "36cfa640ec06b4989fbdd3f44900838665882b6ac7b027148254ce93c90c79ce",
+    "editor-state.mjs": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+    "admin-shell.js": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84",
+    "admin-state.mjs": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+    "page-sections.js": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12",
+    "sections/pages.js": "7d6c45221e5346e31502caad251b3af80fb2a38015688f121eacafbf09170a14",
+    "sections/categories.js": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f",
+    "sections/home_page.js": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e",
+    "sections/articles.js": "bce1575da4d4b88870fb4c374da15a0902cc1417a1ffe0531f8e4de33553fa9d"
+  },
+  "results": [
+    {
+      "name": "main native geometry right panel and long values",
+      "status": "PASS"
+    },
+    {
+      "name": "material native mount and cross-tab edits preserve exact untouched HTML JSON",
+      "status": "PASS"
+    },
+    {
+      "name": "native cover library save detach and writing preserve untouched HTML JSON",
+      "status": "PASS"
+    },
+    {
+      "name": "relations SEO additional tabs and JSON retention",
+      "status": "PASS"
+    },
+    {
+      "name": "lost native create acknowledgement blocks retry and preserves local material",
+      "status": "PASS"
+    }
+  ],
+  "errors": [
+    "Unexpected token '<'",
+    "Unexpected token '<'",
+    "Unexpected token '<'"
+  ],
+  "knownNativeLanguageHTML": [
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js"
+  ],
+  "cleanup": true,
+  "mode": "browser-substituted candidate in real Directus"
+}

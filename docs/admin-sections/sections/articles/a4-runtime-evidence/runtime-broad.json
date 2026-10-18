@@ -1,0 +1,97 @@
+{
+  "run": "83d9dc59-8684-4458-98e5-c99833ea9def",
+  "hashes": {
+    "index.js": "36cfa640ec06b4989fbdd3f44900838665882b6ac7b027148254ce93c90c79ce",
+    "editor-state.mjs": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+    "admin-shell.js": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84",
+    "admin-state.mjs": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+    "page-sections.js": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12",
+    "sections/pages.js": "7d6c45221e5346e31502caad251b3af80fb2a38015688f121eacafbf09170a14",
+    "sections/categories.js": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f",
+    "sections/home_page.js": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e",
+    "sections/articles.js": "c3b3d012e8875e5f7adcbddddcad96a2168638d0f311a10abd18f678eeb6db05"
+  },
+  "results": [
+    {
+      "name": "list real server bounds pagination search sorting and modifier link",
+      "status": "PASS"
+    },
+    {
+      "name": "filter draft apply cancel Escape and focus",
+      "status": "PASS"
+    },
+    {
+      "name": "main native geometry right panel and long values",
+      "status": "PASS"
+    },
+    {
+      "name": "material native mount and cross-tab edits preserve exact untouched HTML JSON",
+      "status": "PASS"
+    },
+    {
+      "name": "native cover library save detach and writing preserve untouched HTML JSON",
+      "status": "FAIL",
+      "error": "{\"widthBefore\":710,\"widthAfter\":710}"
+    },
+    {
+      "name": "native HTML typing writes content and keeps structural data",
+      "status": "PASS"
+    },
+    {
+      "name": "delayed native source dialog changes remain authorized and save through CAS",
+      "status": "PASS"
+    },
+    {
+      "name": "relations SEO additional tabs and JSON retention",
+      "status": "FAIL",
+      "error": "500 POST /items/products"
+    },
+    {
+      "name": "native SEO JSON editing preserves unknown keys and projects scalar",
+      "status": "PASS"
+    },
+    {
+      "name": "publication actions are isolated future dates and dirty status is disabled",
+      "status": "PASS"
+    },
+    {
+      "name": "real CAS409 retains input and explicit reconcile performs no write",
+      "status": "PASS"
+    },
+    {
+      "name": "lost mutation acknowledgement retains input until explicit reconciliation",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled item readonly and list error retry retain actual permissions boundary",
+      "status": "PASS"
+    },
+    {
+      "name": "native draft create required datetime UTC and double click has single POST",
+      "status": "PASS"
+    },
+    {
+      "name": "lost native create acknowledgement blocks retry and preserves local material",
+      "status": "FAIL",
+      "error": "locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('a[href$=\"/0693befc-e6c9-4065-b006-e19be0cf1eeb\"]') to be visible\u001b[22m\n"
+    }
+  ],
+  "errors": [
+    "Unexpected token '<'",
+    "Unexpected token '<'",
+    "Unexpected token '<'",
+    "Unexpected token '<'",
+    "Unexpected token '<'",
+    "Unexpected token '<'"
+  ],
+  "knownNativeLanguageHTML": [
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js",
+    "http://127.0.0.1:18056/admin/product-editor/sections/articles//langs/ru-RU.js"
+  ],
+  "cleanup": true,
+  "mode": "browser-substituted candidate in real Directus"
+}
