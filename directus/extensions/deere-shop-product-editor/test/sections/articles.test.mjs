@@ -113,6 +113,24 @@ test('status transition is an isolated guarded CAS and requires a clean baseline
   const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');c.change('title','Pending title');assert.equal((await c.transitionStatus('published')).ok,false);assert.equal(api.calls.filter(row=>row[0]==='POST').length,0);assert.equal((await c.save()).ok,true);const result=await c.transitionStatus('published');assert.equal(result.ok,true);const post=api.calls.filter(row=>row[0]==='POST').at(-1);assert.deepEqual(post[2],{expected:{id:'article-1',updated_at:'v2',status:'draft'},changes:{status:'published'}});
 });
 
+test('publishing requires readable nonempty public content while archive transition still accepts legacy block-only records', async () => {
+  const legacy={...article,content:'',content_blocks:{type:'doc',content:[{type:'paragraph',content:[{text:'separate blocks'}]}]}};
+  const api=apiFixture({item:legacy});const c=createArticlesController(api);await c.open('article-1');
+  assert.equal((await c.transitionStatus('published')).ok,false);assert.equal(api.calls.filter(row=>row[0]==='POST').length,0);
+  assert.equal(c.snapshot().baseline.content,'');assert.ok(c.snapshot().validation.some(error=>error.field==='content'));
+  assert.match(c.snapshot().statusError.articleValidationMessage,/обязательное поле/);
+  assert.equal((await c.transitionStatus('archived')).ok,true);assert.deepEqual(api.calls.find(row=>row[0]==='POST')[2].changes,{status:'archived'});
+});
+
+test('publishing is blocked if a required field cannot be read and accepts a valid future date', async () => {
+  const denied={articles:{read:{access:'partial',fields:['id','updated_at','title','slug','excerpt','published_at']},update:{access:'full',fields:['*']}}};
+  const api=apiFixture({permissions:denied,itemPermission:{update:{access:true,fields:['*']}},item:{...article,published_at:'2099-10-18T10:00:00.000Z'}});const c=createArticlesController(api);await c.open('article-1');
+  assert.equal((await c.transitionStatus('published')).ok,false);assert.equal(api.calls.filter(row=>row[0]==='POST').length,0);
+  assert.ok(c.snapshot().validation.some(error=>error.field==='content'&&error.type==='READ_REQUIRED_FOR_PUBLISH'));
+  const full=apiFixture({item:{...article,published_at:'2099-10-18T10:00:00.000Z'}});const allowed=createArticlesController(full);await allowed.open('article-1');
+  assert.equal((await allowed.transitionStatus('published')).ok,true);assert.deepEqual(full.calls.find(row=>row[0]==='POST')[2].changes,{status:'published'});
+});
+
 test('SEO scalar updates leave native SEO JSON untouched in the guarded delta', async () => {
   const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');assert.equal(c.change('seo_title','Новый заголовок SEO'),true);assert.equal((await c.save()).ok,true);const payload=api.calls.find(row=>row[0]==='POST')[2];assert.deepEqual(payload.changes,{seo_title:'Новый заголовок SEO'});assert.deepEqual(c.snapshot().values.seo,article.seo);
 });
