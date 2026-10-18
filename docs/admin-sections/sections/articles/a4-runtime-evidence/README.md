@@ -18,7 +18,7 @@ Desktop captures are 1536×1024; intermediate captures 1024×1024; mobile 390×8
 
 One fresh independent code/visual reviewer found no confirmed P0/P1/P2 code defect. It compared approved desktop/mobile PNGs with actual list/main/material/writing/relations/SEO/create/readonly/conflict/panel/filter captures. The sole material visual discrepancy was filter positioning; its one bounded CSS fix received a narrow runtime closure. Native chrome, theme and metadata-driven editor controls account for remaining differences.
 
-`final-local-gate.log` records `node scripts/verify-local.mjs` on product candidate `144c26b` before documentation-only commits. Confirmed result:262 backend/extension checks,36 storefront checks, audit0, build/type/canary,2 Chromium journeys. Focused Articles:22/22. Source/dist parity and whitespace checks pass. No unchanged product tests need another run for later evidence/docs commits.
+[Final local gate output](final-local-gate.txt) records `node scripts/verify-local.mjs` on product candidate `144c26b` before documentation-only commits. Confirmed result:262 backend/extension checks,36 storefront checks, audit0, build/type/canary,2 Chromium journeys. Focused Articles:22/22. Source/dist parity and whitespace checks pass. No unchanged product tests need another run for later evidence/docs commits.
 
 The independently reproduced stock TinyMCE locale request returning HTML is recorded in runtime summaries as `knownNativeLanguageHTML`, with `Unexpected token '<'`; other page errors fail. No claim of a clean stock-runtime console is made.
 
