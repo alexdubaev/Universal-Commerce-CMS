@@ -25,15 +25,15 @@ A2 accepted commits a4cf43a and 6f94264 are already in base. Use PageSectionEdit
 - [x] Build PagesSection list/card/create using actual useApi and accepted native components, explicit per-tab subsets, native OG picker, scoped styles matching the approved HTML/PNGs. Keep child editor mounted across tabs and aggregate dirty/saving flags.
 - [x] Compact pending filter dialog: Apply/Cancel/Reset, removable chips, Escape/focus/Tab boundaries. Actual anchors preserve modified clicks/new tabs. Mobile hides secondary table columns, shares queries.
 - [x] Register pages minimally after fetch/check of origin/main. Preserve categories and home_page.
-- [ ] Compare first actual screen with reference if an authorized runtime exists. Do not fabricate runtime acceptance from a harness.
+- [x] Compare actual Windows Directus screenshots with approved references; independent visual closure PASS.
 
 ## Task 3: final verification and handoff
 
 - [x] Run pages tests and relevant A0/products/categories/home/children regressions; src/dist parity and git diff --check.
 - [x] Run node scripts/verify-local.mjs on final candidate; no hosted CI.
 - [x] One independent final code review; reviewer opens actual/reference screenshots if available; fix blocking findings and rerun affected checks.
-- [ ] Live Directus/PostgreSQL tests only in confirmed owned runtime with exact-ID ledger and exclusive write lock. Current environment has no containers, dev/.env or ownership manifest: RUNTIME/VISUAL NOT VERIFIED. Do not create infrastructure.
-- [ ] Without real UI acceptance publish only a draft PR (no merge). Without safe target report DEPLOY BLOCKED. Keep unfinished branch/worktree for continuation; never remove other work.
+- [x] Continued on local Windows in the existing own Directus/PostgreSQL stack; private before-POST exact-ID journals, shared writer lock, actual native/API/CAS checks and exact cleanup confirmed. Infrastructure unchanged.
+- [x] Runtime and visual blockers closed locally; final local gate and independent review PASS. Integrate PR #10, verify main and clean only A3. Production deployment remains blocked by unconfirmed safe target/procedure.
 
 ## Review focus
 
@@ -48,3 +48,8 @@ A2 accepted commits a4cf43a and 6f94264 are already in base. Use PageSectionEdit
 Baseline A0/category/home tests: successful direct A2 execution (22 cases); node --test reports file-level summaries on this Node build. Runtime unavailable; no data writes made. Reference PNGs inspected; no alternative design generated.
 
 Final code verification: 32 Pages cases, 96 related cases; complete local gate PASS (237 backend/tooling, 36 storefront, audit 0, production/TypeScript/canary and 2 Chromium journeys). Eight src/dist pairs match. Three independent review findings fixed by targeted RED→GREEN tests. No minor findings. Real Directus/visual acceptance and merge remain outstanding; see A3-ACCEPTANCE.md.
+
+
+## Local Windows continuation (2026-10-18)
+
+The historical cloud-only limitations above are superseded by A3-ACCEPTANCE.md and its checked Windows evidence. Continued the same branch; fixed native null-SEO hydration and narrow mobile status rendering. Versions/preview remain unavailable by scope. Stop after A3.

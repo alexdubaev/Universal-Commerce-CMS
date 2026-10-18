@@ -10,7 +10,7 @@ const sdk = uri('export const useApi=()=>globalThis.__a3Api;');
 const rewrite = source => source.replaceAll('"vue"',JSON.stringify(vue)).replaceAll('"vue-router"',JSON.stringify(router)).replaceAll('"@directus/extensions-sdk"',JSON.stringify(sdk));
 const shell = uri(rewrite(await readFile(new URL('../../src/admin-shell.js',import.meta.url),'utf8')));
 const source = await readFile(new URL('../../src/sections/pages.js',import.meta.url),'utf8');
-const { PagesSection, PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, createPageListController, createPageController } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={name:"PageSectionEditor"};')))));
+const { PagesSection, PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, createPageListController, createPageController, pageSeoInterfaceInitialValues } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={name:"PageSectionEditor"};')))));
 const response = data => ({data:{data}});
 const permit = (fields=['*'],access='full') => ({access,fields});
 const permissions = { pages:{read:permit(),update:permit(),create:permit()},home_page:{read:permit(['id','source_page'])},page_sections:{read:permit(),update:permit()},directus_files:{read:permit()} };
@@ -162,14 +162,51 @@ test('guarded top-level unique/validation errors annotate native fields and reta
  }
 });
 test('conflicting scalar and native SEO projections are rejected before update or create without losing input',async()=>{
- const projections=[['seo_title','Changed title',{title:'Old title'}],['seo_description','Changed description',{meta_description:'Old description'}],['og_image','new-id',{og_image:'old-id'}],['is_indexable',false,{no_index:false}],['canonical_url','/new',{additional_fields:{canonical_url:'/old'}}]];
+ const projections=[['seo_title','Changed title',{title:'Old title'}],['seo_description','Changed description',{meta_description:'Old description'}],['og_image','new-id',{og_image:'old-id'}],['canonical_url','/new',{additional_fields:{canonical_url:'/old'}}],['is_indexable',false,{no_index:false}]];
  for(const creating of [false,true])for(const [field,value,seo] of projections){
   const api=fixture(),c=createPageController(api);await c.open(creating?'+':'own-page');if(creating){c.change('title','New');c.change('h1','H1');}
-  c.change(field,value);c.change('seo',{...seo,no_follow:true});const result=await c.save();assert.equal(result.reason,'validation');assert.equal(posts(api).length,0);assert.ok(c.snapshot().validation.some(e=>e.field===field));assert.deepEqual(c.snapshot().values[field],value);assert.deepEqual(c.snapshot().values.seo,{...seo,no_follow:true});
+  c.change(field,value);c.change('seo',{...seo,no_follow:true});const result=await c.save();assert.equal(result.reason,'validation',JSON.stringify({creating,field,result,validation:c.snapshot().validation,values:c.snapshot().values,baseline:c.snapshot().baseline}));assert.equal(posts(api).length,0);assert.ok(c.snapshot().validation.some(e=>e.field===field));assert.deepEqual(c.snapshot().values[field],value);assert.deepEqual(c.snapshot().values.seo,{...seo,no_follow:true});
  }
 });
 test('compatible native JSON and scalar edits survive the existing production SEO hook',async()=>{
  const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');
  const api=fixture({record:{seo_title:'Old title',seo:{title:'Old title',no_follow:false}},post:async(_path,body)=>{api.record={...api.record,...synchronizeSeoPayload(body.changes,api.record,'pages'),updated_at:'v2'};return response(api.record);}}),c=await open(api);
  c.change('seo_title','New title');c.change('seo',{title:'New title',no_follow:true});assert.equal((await c.save()).ok,true);assert.equal(c.snapshot().values.seo_title,'New title');assert.equal(c.snapshot().values.seo.no_follow,true);assert.equal(c.snapshot().parentDirty,false);
+ c.change('seo_title','Newer title');assert.equal((await c.save()).ok,true);assert.equal(api.record.seo_title,'Newer title');assert.equal(api.record.seo.title,'Newer title');
+});
+test('native SEO hydration defaults do not block scalar edits or overwrite them through the JSON-first hook',async()=>{
+ const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');
+ const baselineSeo=null;
+ const api=fixture({record:{seo_title:'Old title',seo_description:'Old description',seo:baselineSeo},post:async(_path,body)=>{api.record={...api.record,...synchronizeSeoPayload(body.changes,api.record,'pages'),updated_at:'v2'};return response(api.record);}}),c=await open(api);
+ // Directus' native interface normalizes missing keys as it hydrates the JSON field.
+ const nativeInitial=pageSeoInterfaceInitialValues(c.snapshot().baseline);assert.equal(nativeInitial.title,'Old title');assert.equal(nativeInitial.meta_description,'Old description');
+ c.change('seo',{...nativeInitial,no_index:false,additional_fields:{canonical_url:null}});
+ c.change('seo_title','New title');c.change('seo_description','New description');c.change('og_image','file-id');c.change('is_indexable',false);c.change('canonical_url','/new-canonical');
+ const saved=await c.save();assert.equal(saved.ok,true,JSON.stringify({saved,validation:c.snapshot().validation,values:c.snapshot().values,baseline:c.snapshot().baseline}));
+ assert.equal(posts(api).length,1);
+ assert.equal(posts(api)[0].body.changes.seo.title,'New title');
+ assert.equal(posts(api)[0].body.changes.seo.meta_description,'New description');
+ assert.equal(posts(api)[0].body.changes.seo.og_image,'file-id');
+ assert.equal(posts(api)[0].body.changes.seo.no_index,true);
+ assert.equal(posts(api)[0].body.changes.seo.additional_fields.canonical_url,'/new-canonical');
+ assert.equal(api.record.seo_title,'New title');
+ assert.equal(api.record.seo.title,'New title');
+ assert.equal(api.record.seo_description,'New description');assert.equal(api.record.og_image,'file-id');assert.equal(api.record.is_indexable,false);assert.equal(api.record.canonical_url,'/new-canonical');
+ assert.equal(c.snapshot().parentDirty,false);
+});
+test('native SEO interface initial values seed missing projections but preserve explicit empties and unknown JSON',()=>{
+ const values={seo:{title:'',meta_description:'',og_image:null,no_index:false,no_follow:true,additional_fields:{canonical_url:''},custom:{keep:true}},seo_title:'Legacy title',seo_description:'Legacy description',og_image:'legacy-file',canonical_url:'/legacy',is_indexable:true};
+ const initial=pageSeoInterfaceInitialValues(values);
+ assert.equal(initial.title,'');assert.equal(initial.meta_description,'');assert.equal(initial.og_image,'');assert.equal(initial.additional_fields.canonical_url,'');
+ assert.equal(initial.no_index,false);assert.equal(initial.no_follow,true);assert.deepEqual(initial.custom,{keep:true});
+ const missing=pageSeoInterfaceInitialValues({seo:null,seo_title:'Legacy title',seo_description:'Legacy description',og_image:'legacy-file',canonical_url:'/legacy',is_indexable:false});
+ assert.equal(missing.title,'Legacy title');assert.equal(missing.meta_description,'Legacy description');assert.equal(missing.og_image,'legacy-file');assert.equal(missing.no_index,true);assert.equal(missing.additional_fields.canonical_url,'/legacy');
+});
+test('native draft creation synchronizes hydrated SEO JSON with scalar fields before the production hook',async()=>{
+ const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');
+ const api=fixture({post:async(path,body)=>{assert.equal(path,'/items/pages');const projected=synchronizeSeoPayload(body,{},'pages');return response({...projected,id:'created-page',updated_at:'created-v1'});}}),c=createPageController(api);
+ assert.equal((await c.open('+')).ok,true);c.change('title','Created SEO page');c.change('h1','Created SEO heading');
+ c.change('seo',pageSeoInterfaceInitialValues(c.snapshot().baseline));c.change('seo_title','Created SEO title');
+ const result=await c.save();assert.equal(result.createdId,'created-page');
+ assert.equal(posts(api).length,1);assert.equal(posts(api)[0].body.seo.title,'Created SEO title');assert.equal(posts(api)[0].body.seo.meta_description,'');
 });
