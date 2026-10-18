@@ -11,8 +11,9 @@ import { AdminShell } from "./admin-shell.js";
 import { CategoriesSection } from "./sections/categories.js";
 import { HomePageSection } from "./sections/home_page.js";
 import { PagesSection } from "./sections/pages.js";
+import { ArticlesSection } from "./sections/articles.js";
 
-export const sectionRegistry = Object.freeze({ categories: Object.freeze({ component: CategoriesSection }), home_page: Object.freeze({ component: HomePageSection }), pages: Object.freeze({ component: PagesSection }) });
+export const sectionRegistry = Object.freeze({ categories: Object.freeze({ component: CategoriesSection }), home_page: Object.freeze({ component: HomePageSection }), pages: Object.freeze({ component: PagesSection }), articles: Object.freeze({ component: ArticlesSection }) });
 
 export const SectionRoute = defineComponent({
   name: "SectionRoute",
