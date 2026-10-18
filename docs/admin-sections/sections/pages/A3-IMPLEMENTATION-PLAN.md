@@ -1,0 +1,55 @@
+# A3 Pages Editor — Implementation Plan
+
+**Goal:** implement the approved collection list and four-tab page editor inside the existing Directus module.
+**Spec:** owner request dated 2026-10-18 and verified A3_Pages_Editor_REVIEW_2026-10-18.zip (SHA256 `10bf71dc1991349b88664905a6555026be23063483284fcc46363aea4c71b2a6`). Archive extracted outside sources; all 24 manifest entries match.
+**Base:** fresh origin/main `9a0b55fd17f2b7f58d2889ff0c2e4e033ce64ab7`; own branch `codex/a3-pages-editor`, worktree `/workspace/a3-pages-editor`.
+**Architecture:** pages.js owns server queries and collection-specific state and views. Reuse accepted A0 state/shell/native fields and A2 PageSectionEditor; no shared implementation changes. Source is shipped verbatim to dist.
+**Execution:** inline, autonomously as instructed by the owner; one fresh independent final review.
+
+## Scope and constraints
+
+Allowed: src/sections/pages.js, dist/sections/pages.js, test/sections/pages.test.mjs, optional verification/a3-pages-runtime.mjs, pages documentation. Minimal src/index.js and dist/index.js registration in a separate integration commit after fresh-main check. All paths are in directus/extensions/deere-shop-product-editor unless documentation.
+Protected: shared admin-shell/admin-state/page-sections/version contracts, products/categories/home editor, API/hooks, schema, permissions, secrets, dependencies/manifests, infrastructure, storefront and other data.
+A2 accepted commits a4cf43a and 6f94264 are already in base. Use PageSectionEditor.labels/displayFields and existing state-change/saved events. No accepted shared version adapter exists: version/save/promote/preview stay explicitly unavailable.
+
+## Task 1: server queries and controller
+
+- [x] Add behavior tests to test/sections/pages.test.mjs, run RED before implementation.
+- [x] Implement buildPagesQuery({page,search,sort,filters}) with explicit fields, 25 rows, filtered count, stable id order; createPageListController(api,{onChange}) rejects stale responses and unconfirmed permissions.
+- [x] Implement createPageController(api,{onChange}): native draft+standard create, manual slug protection, guarded delta update, hooks refetch, explicit compare/reconcile, source-page check and separate status update.
+- [x] Test denied/malformed/partial access, required/unique fields, double submit, uncertain POST, missing ID/version, races, published confirmation, parent/child updates retaining edits and separate status payload.
+- [x] Run node --test directus/extensions/deere-shop-product-editor/test/sections/pages.test.mjs (also direct execution for visible per-case results), expect all cases PASS.
+
+## Task 2: views and registration
+
+- [x] Build PagesSection list/card/create using actual useApi and accepted native components, explicit per-tab subsets, native OG picker, scoped styles matching the approved HTML/PNGs. Keep child editor mounted across tabs and aggregate dirty/saving flags.
+- [x] Compact pending filter dialog: Apply/Cancel/Reset, removable chips, Escape/focus/Tab boundaries. Actual anchors preserve modified clicks/new tabs. Mobile hides secondary table columns, shares queries.
+- [x] Register pages minimally after fetch/check of origin/main. Preserve categories and home_page.
+- [x] Compare actual Windows Directus screenshots with approved references; independent visual closure PASS.
+
+## Task 3: final verification and handoff
+
+- [x] Run pages tests and relevant A0/products/categories/home/children regressions; src/dist parity and git diff --check.
+- [x] Run node scripts/verify-local.mjs on final candidate; no hosted CI.
+- [x] One independent final code review; reviewer opens actual/reference screenshots if available; fix blocking findings and rerun affected checks.
+- [x] Continued on local Windows in the existing own Directus/PostgreSQL stack; private before-POST exact-ID journals, shared writer lock, actual native/API/CAS checks and exact cleanup confirmed. Infrastructure unchanged.
+- [x] Runtime and visual blockers closed locally; final local gate and independent review PASS. Integrate PR #10, verify main and clean only A3. Production deployment remains blocked by unconfirmed safe target/procedure.
+
+## Review focus
+
+- Unknown create outcome must never repeat POST or adopt a found record.
+- Child saves can advance parent version; preserve local parent changes until explicit reconciliation.
+- Refetch after hook writes must not overwrite staged edits or falsely clear uncertain state.
+- Home source check/partial permissions fail closed; ordinary pages remain a collection.
+- Native interfaces and responsive geometry require real Directus acceptance; local code tests are insufficient.
+
+## Progress
+
+Baseline A0/category/home tests: successful direct A2 execution (22 cases); node --test reports file-level summaries on this Node build. Runtime unavailable; no data writes made. Reference PNGs inspected; no alternative design generated.
+
+Final code verification: 32 Pages cases, 96 related cases; complete local gate PASS (237 backend/tooling, 36 storefront, audit 0, production/TypeScript/canary and 2 Chromium journeys). Eight src/dist pairs match. Three independent review findings fixed by targeted RED→GREEN tests. No minor findings. Real Directus/visual acceptance and merge remain outstanding; see A3-ACCEPTANCE.md.
+
+
+## Local Windows continuation (2026-10-18)
+
+The historical cloud-only limitations above are superseded by A3-ACCEPTANCE.md and its checked Windows evidence. Continued the same branch; fixed native null-SEO hydration and narrow mobile status rendering. Versions/preview remain unavailable by scope. Stop after A3.

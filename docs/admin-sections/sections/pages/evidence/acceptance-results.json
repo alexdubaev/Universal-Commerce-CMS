@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-18",
+  "host": "local Windows",
+  "target": "http://127.0.0.1:18056",
+  "directus": "12.1.1",
+  "postgres": "17",
+  "mode": "Isolated native browser candidate; installed bundle unchanged; no production deployment",
+  "runs": [
+    {
+      "run": "fae3116b-309f-4c68-9671-a3bae591c419",
+      "pass": 45,
+      "fail": 3,
+      "mode": "isolated Playwright candidate import; installed bundle unchanged"
+    },
+    {
+      "run": "ec76b80b-d047-457b-b29d-b7452ddd5a0c",
+      "pass": 38,
+      "fail": 0,
+      "mode": "isolated Playwright candidate import; installed bundle unchanged"
+    },
+    {
+      "run": "fdc83da5-0b24-4ecb-8292-ff8200467266",
+      "pass": 34,
+      "fail": 0,
+      "mode": "isolated Playwright candidate import; installed bundle unchanged"
+    },
+    {
+      "run": "477f6575-9658-40ef-afe5-8c05183ece2b",
+      "pass": 9,
+      "fail": 0,
+      "mode": "isolated Playwright candidate import; installed bundle unchanged"
+    }
+  ],
+  "results": [
+    {
+      "name": "candidate module route and live list query render",
+      "status": "PASS"
+    },
+    {
+      "name": "search/sort/pagination use the live Directus collection",
+      "status": "PASS"
+    },
+    {
+      "name": "filter modal supports cancel, apply, escape, focus return",
+      "status": "PASS"
+    },
+    {
+      "name": "native create journals its exact UUID before POST and reloads",
+      "status": "PASS"
+    },
+    {
+      "name": "synthetic fixture creation and ownership relations",
+      "status": "PASS"
+    },
+    {
+      "name": "native page card main, sections and SEO use real fields",
+      "status": "PASS"
+    },
+    {
+      "name": "native parent save is a delta and real 409 retains input until explicit reconciliation",
+      "status": "PASS"
+    },
+    {
+      "name": "committed save with lost acknowledgement stays locked and retains input",
+      "status": "PASS"
+    },
+    {
+      "name": "native child save checks page owner, advances parent and preserves staged parent edits",
+      "status": "PASS"
+    },
+    {
+      "name": "status is an explicit status-only CAS, with confirmation for published saves",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled update denial renders populated readonly native fields",
+      "status": "PASS"
+    },
+    {
+      "name": "native OG relation interface can select and unlink an owned file without deleting it",
+      "status": "PASS"
+    },
+    {
+      "name": "actual native SEO hook saves scalars and refetches JSON projections",
+      "status": "PASS"
+    },
+    {
+      "name": "server pagination, modified-click navigation and all mobile panel widths are usable",
+      "status": "PASS"
+    },
+    {
+      "name": "dirty navigation cancel retains input and uncertain create never retries or adopts",
+      "status": "PASS"
+    },
+    {
+      "name": "existing commerce routes remain readable without writes",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled list loading/error/retry use distinct states",
+      "status": "PASS"
+    },
+    {
+      "name": "final native card tabs and desktop panel evidence",
+      "status": "PASS"
+    }
+  ],
+  "sourceDistSha256": {
+    "index.js": "603a9579bea5d083219375ea3c7685f68d2aefe74461df2ebfe4874d98009905",
+    "editor-state.mjs": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+    "admin-shell.js": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84",
+    "admin-state.mjs": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+    "page-sections.js": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12",
+    "sections/categories.js": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f",
+    "sections/home_page.js": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e",
+    "sections/pages.js": "7d6c45221e5346e31502caad251b3af80fb2a38015688f121eacafbf09170a14"
+  },
+  "localGate": {
+    "command": "node scripts/verify-local.mjs",
+    "exitCode": 0,
+    "backendTooling": 240,
+    "storefront": 36,
+    "vulnerabilities": 0,
+    "productionBuild": true,
+    "typeScript": true,
+    "clientTokenCanary": true,
+    "chromiumJourneys": 2
+  },
+  "focusedPages": {
+    "passed": 35,
+    "failed": 0
+  },
+  "review": {
+    "verdict": "production_ready",
+    "blockingFindings": 0,
+    "pairwiseActualReference": true
+  },
+  "cleanup": {
+    "target": "http://127.0.0.1:18056",
+    "runsAudited": 11,
+    "exactOwnedIds": {
+      "pages": 125,
+      "page_sections": 16,
+      "directus_files": 4
+    },
+    "remaining": 0,
+    "method": "Successful authenticated exact-ID collection queries; no item-level 403 inference"
+  },
+  "limitations": [
+    "Versions/preview/promote unavailable by scope",
+    "Readonly view uses controlled permissions-response override; anonymous denial is live",
+    "Native open mobile sidebar is a Directus overlay",
+    "Source runtime bundle was tested in browser, not installed"
+  ]
+}

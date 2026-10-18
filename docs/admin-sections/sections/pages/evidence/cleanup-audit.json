@@ -1,0 +1,11 @@
+{
+  "target": "http://127.0.0.1:18056",
+  "runsAudited": 11,
+  "exactOwnedIds": {
+    "pages": 125,
+    "page_sections": 16,
+    "directus_files": 4
+  },
+  "remaining": 0,
+  "method": "Successful authenticated exact-ID collection queries; no item-level 403 inference"
+}
