@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-19T16:32:40.463Z",
+  "mode": "independent read-only exact-ID audit",
+  "journalCount": 10,
+  "checkedIds": 153,
+  "counts": {
+    "articles": 115,
+    "categories": 13,
+    "directus_files": 16,
+    "articles_editor_nodes": 5,
+    "products": 4
+  },
+  "remaining": 0
+}

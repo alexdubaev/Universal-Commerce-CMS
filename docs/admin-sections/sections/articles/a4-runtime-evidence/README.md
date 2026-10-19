@@ -1,5 +1,9 @@
 # Actual A4 Directus evidence
 
+**Current final acceptance: PASS.** See [A4 FINAL installed evidence](A4-FINAL.md), [final independent review](A4-FINAL-REVIEW.md) and [acceptance record](../A4-ACCEPTANCE.md). The following record is historical: its browser-substitution mode, Articles404 blocker and no-install statements do not describe the final installed runtime.
+
+## Historical initial evidence
+
 Mode: **candidate module substitution in an isolated browser against the existing own Directus 12.1.1 / PostgreSQL 17.11**. These are real native Directus screens/API interactions, not offline mockups. The candidate bundle was **not installed**; this is not production deployment. Public Articles gateway support in the mounted older backend remains blocked (404), so ready/merge is forbidden. See [acceptance record](../A4-ACCEPTANCE.md).
 
 ## Capture provenance

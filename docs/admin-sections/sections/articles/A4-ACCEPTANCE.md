@@ -1,6 +1,30 @@
 # A4 Articles Editor — acceptance record
 
-**Draft implementation: public runtime acceptance blocked; no merge or deploy.**
+**Final acceptance: PASS — 2026-10-19.** The former public gateway blocker is closed by [backend PR #13](https://github.com/alexdubaev/Universal-Commerce-CMS/pull/13), merged as `08ad48a4693e32d62067eb780864ee91dad2c83e`. The final A4 product candidate is `198e1904edbce83f433b7c4f4f03cf4a7a49d266`. Later acceptance/evidence changes are documentation only. This authorizes integration of existing PR #12; it does not assert production deployment.
+
+## Final installed acceptance (supersedes the historical record below)
+
+The actual Windows test Directus at `http://127.0.0.1:18056` runs the installed native A4 bundle, without browser replacement of extension modules. Ownership was reconfirmed through Compose project `universal-commerce-cms-dev`, container/image identities, bind source and named volumes. Directus 12.1.1 / PostgreSQL 17.11 remain unchanged. The extension bind is the separate `storefront-directus-acceptance` worktree, not the implementation checkout. Nineteen frontend runtime files match the final candidate byte for byte. The two final Articles src/dist files have SHA-256 `20dce8263d4c040b5ec08286e69d4b9110d6d5f37f258f37138714f478fdbfd2`; both installed API storefront files have `6456f5229b82c687868c2bc9cced2a6c0703456e5fb991feb09a6ccc6d183180`.
+
+The backend regression received RED/GREEN against a boundary reproducing Directus 12.1.1 first-operator behavior. Real ItemsService and PostgreSQL checks confirm Draft/Future/Archived hidden, due Published visible, slug/list/pagination/count/sitemap and cover/OG guards correct. NULL creation is rejected by the existing NOT NULL column; SQL comparison excludes NULL. Query escalation, forbidden folders, shared authorized references, anonymous/invalid-token/admin gateway denial and products/categories/pages regressions pass. Live Next.js list/detail/sitemap also passed. See [backend evidence](../../../development/a4-publication-runtime.md).
+
+Final local command `node scripts/verify-local.mjs` passed on the exact product bytes at `198e1904`: **263 backend/extension checks, 36 storefront checks, audit zero, build/type/token checks and two Chromium journeys**. Focused Articles **22/22**, gateway **21/21**, src/dist parity and whitespace checks pass. No GitHub Actions were introduced.
+
+Native installed run `032fe1fb-6ee6-47b1-919f-501915756467`, bounded closure `25ea0bbd-4bff-43ff-bb89-196733f0da86` and final closure `2460d77a-dd93-4435-aabf-f6913ce44d16` collectively close all 16 UI scenarios; the last closure passes 4/4. Earlier harness assertions were corrected after exact-ID cleanup. This is cumulative broad-plus-narrow evidence, not one uninterrupted green run. Native list/filter, five tabs, writing/source editing, cover/OG library, identifier relations, scalar/native SEO, draft-only create/double-click, UTC, real CAS409 and unknown acknowledgements passed. The final UI lifecycle creates draft, saves HTML/metadata, verifies hidden draft, publishes with a future date (hidden), changes to a past instant (visible slug/list/count/assets), then unpublishes (hidden). Readonly and list503 use explicitly controlled responses; actual permissions verified are administrator read/create/update, not a newly introduced restricted role.
+
+Cover-only saves retain the exact opaque HTML bytes. Cross-tab edits, content_blocks, nonempty editor_nodes junction rows, unknown/long relationship arrays, SEO unknown keys, sources and translations survive unrelated saves. Actual editor_nodes is an M2A alias: physical junction fields were audited explicitly. A pre-existing generic discriminator projection references a nonphysical collection field and can fail; A4 neither loads that projection nor edits/converts the junction. No schema workaround was applied.
+
+Real screenshots cover **1536×1024, 1024 wide, 390×844**, native right panel open/closed, list/create/main/material/relations/SEO/publication/errors/conflict/long values. The fresh independent reviewer compared them with approved references, found and fixed two P2 issues (mobile row context and false validation on structured CAS409), and accepted bounded runtime closures. No open P0/P1/P2 remains. See [final review](a4-runtime-evidence/A4-FINAL-REVIEW.md) and [native captures](a4-runtime-evidence/A4-FINAL.md).
+
+The existing TinyMCE ru-RU language script still returns HTML and logs `Unexpected token '<'`; actual native HTML typing, source dialog and saving passed. It is a recorded nonblocking baseline issue, not a claim of an error-free stock console. Dependencies and security settings were preserved.
+
+Private recovery material is outside Git under `D:\codex-runtime-backups\universal-commerce-cms-dev\a4-final-5f01920b-bde5-4ee2-9850-f073d348445c`. Original API/UI bytes, launch configuration, verified PostgreSQL custom backup and exact-ID journals are retained. Actual API file/service rollback was tested; UI restore copies match exact originals. Only Directus was restarted when nested module reload needed it. A final audit confirmed **59 protected extension files** (only the two authorized Articles files changed), unchanged images/config/mounts, unchanged schema/role fingerprint and no DB restart. Independent cleanup across ten new journals checked **153 IDs: 115 Articles, 13 categories, 16 files, five junctions and four products — zero residual**. Rejected or uncertain creates are included in this audit. No real records were changed.
+
+The original approved archive is preserved, SHA-256 `e437744fc3aece1312c36e427e92bd27f140e548e25d358126655e71d7fcf203`; its exact approved folder matches documentation PR #11. Production deployment is excluded. Main merge and final installed-main identity are recorded in the final HANDOFF after integration.
+
+## Historical initial acceptance — retained for provenance
+
+Everything below describes the earlier draft/browser-substitution stage. Its blocker and installation statements are superseded by the final installed acceptance above.
 
 ## Delivery and boundaries
 
