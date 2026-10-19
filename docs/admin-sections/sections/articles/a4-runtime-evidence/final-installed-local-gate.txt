@@ -1,0 +1,370 @@
+
+Backend integrations
+
+> test
+> node --test
+
+✔ folders-only setup is idempotent and never writes roles, policies, access, or permissions (1.6894ms)
+✔ permission matcher never mistakes a broader file rule for an exact match (8.7797ms)
+✔ reports the actual partial state when Directus rejects custom permission rules (2.0328ms)
+✔ renames managed legacy roles and policies without creating duplicates (0.59ms)
+✔ default draft import is offline and performs no client reads or writes (1.4292ms)
+✔ apply refuses wrong instances, missing confirmation and missing or malformed date before network (3.27ms)
+✔ native Directus importer scopes slug checks, skips existing records in any status and only creates drafts (24.4109ms)
+✔ site article drafts remain offline unpublished text and import does not manufacture authors or dates (13.0503ms)
+✔ CLI defaults to offline planning and rejects unknown arguments and unsafe apply before authentication (227.6103ms)
+✔ loads a detached immutable baseline and returns detached snapshots (1.4629ms)
+✔ tab edits retain other tabs and omitted fields restore baseline values (0.9329ms)
+✔ undefined edits never become omitted wire changes (0.6208ms)
+✔ tab updates reject unauthorized changes without partial mutation (0.2388ms)
+✔ payload contains only dirty changes and their original expected values (0.2539ms)
+✔ system, alias, readonly, generated, and layout fields cannot be edited (0.2255ms)
+✔ missing baseline fields cannot be changed (0.1684ms)
+✔ null updated_at is a present version value and remains usable in a guarded save (0.2708ms)
+✔ a missing updated_at property cannot establish a record baseline (0.2869ms)
+✔ read failure disables writes and a failed cross-record load clears the old baseline (1.9316ms)
+✔ overlapping loads allow the latest record to win (0.4488ms)
+✔ saving locks edits and loads until the acknowledgement arrives (0.4645ms)
+✔ successful save projects only acknowledged changed fields into the baseline (0.4176ms)
+✔ without the verified contract or required read permissions no request is made (0.2807ms)
+✔ lost permission on any dirty field blocks the entire save (0.2388ms)
+✔ 409 conflict preserves edits and blocks retry until explicit reconciliation (0.4563ms)
+✔ malformed acknowledgement preserves edits and failed-retry state until reconcile (0.3265ms)
+✔ failed reconciliation keeps baseline and local edits (0.3695ms)
+✔ successful reconciliation defaults to discarding edits and can explicitly retain them (0.2817ms)
+✔ native props honor an explicit subset and preserve native relation metadata (2.095ms)
+✔ native fields keep translated labels and fall back to the field key for raw metadata (0.231ms)
+✔ native props filter unread fields and keep alias, generated, and metadata-readonly fields locked (0.2288ms)
+✔ NativeFieldGroup emits only authorized changed fields from its explicit subset (0.4586ms)
+✔ NativeFieldGroup is inert in readonly mode (0.1126ms)
+✔ MediaPicker preserves file-image metadata and gates select/upload affordances by explicit permissions (0.4394ms)
+✔ native fields preserve subset order, full context baseline, deny missing permissions, and emit removals (0.3098ms)
+✔ NativeFieldGroup ignores delayed updates from a previous tab subset (0.139ms)
+✔ MediaPicker normalizes expanded assets and rejects stale-record events (0.1896ms)
+✔ MediaPicker restores the original file when the native form omits a reset field (0.2192ms)
+✔ SectionTabs renders isolated accessible IDs and handles keyboard navigation (0.6431ms)
+✔ EditorToolbar gates save and publish and emits explicit conflict resolution (0.4621ms)
+✔ collection query validates explicit fields and pagination bounds (0.951ms)
+✔ CollectionList uses rows for unknown-total pagination and exposes retry (1.0247ms)
+✔ AdminShell blocks navigation while saving and prompts for dirty route changes (0.4774ms)
+✔ list shell omits record save/readonly messages and keeps actual read errors (0.4872ms)
+✔ CollectionList slots use existing rows and controlled page/retry events (0.5989ms)
+✔ change builder keeps only edits and expected values come from original snapshot (1.463ms)
+✔ document picker preserves the storefront UUID-array contract (0.8036ms)
+✔ tab field subsets and edits retain values from other tabs (0.5128ms)
+✔ gallery edits preserve relation IDs, child status, and main-image fields for the parent CAS (0.7473ms)
+✔ gallery payload leaves main image intact when it is not associated with a child row (0.5296ms)
+✔ lists with bounded fields, page size, stable sort, and both owner constraints (3.028ms)
+✔ display-only section fields are included in bounded reads and never become editable (0.9692ms)
+✔ display-only section reads obey field permissions (0.3354ms)
+✔ requires permission to read identity and both owners before any request (0.1737ms)
+✔ rechecks required read permissions when they arrive after controller creation (0.3772ms)
+✔ owner-field permission revocation disables reads and saves while retaining local edits (1.279ms)
+✔ nullable updated_at is accepted only when present and remains part of child CAS (1.0799ms)
+✔ rejects a list containing a row owned by another parent and disables writes (0.2815ms)
+✔ keeps each child baseline and edit cache independent while saving one row (1.424ms)
+✔ parent navigation stays blocked while a child save is in flight, even after discard is requested (0.6821ms)
+✔ suppresses a saved callback if the requested parent changes during a child save (0.9325ms)
+✔ failed list read blocks writes and does not drop edited row values (0.9678ms)
+▶ denies writes without the guarded contract, update permission, or editable mode
+  ✔ {"guardedContract":false} (0.6278ms)
+  ✔ {"permissions":{"read":true,"update":[]}} (0.3867ms)
+  ✔ {"readonly":true} (0.2921ms)
+✔ denies writes without the guarded contract, update permission, or editable mode (2.1128ms)
+✔ field update permission is checked per change even when another field is writable (0.3726ms)
+✔ generated Directus fields stay locked in the section controller and state machine (0.4765ms)
+✔ row save eligibility follows replacement permission objects after render (0.604ms)
+✔ preserves inputs after 409 and requires comparison followed by explicit reconcile (1.012ms)
+✔ ignores late list response after parent changes (0.242ms)
+✔ cached row selection clears another row's stale detail loading state (1.9067ms)
+✔ changing parent clears selected detail loading while the old read is pending (0.4147ms)
+✔ retries ownership failure without overwriting selected edits (0.366ms)
+✔ renders native shell controls with row state and locks fields while a detail read is pending (22.5186ms)
+✔ readonly users can switch readable tabs while native fields stay readonly (16.1242ms)
+✔ PageSectionEditor ignores a delayed native event after switching tabs (16.9342ms)
+✔ keeps native fields disabled after a child read fails (12.9449ms)
+✔ opt-in section list shows only authorized display fields and localizes its save action (2.5691ms)
+✔ parent readonly changes lock child save controls without changing default page labels (12.9324ms)
+✔ server list query searches only title, slug and excerpt with bounded filters and stable sort (2.6795ms)
+✔ effective permissions fail closed and creation requires required native fields plus draft default (1.5478ms)
+✔ Unicode public slugs and required datetime validation preserve exact valid timestamps (4.2566ms)
+✔ cover-only save uses guarded CAS delta and leaves HTML, structural JSON, and SEO companion untouched (4.69ms)
+✔ native create posts only a validated draft once while request is pending (7.6755ms)
+✔ incomplete CAS acknowledgement retains staged input and blocks another write (1.2209ms)
+✔ list controller debounces state through explicit queries and rejects stale responses (3.2162ms)
+✔ unknown create result preserves draft input and forbids automatic retry (1.0824ms)
+✔ a true 409 keeps local input without misreporting a field validation error (1.3344ms)
+✔ native content needs a trusted editor action and distribution stays byte-identical (0.8451ms)
+✔ status transition is an isolated guarded CAS and requires a clean baseline (1.3739ms)
+✔ publishing requires readable nonempty public content while archive transition still accepts legacy block-only records (1.2791ms)
+✔ publishing is blocked if a required field cannot be read and accepts a valid future date (1.0406ms)
+✔ SEO scalar updates leave native SEO JSON untouched in the guarded delta (0.7432ms)
+✔ related identifier edits preserve legacy string values in JSON arrays (0.6814ms)
+✔ SEO projection rejects contradictory scalar and native JSON edits and keeps unknown JSON keys (0.7563ms)
+✔ SEO projection seeds omitted native keys from scalar values and preserves explicit empty and unknown keys (0.3395ms)
+✔ compatible scalar and native SEO edits synchronize the scalar projection without dropping unknown JSON keys (1.6682ms)
+✔ publication view state handles future, due, and invalid dates without changing stored status (0.302ms)
+✔ sources remain read-only at the controller boundary (0.4315ms)
+✔ native edit authorization survives delayed native acknowledgement until consumed or reset (0.1965ms)
+✔ uncertain native create can exact-slug lookup candidates without retrying or claiming ownership (1.4419ms)
+✔ bounded server query searches exactly title/slug/h1 and composes all filters (1.9741ms)
+✔ unknown/partial permissions fail closed and item update is required (0.2362ms)
+✔ validation uses live required and choices, rejects malformed slug and keeps JSON objects (0.5192ms)
+✔ controller sends only changed allowed fields and preserves other tabs and JSON (2.3709ms)
+✔ readonly identity never mutates; duplicate submit is blocked; 409 keeps local data (1.9416ms)
+✔ malformed acknowledgements block retry and preserve input until explicit reload (1.3442ms)
+✔ uncertain native create recovers by bounded exact slug read without retry or success claim (1.543ms)
+✔ source and deployed artifacts match (6.8964ms)
+✔ opens the hero tab by default and retains edits when switching tabs (5.9658ms)
+▶ proves singleton cardinality before reading one object and fails closed for missing or ambiguous rows
+  ✔ count=0 (0.5282ms)
+  ✔ count=2 (0.324ms)
+✔ proves singleton cardinality before reading one object and fails closed for missing or ambiguous rows (1.8902ms)
+✔ singleton status and source reference are readonly and permissions fail closed (0.637ms)
+✔ explicit item update denial leaves the readable singleton available in view mode (0.4461ms)
+✔ honors explicit field subsets even when effective access is reported as full (1.1221ms)
+▶ fails closed for missing or malformed permission field lists and file-library read access
+  ✔ {"access":"full"} (0.4031ms)
+  ✔ {"access":"partial","fields":"hero_title"} (0.2908ms)
+  ✔ {"access":"partial","fields":null} (0.3111ms)
+  ✔ file read={"access":"full","fields":["name"]} (0.4452ms)
+  ✔ file read={"access":"none","fields":[]} (0.4311ms)
+  ✔ file read={"access":"full","fields":["*"]} (0.3403ms)
+✔ fails closed for missing or malformed permission field lists and file-library read access (3.0388ms)
+✔ required fields hidden by read permissions do not block an allowed H1-only save (1.1795ms)
+✔ late singleton read from an older open cannot replace the newer record (8.5573ms)
+✔ parent save sends only dirty editable deltas and refetches hook projections (0.9844ms)
+✔ 409 retains edits, blocks repeat writes, and requires an explicit reconciliation (0.9698ms)
+✔ renders one conflict panel after a definite parent 409 (6.5612ms)
+✔ malformed acknowledgement blocks a second write until explicit reconciliation (1.0365ms)
+✔ committed save with failed projection refetch stays blocked and reports committed state (1.1564ms)
+✔ required content and unsafe destinations are rejected before mutation (0.3288ms)
+✔ server query uses bounded filtered count, three search fields, all filters and stable sort (2.2902ms)
+✔ permission parsing fails closed on missing/malformed/partial-create and requires item update (0.2489ms)
+✔ list ignores delayed responses and resets to page one for search and filters (6.5494ms)
+✔ list has separate denied, error and empty states; failed permissions never enable create (1.193ms)
+✔ list disposal invalidates responses, and invalid list shape never masquerades as empty (2.0598ms)
+✔ validation respects required fields, choices, canonical URLs and local route conflicts (0.7514ms)
+✔ CAS keeps all tabs, only changed allowed fields, and refetches hook projections (4.6966ms)
+✔ published save requires explicit UI intent, leaves status unchanged and announces saving immediately (2.2594ms)
+▶ 409/timeout/incomplete ack preserve edits and require compare before reconciliation
+  ✔ 409 (1.6079ms)
+  ✔ timeout (1.2611ms)
+  ✔ incomplete (1.3359ms)
+✔ 409/timeout/incomplete ack preserve edits and require compare before reconciliation (5.0473ms)
+✔ failed refetch after successful mutation blocks another write and retains acknowledged values (1.2416ms)
+✔ child save never saves parent; stale parent retains edits until explicit reconcile (1.5417ms)
+✔ status is an isolated CAS operation and rejects dirty parent or child state (2.2234ms)
+✔ status uncertain response keeps the confirmed baseline and blocks repeat until reconciliation (0.7528ms)
+✔ home source and system types are readonly; unverifiable source ownership fails closed (0.87ms)
+✔ field/item permissions and native readonly metadata are enforced before mutations (1.1786ms)
+✔ missing item or absent version produces read error and no editable baseline (1.0434ms)
+✔ older opens cannot replace current metadata, identity or values (5.5476ms)
+✔ native create sends draft+standard, keeps manual slug and blocks double submit (1.3596ms)
+✔ create required fields and definite unique errors retain input and permit corrected submit (1.293ms)
+✔ unknown create locks form, exact-slug recovery neither adopts nor deletes found records (1.0835ms)
+✔ creation fails closed without full create fields or native draft/standard choices (0.7093ms)
+✔ source/dist pages remain identical (3.5466ms)
+✔ native title delta suggests slug without treating omitted slug as a manual edit (0.5753ms)
+✔ an uncertain status action remains guarded even when parent content has no dirty fields (0.4884ms)
+✔ missing required route/status projections block editing even with claimed read permissions (0.514ms)
+✔ view reports unsaved child edits through the actual shared toolbar (6.1399ms)
+✔ guarded top-level unique/validation errors annotate native fields and retain reconciliation lock (1.5577ms)
+✔ conflicting scalar and native SEO projections are rejected before update or create without losing input (6.1113ms)
+✔ compatible native JSON and scalar edits survive the existing production SEO hook (8.0976ms)
+✔ native SEO hydration defaults do not block scalar edits or overwrite them through the JSON-first hook (1.0904ms)
+✔ native SEO interface initial values seed missing projections but preserve explicit empties and unknown JSON (0.1635ms)
+✔ native draft creation synchronizes hydrated SEO JSON with scalar fields before the production hook (0.5081ms)
+✔ preview bridge rejects a request with no authenticated Directus user (1.3133ms)
+✔ preview bridge posts a short-lived signed token to Next without exposing its secret or version in a URL (2.4646ms)
+✔ preview bridge permits an HTTP consume endpoint only on loopback staging (0.3847ms)
+✔ preview bridge registers routes only for the approved editorial collections (0.4513ms)
+✔ handler answers with merged, deduped, paginated suggestions (2.9189ms)
+✔ handler never issues an unbounded readByQuery (limit=-1 is forbidden) (0.5764ms)
+✔ handler returns 400 for an invalid query (0.4681ms)
+✔ handler skips product_codes when the collection is absent (0.3913ms)
+✔ handler degrades to normalized results when product_codes fails (0.6316ms)
+✔ handler never defaults to admin accountability (1.9264ms)
+✔ reconciles versioning metadata without touching other collections (2.2986ms)
+✔ does not request fields for schema-less folders (0.244ms)
+✔ checks string-key seeds through a filtered collection query (0.4925ms)
+✔ applies Russian collection, field, locale, and user metadata only when explicitly enabled (1.8192ms)
+✔ default mode is isolated from settings, users, access, and item data (0.4425ms)
+✔ field updates contain only the Task 2 presentation allowlist (1.028ms)
+✔ is idempotent when Studio metadata already matches (0.381ms)
+✔ standalone local stack stays within the Directus 12 Core collection limit (0.9726ms)
+✔ dry run snapshots and validates only product collections without item or schema writes (5.2336ms)
+✔ apply patches only presentation metadata and preserves type, enum, required, defaults, and item data (2.6402ms)
+✔ preflight fails before any writes when required product relationship metadata is missing (0.9143ms)
+✔ preflight rejects incompatible field types and relation targets before writes (0.9039ms)
+✔ preflight rejects a changed product image relation before writes (1.1969ms)
+✔ public upload folder must exist and is configured on native file selectors (2.4117ms)
+✔ invalid public upload folder IDs fail before reads or writes (0.28ms)
+✔ matching metadata is idempotent (2.417ms)
+✔ reconciles stale archive metadata without touching content or unrelated metadata (2.1342ms)
+✔ dry-run plans seed actions for collections absent from an empty instance without item reads (0.3205ms)
+✔ identity-managed SKU uniqueness is omitted from generic field payloads (0.1827ms)
+✔ applies profile language and neutral project settings idempotently (2.505ms)
+✔ rejects malformed configured module-bar data before patching settings (0.7697ms)
+✔ enables versioning with a minimal meta patch per collection (1.7136ms)
+✔ is a no-op when versioning is already enabled everywhere (0.2268ms)
+✔ skips blueprint collections missing from the instance (0.2622ms)
+✔ dry-run reports planned actions without writing (0.2393ms)
+✔ can disable versioning again for the rollback path (0.3723ms)
+✔ adds a preview URL without overwriting unrelated collection metadata (1.4096ms)
+✔ dry-run plans only project workspace metadata without writes (1.8997ms)
+✔ preflights dashboard and panel ownership collisions before any write (0.7312ms)
+✔ apply creates Directus presets, dashboard, and panels with API field names (0.4346ms)
+✔ preserves Directus 12 native list panel option names in the API payload (0.3771ms)
+✔ is idempotent when project workspace metadata already matches (0.4986ms)
+✔ rejects non-project keys before API access (0.2706ms)
+✔ refuses to take over an existing bookmark without the stable project key (0.3265ms)
+✔ concurrent identical order retries commit once and replay one durable id (23.0758ms)
+✔ concurrent conflicting order retry is rejected after the first commit (13.4938ms)
+✔ concurrent identical lead retries commit once and replay one durable id (15.5855ms)
+✔ concurrent conflicting lead retry is rejected after the first commit (14.449ms)
+✔ guarded mutation applies a matching snapshot and returns saved fields (2.7601ms)
+✔ stale snapshot returns a conflict without changing caller input or writing (1.0797ms)
+✔ unauthenticated requests fail closed before reading schema or rows (0.1746ms)
+✔ database lock errors do not acknowledge a save (0.2602ms)
+✔ navigation cleanup uses the transactional snapshot and refuses stale deletes (0.2772ms)
+✔ navigation mutation preserves native authorization and rejects anonymous callers (0.2821ms)
+✔ public asset successfully delivers real stream bytes with security headers (75.0033ms)
+✔ asset early-error before bytes returns safe JSON and ends the response (64.1139ms)
+✔ asset early-close before bytes returns safe JSON and ends the response (65.1776ms)
+✔ asset already-destroyed before bytes returns safe JSON and ends the response (61.9271ms)
+✔ asset reject before bytes returns safe JSON and ends the response (65.6356ms)
+✔ asset partial-error after bytes closes the response without a second body (67.1407ms)
+✔ asset partial-close after bytes closes the response without a second body (63.5654ms)
+✔ asset disconnect destroys the source stream (64.7041ms)
+✔ asset deferred-disconnect destroys the source stream (62.5058ms)
+✔ deferred factory rejection after disconnect writes no error response (62.0756ms)
+✔ only the exact approved loopback Directus URL is accepted (1.0928ms)
+✔ singleton read and patch use collection-level Directus routes (0.9289ms)
+✔ home singleton ownership reads its projection and matches only a persisted exact ID (0.6751ms)
+✔ pending home create retries collection PATCH with its already-journaled UUID (0.51ms)
+✔ owned file MIME repair requires exact ownership and byte-identical generated content (16.2344ms)
+✔ owned file MIME repair refuses replacement if generated bytes do not match (0.9044ms)
+✔ manifest ownership is exact, UUID-only, and summaries redact identifiers (1.5278ms)
+✔ CAS restore allows original or fixture state and refuses third-party changes (0.3276ms)
+✔ CAS resume applies only original fields and accepts already-fixtured fields (0.2661ms)
+✔ cleanup diagnostics expose a reason code without leaking raw API details (0.3097ms)
+✔ owned content cleanup routes navigation items through guarded mutations (0.2409ms)
+✔ gateway denies disabled, malformed, anonymous, wrong-user and admin before service construction (2.2367ms)
+✔ collection handler pins publication and fields and rejects unknown collection and query escalation (1.6204ms)
+✔ image partition queries accept narrow null filters and deterministic bounded offsets (0.8506ms)
+✔ brand aggregate accepts Directus depth-limited query parsing and rejects unknown nested keys (0.3538ms)
+✔ brand aggregate accepts the installed Directus qs parser output shape (0.3132ms)
+✔ brand aggregate accepts Directus singleton-array count normalization and rejects ambiguity (0.3474ms)
+✔ current adapter filter shapes stay inside collection and parent visibility allowlists (1.3376ms)
+✔ SEO sitemap null-or-true indexability remains bounded and publication is still forced (0.4176ms)
+✔ frontend asset-reference query shapes map through fixed selectors and preserve parent publication (1.133ms)
+✔ health and orders are bounded, gated routes; orders stay disabled (0.2941ms)
+✔ search preserves normalization, no-store, candidate cap and published category predicate (0.8502ms)
+✔ asset gate checks configured folder before references and enforces published child parent (1.7976ms)
+✔ lead gateway fixes service ownership, scopes idempotency lookup, and refuses attachments (1.9461ms)
+✔ lead gateway replays and conflicts stay within the configured owner and expose acknowledgements only (0.6116ms)
+✔ articles independently pin publication and due date for list, detail and count (1.8405ms)
+✔ article publication predicates hide future rows in list, count and asset references (1.693ms)
+✔ articles deny status, relation, fields, date and query escalations before reads (0.713ms)
+✔ article normal paging and narrow sitemap return only public due rows (0.2938ms)
+✔ article assets require approved folder and published due cover or OG reference (1.689ms)
+✔ article sitemap adapter projection includes status for independent client validation (0.3619ms)
+✔ article pagination after page 1000 preserves publication within a bounded record window (4.7453ms)
+ℹ tests 263
+ℹ suites 0
+ℹ pass 263
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 963.9328
+
+Storefront integrations and domain rules
+
+> universal-commerce-storefront@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 C:/Users/Alexandr/.codex/worktrees/a4-articles-editor/Universal Commerce CMS/storefront
+
+
+ Test Files  8 passed (8)
+      Tests  36 passed (36)
+   Start at  19:22:22
+   Duration  670ms (tests 44%, transform 28%, import 25%, worker 2%)
+
+
+Dependency audit
+found 0 vulnerabilities
+
+Mock production build
+
+> universal-commerce-storefront@0.1.0 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+✓ Running next.config.ts took 28ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 433ms
+  Running TypeScript ...
+  Finished TypeScript in 1651ms ...
+  Collecting page data using 25 workers ...
+  Generating static pages using 25 workers (0/17) ...
+  Generating static pages using 25 workers (4/17)
+  Generating static pages using 25 workers (8/17)
+  Generating static pages using 25 workers (12/17)
+✓ Generating static pages using 25 workers (17/17) in 837ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /[slug]
+├ ○ /about
+├ ƒ /api/assets/[id]
+├ ƒ /api/health
+├ ƒ /api/lead
+├ ƒ /api/order
+├ ƒ /api/search
+├ ƒ /articles
+├ ƒ /articles/[slug]
+├ ƒ /brand/[brand]
+├ ○ /brands
+├ ƒ /catalog
+├ ƒ /category/[slug]
+├ ○ /contacts
+├ ○ /delivery
+├ ○ /payment
+├ ƒ /product/[slug]
+├ ƒ /request
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+└ ƒ /sitemaps/[name]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+Critical Chromium journeys
+
+> universal-commerce-storefront@0.1.0 test:e2e
+> playwright test
+
+[WebServer] (node:77756) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 2 tests using 1 worker
+
+(node:50400) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 e2e\storefront.spec.ts:3:1 › search to product to request submission (1.7s)
+  ok 2 e2e\storefront.spec.ts:23:1 › retry preserves its key and acknowledges only submitted quantities (911ms)
+
+  2 passed (4.6s)
+
+Local verification passed.
+(node:72924) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)

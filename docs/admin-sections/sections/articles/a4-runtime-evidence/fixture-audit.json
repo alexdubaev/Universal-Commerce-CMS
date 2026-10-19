@@ -1,0 +1,12 @@
+{
+  "journals": 18,
+  "counts": {
+    "articles": 129,
+    "directus_files": 9,
+    "categories": 2,
+    "products": 2
+  },
+  "residual": 0,
+  "checkedAt": "2026-10-18T20:50:35.878Z",
+  "mode": "read-only exact ledger IDs, no deletion"
+}
