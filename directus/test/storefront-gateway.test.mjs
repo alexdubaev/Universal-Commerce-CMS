@@ -373,8 +373,7 @@ test('lead gateway replays and conflicts stay within the configured owner and ex
 
 // Exercise the handler with records and an in-memory Directus query boundary.
 // Removing the server publication predicate would expose draft/future records.
-function articleHarness({ folder = FOLDER, articleRows } = {}) {
-  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+function articleHarness({ folder = FOLDER, articleRows, assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee' } = {}) {
   const rows = articleRows ?? [
     { id: USER, slug: 'published', title: 'Public', status: 'published', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
     { id: FOLDER, slug: 'draft', title: 'Private', status: 'draft', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
@@ -382,15 +381,17 @@ function articleHarness({ folder = FOLDER, articleRows } = {}) {
     { id: assetId, slug: 'archived', status: 'archived', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
     { id: assetId, slug: 'missing-date', status: 'published', published_at: null, cover_image: assetId },
   ];
+  // Directus 12.1.1's operation resolver selects the first operator when an
+  // operator object contains multiple keys. Keep this fixture boundary faithful
+  // so combined operators cannot accidentally make a broken gateway pass.
   const matches = (row, filter) => Object.entries(filter).every(([field, expression]) => {
     if (field === '_and') return expression.every(term => matches(row, term));
     if (field === '_or') return expression.some(term => matches(row, term));
-    return Object.entries(expression).every(([operator, value]) => {
-      if (operator === '_eq') return row[field] === value;
-      if (operator === '_nnull') return row[field] != null;
-      if (operator === '_lte') return row[field] != null && Date.parse(row[field]) <= Date.parse(value);
-      throw new Error(`Unsupported fixture operator ${operator}`);
-    });
+    const [operator, value] = Object.entries(expression)[0] ?? [];
+    if (operator === '_eq') return row[field] === value;
+    if (operator === '_nnull') return row[field] != null;
+    if (operator === '_lte') return row[field] != null && Date.parse(row[field]) <= Date.parse(value);
+    throw new Error(`Unsupported fixture operator ${operator}`);
   });
   class ItemsService {
     constructor(collection) { this.collection = collection; }
@@ -422,6 +423,35 @@ test('articles independently pin publication and due date for list, detail and c
   }
   const beforePublication = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug', filter: JSON.stringify({ _and: [{ status: { _eq: 'published' } }, { published_at: { _lte: '2019-01-01T00:00:00.000Z' } }] }) } });
   assert.deepEqual(beforePublication.body.data, []);
+});
+
+test('article publication predicates hide future rows in list, count and asset references', async () => {
+  const assetId = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+  const h = articleHarness({ articleRows: [
+    { id: USER, slug: 'due-regression', title: 'Due', status: 'published', published_at: '2020-01-01T00:00:00.000Z', cover_image: assetId },
+    { id: FOLDER, slug: 'future-regression', title: 'Future', status: 'published', published_at: '2999-01-01T00:00:00.000Z', cover_image: assetId },
+    { id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', slug: 'null-regression', title: 'No date', status: 'published', published_at: null, cover_image: assetId },
+  ] });
+
+  const list = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug', meta: 'filter_count', limit: '10' } });
+  assert.equal(list.statusCode, 200);
+  assert.deepEqual(list.body, { data: [{ slug: 'due-regression' }], meta: { filter_count: 1 } });
+
+  for (const slug of ['future-regression', 'null-regression']) {
+    const detail = await h.invoke('/storefront/items/:collection', { params: { collection: 'articles' }, query: { fields: 'slug', filter: JSON.stringify({ slug: { _eq: slug } }) } });
+    assert.deepEqual(detail.body.data, [], `${slug} must not be publicly readable`);
+  }
+
+  const futureAsset = await h.invoke('/storefront/assets/:id', { params: { id: assetId } });
+  assert.equal(futureAsset.statusCode, 200);
+  // The same file is also referenced by the due article, so its public access
+  // is expected. Probe a file referenced only by a future article separately.
+  const futureOnlyAssetId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const futureOnly = articleHarness({ assetId: futureOnlyAssetId, articleRows: [
+    { id: FOLDER, slug: 'future-only', status: 'published', published_at: '2999-01-01T00:00:00.000Z', og_image: futureOnlyAssetId },
+  ] });
+  const futureOnlyAsset = await futureOnly.invoke('/storefront/assets/:id', { params: { id: futureOnlyAssetId } });
+  assert.equal(futureOnlyAsset.statusCode, 404);
 });
 
 test('articles deny status, relation, fields, date and query escalations before reads', async () => {
