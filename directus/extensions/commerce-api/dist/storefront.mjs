@@ -72,7 +72,7 @@ function validPublicationDate(value) {
 
 // The timestamp column is typed by PostgreSQL; no null or future date can pass.
 function articlePublicationFilter(now = new Date().toISOString()) {
-  return { status: { _eq: 'published' }, published_at: { _nnull: true, _lte: now } };
+  return { status: { _eq: 'published' }, published_at: { _lte: now } };
 }
 
 function decodeArticleFilter(input) {
