@@ -101,9 +101,9 @@ test('unknown create result preserves draft input and forbids automatic retry', 
   assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().writeUncertain,true);assert.equal(c.snapshot().values.title,'Неизвестный результат');await c.save();assert.equal(api.calls.filter(row=>row[0]==='POST').length,1);
 });
 
-test('a true 409 keeps all local input and requires reconciliation before another write', async () => {
-  const api=apiFixture({post:async()=>{throw Object.assign(Error('stale version'),{response:{status:409}});}});const c=createArticlesController(api);await c.open('article-1');c.change('title','Локальный вариант');
-  assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().conflict,true);assert.equal(c.snapshot().writeUncertain,true);assert.equal(c.snapshot().values.title,'Локальный вариант');await c.save();assert.equal(api.calls.filter(row=>row[0]==='POST').length,1);
+test('a true 409 keeps local input without misreporting a field validation error', async () => {
+  const api=apiFixture({post:async()=>{throw Object.assign(Error('stale version'),{response:{status:409,data:{errors:[{code:'CONFLICT',message:'The record changed in another window.'}]}}});}});const c=createArticlesController(api);await c.open('article-1');c.change('title','Локальный вариант');
+  assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().conflict,true);assert.equal(c.snapshot().writeUncertain,true);assert.equal(c.snapshot().validation.length,0);assert.equal(c.snapshot().values.title,'Локальный вариант');await c.save();assert.equal(api.calls.filter(row=>row[0]==='POST').length,1);
 });
 test('native content needs a trusted editor action and distribution stays byte-identical', async () => {
   assert.ok(distSource===source,'distributed article section must match source byte-for-byte');const c=createArticlesController(apiFixture());await c.open('article-1');assert.equal(c.change('content','<p>untrusted mount normalization</p>'),false);assert.equal(c.changeTab(['content'],{content:'<p>untrusted form echo</p>'}),false);assert.equal(c.snapshot().values.content,article.content);assert.equal(c.change('content','<p>edited by TinyMCE</p>',{trustedFields:['content']}),true);assert.equal(c.snapshot().values.content,'<p>edited by TinyMCE</p>');
