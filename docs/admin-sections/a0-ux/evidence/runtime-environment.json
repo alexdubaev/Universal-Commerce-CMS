@@ -1,0 +1,23 @@
+{
+  "target": "http://127.0.0.1:18056",
+  "platform": "Windows",
+  "directusVersion": "12.1.1",
+  "composeProject": "universal-commerce-cms-dev",
+  "base": "5cb9958181d4df211d9dcaccd16aa66439a8b8bb",
+  "ownerRoleLimit": {
+    "testedIdentity": "existing Administrator",
+    "managerRoleAvailable": false,
+    "rolesCreated": false,
+    "permissionsChanged": false
+  },
+  "syntheticRun": "156bb190-71fa-449a-9a05-f5d734ecf2ba",
+  "productionTouched": false,
+  "installedBundle": "final scoped candidate; server compiled; see bundle-after.json and installed-candidate.json",
+  "userAcceptance": {
+    "status": "accepted",
+    "ownerMessage": "А0 принимаю",
+    "date": "2026-10-20",
+    "cleanup": "accepted-fixture-cleanup.json"
+  },
+  "lastVerified": "2026-10-20T08:13:32.124Z"
+}

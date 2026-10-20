@@ -1,0 +1,17 @@
+{
+  "command": "node scripts/verify-local.mjs",
+  "exitCode": 0,
+  "sourceFilesMatchInstalledManifest": true,
+  "backendTests": 281,
+  "storefrontTests": 36,
+  "dependencyVulnerabilities": 0,
+  "mockBuild": true,
+  "tokenCanaryScan": true,
+  "criticalChromiumTests": 2,
+  "logPath": "output/a0-release-verify.log",
+  "logSHA256": "df5a9cb1e3067fe74f7087ffc1006039b837d12f8670bd5f8a8f47d58d652e7f",
+  "productFilesDigestSHA256": "c1b4f93ef8034efe3168018a5c92bc8ee3f6f775069d0c38ed991b3c7d12ef85",
+  "productDigestFormat": "SHA256(JSON.stringify(installed-candidate.files mapped to {path,sha256} in manifest order))",
+  "verifiedAt": "2026-10-20T13:52:10.307Z",
+  "phase": "final release after owner acceptance and exact-ID cleanup"
+}

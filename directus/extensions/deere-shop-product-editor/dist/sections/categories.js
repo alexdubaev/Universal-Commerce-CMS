@@ -5,7 +5,7 @@ import { AdminShell, SectionTabs, EditorToolbar, NativeFieldGroup, CollectionLis
 import { createEditorState } from "../admin-state.mjs";
 
 export const CATEGORY_TABS = [
-  { id: "main", label: "Основное", fields: ["status","title","slug","parent","description","image","image_alt","icon","icon_alt","sort_order","show_on_homepage"] },
+  { id: "main", label: "Основное", fields: ["title","slug","status","parent","description","image_alt","icon_alt","sort_order","show_on_homepage","image","icon"] },
   { id: "content", label: "Содержание", fields: ["h1","intro","seo_text","selection_guide","internal_links","faq"] },
   { id: "seo", label: "SEO", fields: ["seo_title","seo_description","og_image","is_indexable","seo","redirect_target"] },
   { id: "other", label: "Дополнительно", fields: ["translations","id","created_at","updated_at"] },
@@ -14,6 +14,8 @@ const ALL = CATEGORY_TABS.flatMap(t => t.fields);
 const TECHNICAL = new Set(["id","created_at","updated_at"]);
 const EDITABLE = ALL.filter(f => !TECHNICAL.has(f) && f !== "parent");
 const MEDIA = ["image","icon","og_image"];
+const HALF_WIDTH_FIELDS = new Set(["title","slug","status","parent","image_alt","icon_alt","sort_order","show_on_homepage"]);
+const comparisonValue = (field, value) => MEDIA.includes(field) ? value == null || value === "" ? null : "Файл выбран" : value;
 const EFFECTS = ["slug","status","redirect_target","is_indexable","seo"];
 const STATUS = { draft: "Черновик", published: "Опубликована", archived: "Архив" };
 const LIST_FIELDS = ["id","title","slug","parent.id","parent.title","status","show_on_homepage","sort_order","updated_at"];
@@ -23,6 +25,15 @@ const same = (a,b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 const data = r => r?.data?.data;
 const has = (p,f) => p === true || Array.isArray(p) && (p.includes("*") || p.includes(f));
 const unwrapId = x => x && typeof x === "object" ? x.id ?? null : x;
+export function categorySeoPreview(values = {}, dirty = {}, readable = []) {
+  const canRead = field => has(readable,field);
+  const projected = (scalar, jsonKey) => {
+    if (canRead(scalar) && dirty[scalar]) return typeof values[scalar] === "string" && values[scalar].trim() ? values[scalar].trim() : null;
+    if (canRead(scalar) && typeof values[scalar] === "string" && values[scalar].trim()) return values[scalar].trim();
+    return canRead("seo") && typeof values.seo?.[jsonKey] === "string" && values.seo[jsonKey].trim() ? values.seo[jsonKey].trim() : null;
+  };
+  return { title:projected("seo_title","title"), description:projected("seo_description","meta_description") };
+}
 const endpoint = id => `/items/categories/${encodeURIComponent(id)}`;
 const itemPermission = id => `/permissions/me/categories/${encodeURIComponent(id)}`;
 const errorText = e => {
@@ -176,7 +187,18 @@ export function createCategoryController(api) {
     busy=true;
     try { const result=await state.reconcile(loader,identity,{keepEdits}); if(result.ok){comparison=null;validation=[];} return result; } finally {busy=false;}
   }
-  return { open, change, changeTab, save, compare, reconcile, recoverCreate, snapshot, canChange, dispose:() => {generation++;} };
+  async function discardChanges() {
+    if (busy || opening || !snapshot().dirty) return { ok: false, reason: "unavailable" };
+    if (creating) { draft = copy(defaults); validation = []; comparison = null; createSaved = false; return { ok: true }; }
+    if (!state) return { ok: false, reason: "unavailable" };
+    busy = true;
+    try {
+      const result = await state.reconcile(loader, identity, { keepEdits: false });
+      if (result.ok) { comparison = null; validation = []; }
+      return result;
+    } finally { busy = false; }
+  }
+  return { open, change, changeTab, save, compare, reconcile, discardChanges, recoverCreate, snapshot, canChange, dispose:() => {generation++;} };
 }
 
 const categoryIcon = (name) => h("svg", { viewBox:"0 0 24 24", "aria-hidden":"true", focusable:"false" }, [
@@ -330,34 +352,52 @@ const CategoryEditor=defineComponent({
     watch(()=>props.id,id=>{notice.value="";active.value="main";run(()=>controller.open(id));},{immediate:true});
     onUnmounted(()=>{assetRequest++;controller.dispose();});
     const change=(f,v)=>{controller.change(f,v);revision.value++;};
-    const save=async()=>{notice.value="";const result=await run(()=>controller.save());if(result.error)notice.value=errorText(result.error);if(result.createdId)router.replace(`/product-editor/sections/categories/${encodeURIComponent(result.createdId)}`);};
-    const compare=async()=>{const r=await run(()=>controller.compare());if(r.error)notice.value=errorText(r.error);};
+    const save=async()=>{notice.value="";const result=await run(()=>controller.save());if(result.error&&!result.conflict)notice.value="Не удалось сохранить категорию. Проверьте данные и повторите попытку.";if(result.createdId)router.replace(`/product-editor/sections/categories/${encodeURIComponent(result.createdId)}`);};
+    const compare=async()=>{const r=await run(()=>controller.compare());if(r.error)notice.value="Не удалось сравнить данные. Ваши правки остались в форме.";};
     const recoverCreate=async()=>{const r=await run(()=>controller.recoverCreate());if(r.error)notice.value=errorText(r.error);};
     return()=>{
       const s=snapshot.value, writable=s.permissions.update;
       const nativePermissions={read:s.permissions.read,update:s.creating?s.permissions.create:writable};
       const delta=Object.fromEntries(Object.keys(s.values).filter(f=>!same(s.values[f],s.baseline[f])).map(f=>[f,s.values[f]]));
-      const form=(fields)=>h(NativeFieldGroup,{metadata:s.metadata.map(m=>m.field==="parent"||s.creating&&m.field==="status"?{...m,meta:{...m.meta,readonly:true,options:{...m.meta?.options,enableCreate:false,enableSelect:false}}}:m),fieldSubset:fields,primaryKey:props.id,initialValues:s.baseline,modelValue:delta,permissions:nativePermissions,readonly:s.readonly,disabled:s.loading||s.saving||s.writeUncertain,validationErrors:s.validation,"onUpdate:modelValue":v=>{controller.changeTab(fields,v);revision.value++;}});
-      const media=field=>{const metadata=s.metadata.find(m=>m.field===field);if(!metadata||!has(s.permissions.read,field))return null;return h("div",[assetErrors.value[field]?h("p",{role:"status"},"Связанный файл отсутствует или недоступен. Связь сохранена до вашего явного изменения."):null,h(MediaPicker,{field:{...metadata,meta:{...metadata.meta,interface:"file-image",options:{...metadata.meta?.options}}},primaryKey:props.id,initialValue:{[field]:s.baseline[field]},modelValue:s.values[field],permissions:nativePermissions,readonly:s.readonly||!controller.canChange(field),disabled:s.loading||s.saving||s.writeUncertain,allowSelect:["full","partial"].includes(s.filePermissions.read?.access),allowUpload:s.filePermissions.create?.access==="full","onUpdate:modelValue":v=>change(field,v)})]);};
+      const seoPreview=categorySeoPreview(s.values,Object.fromEntries(s.dirtyFields.map(field=>[field,true])),s.permissions.read);
+      const seoPreviewReadable=has(s.permissions.read,"seo_title")||has(s.permissions.read,"seo"),seoDescriptionReadable=has(s.permissions.read,"seo_description")||has(s.permissions.read,"seo");
+      const form=(fields)=>{
+        const editableFields=fields.filter(f=>!MEDIA.includes(f)&&!TECHNICAL.has(f));
+        const metadata=s.metadata.map(m=>{
+          const parent=m.field==="parent",locked=parent||s.creating&&m.field==="status";
+          return {...m,name:parent?`${m.name} (только просмотр)`:m.name,meta:{...m.meta,...(HALF_WIDTH_FIELDS.has(m.field)?{width:"half"}:{}),...(locked?{readonly:true,options:{...m.meta?.options,enableCreate:false,enableSelect:false}}:{})}};
+        });
+        return h(NativeFieldGroup,{metadata,fieldSubset:editableFields,primaryKey:props.id,initialValues:s.baseline,modelValue:delta,permissions:nativePermissions,readonly:s.readonly,disabled:s.loading||s.saving||s.writeUncertain,validationErrors:s.validation,"onUpdate:modelValue":v=>{controller.changeTab(editableFields,v);revision.value++;}});
+      };
+      const media=field=>{const metadata=s.metadata.find(m=>m.field===field);if(!metadata||!has(s.permissions.read,field))return null;const selected=Boolean(unwrapId(s.values[field]));return h("div",{class:"category-media-field"},[assetErrors.value[field]?h("p",{role:"status"},"Связанный файл недоступен. Связь сохранена до вашего явного изменения."):null,h(MediaPicker,{field:{...metadata,name:field==="og_image"?"Изображение для ссылок":metadata.name,meta:{...metadata.meta,interface:"file-image",options:{...metadata.meta?.options}}},primaryKey:props.id,initialValue:{[field]:s.baseline[field]},modelValue:s.values[field],permissions:nativePermissions,readonly:s.readonly||!controller.canChange(field),disabled:s.loading||s.saving||s.writeUncertain,allowSelect:["full","partial"].includes(s.filePermissions.read?.access),allowUpload:s.filePermissions.create?.access==="full","onUpdate:modelValue":v=>change(field,v)}),selected?h("p",{class:"category-media-note"},"Связь можно снять без удаления файла из Directus."):null]);};
       const title=s.creating?"Новая категория":s.values.title||"Категория";
-      return h(AdminShell,{class:"a1cat-editor",title,state:{...s,readError:s.readError?true:null,saveError:s.saveError?errorText(s.saveError):null},readonly:s.readonly,onRetry:()=>{if(!s.dirty)run(()=>controller.open(props.id));else compare();}}, {
-        toolbar:()=>h(EditorToolbar,{title:"Категории",state:s,readonly:s.readonly,onSave:save,onBack:()=>router.push("/product-editor/sections/categories"),onReconcile:compare}),
+      return h(AdminShell,{class:"a1cat-editor",title,state:{...s,readError:s.readError?true:null,saveError:s.saveError?true:null},readonly:s.readonly,cancelTitle:"Отменить изменения категории?",onCancel:()=>run(()=>controller.discardChanges()),onRetry:()=>{if(!s.dirty)run(()=>controller.open(props.id));else compare();}}, {
+        toolbar:({requestCancel,requestDiscard})=>h(EditorToolbar,{title:"Категории",state:s,readonly:s.readonly,cancelLabel:"Отменить изменения",backLabel:"К списку категорий",onSave:save,onCancel:requestCancel,onReconcile:compare,onBack:()=>router.push("/product-editor/sections/categories")},{default:()=>s.comparison?h("button",{type:"button",disabled:s.saving,onClick:()=>requestDiscard().then(confirmed=>confirmed&&run(()=>controller.reconcile(false)))},"Отменить мои правки"):null}),
         default:()=>[h("style",categoryStyle),notice.value?h("p",{role:"alert"},notice.value):null,s.readError?h("p",{role:"alert"},errorText(s.readError)):null,
-          s.writeUncertain&&!s.conflict&&!s.creating?h("button",{type:"button",disabled:s.saving,onClick:compare},"Сравнить с актуальными данными"):null,
           s.writeUncertain&&s.creating?h("section",{class:"category-comparison"},[h("p","Ответ создания не подтверждён. Повторная отправка заблокирована. Проверьте запись по точному slug."),h("button",{type:"button",disabled:s.saving,onClick:recoverCreate},"Проверить результат создания"),
             s.createRecovery?s.createRecovery.record?h("div",[h("p","Найдена запись с этим slug. Это не подтверждает, что она создана вашим запросом. Сравните данные перед переходом; локальный ввод остаётся в этой форме."),h(ReadonlyDetails,{values:s.createRecovery.record,fields:Object.keys(s.createRecovery.record).map(field=>({field,label:s.metadata.find(m=>m.field===field)?.name??field}))}),h("button",{type:"button",disabled:s.saving,onClick:()=>router.push(`/product-editor/sections/categories/${encodeURIComponent(s.createRecovery.record.id)}`)},"Открыть найденную категорию")]):h("p",{role:"status"},"Запись пока не найдена. Проверьте связь и повторите проверку. Автоматическое создание отключено."):null]):null,
-          s.comparison?h("section",{class:"category-comparison"},[h("h2","Сравнение перед повторным сохранением"),...s.dirtyFields.map(f=>h("div",[h("h3",f),h(ReadonlyDetails,{values:{local:s.values[f],current:s.comparison[f]},fields:[{field:"local",label:"Ваше значение"},{field:"current",label:"На сервере"}]})])),h("button",{type:"button",disabled:s.saving,onClick:()=>run(()=>controller.reconcile(true))},"Применить актуальную версию и оставить мой ввод"),h("button",{type:"button",disabled:s.saving,onClick:()=>{if(!s.dirty||window.confirm("Отбросить введённые изменения?"))run(()=>controller.reconcile(false));}},"Отбросить мой ввод и загрузить актуальное"),h("p","Эти действия не записывают данные. После проверки нажмите «Сохранить» отдельно.")]):null,
+          s.comparison?h("section",{class:"category-comparison"},[h("h2","Сравнение изменений"),...s.dirtyFields.map(f=>h("div",[h("h3",s.metadata.find(item=>item.field===f)?.name??({title:"Название категории",slug:"Адрес категории",h1:"Заголовок страницы",seo_title:"SEO-заголовок"})[f]??"Значение"),h(ReadonlyDetails,{values:{local:comparisonValue(f,s.values[f]),current:comparisonValue(f,s.comparison[f])},fields:[{field:"local",label:"Ваш вариант"},{field:"current",label:"Сохранённый вариант"}]})])),h("button",{type:"button",disabled:s.saving,onClick:()=>run(()=>controller.reconcile(true))},"Оставить мои правки"),h("p","Ваш ввод сохранён в форме, но не записан. Проверьте форму и нажмите «Сохранить».")]):null,
           s.validation.length?h("ul",{role:"alert"},s.validation.map(e=>h("li",e.message))):null,
           !s.loading&&Object.keys(s.values).length?h(SectionTabs,{tabs:CATEGORY_TABS,modelValue:active.value,"onUpdate:modelValue":v=>active.value=v},{default:({tab})=>[
-            tab.id==="main"?h("p",{class:"category-note"},"Родитель доступен только для просмотра: серверная защита от циклов дерева не подтверждена."):null,
             tab.id==="main"&&s.creating?h("p",{class:"category-note"},"Новая категория создаётся черновиком. Публикация доступна после создания."):null,
-            ["main","seo"].includes(tab.id)?h("p",{class:"category-note",role:"note"},"Slug, статус, перенаправление и индексация влияют на адреса, видимость и поиск на сайте. Проверьте значения перед сохранением."):null,
             s.dirtyFields.some(f=>EFFECTS.includes(f))?h("p",{role:"status"},"Изменены поля, влияющие на сайт."):null,
-            form(tab.fields.filter(f=>!MEDIA.includes(f)&&!TECHNICAL.has(f))),
+            tab.id==="seo"?h("div",{class:"category-seo-layout"},[
+              h("section",{class:"category-seo-fields"},[form(["seo_title","seo_description"])]),
+              h("section",{class:"category-seo-preview", "aria-label":"Предпросмотр"},[
+                h("h2","Предпросмотр в поиске"),
+                seoPreview.title!==null?h("strong",seoPreview.title):null,
+                seoPreview.description!==null?h("p",seoPreview.description):null,
+                seoPreview.title===null&&seoPreview.description===null?h("p",seoPreviewReadable&&seoDescriptionReadable?"Заголовок и описание не заполнены.":"Предпросмотр недоступен."):null,
+              ]),
+              h("section",{class:"category-seo-settings"},[
+                h("div",[form(["is_indexable"])]),
+                h("div",[form(["redirect_target"])]),
+                h("div",[media("og_image")]),
+              ]),
+            ]):form(tab.fields),
             tab.id==="other"?h(ReadonlyDetails,{values:s.values,fields:[{field:"id",label:"Идентификатор"},{field:"created_at",label:"Создано"},{field:"updated_at",label:"Обновлено"}].filter(f=>has(s.permissions.read,f.field))}):null,
-            tab.id==="seo"?media("og_image"):null,
           ]}):null],
-        ...(!s.loading&&active.value==="main"?{context:()=>[media("image"),media("icon"),h("p",{class:"category-note"},"Убирается только связь с изображением; файл остаётся в Directus.")]}:{}),
+        ...(!s.loading&&active.value==="main"?{context:()=>[media("image"),media("icon")]}:{}),
       });
     };
   },
@@ -432,6 +472,61 @@ const categoryListStyle = `
 @media(max-width:720px){.a1cat-list .ac-shell{padding:22px 16px}.a1cat-list .ac-shell__header{flex-direction:row;align-items:center;gap:10px;margin-bottom:20px}.a1cat-list .a1cat-title{gap:8px}.a1cat-list .a1cat-title h1{font-size:24px;line-height:32px}.a1cat-list .a1cat-total{font-size:13px}.a1cat-list .ac-shell__header>.a1cat-btn{padding:0 12px;font-size:13px}}
 @media(max-width:600px){.a1cat-list .a1cat-dialog{margin:0;max-width:100vw;width:100vw;border-radius:0;height:100dvh;max-height:100dvh;border:0}.a1cat-dialog[open]{display:flex;flex-direction:column}.a1cat-dialog form{display:flex;flex-direction:column;flex:1;min-height:0}.a1cat-dialog-body{flex:1;overflow:auto;padding:20px}.a1cat-dialog-head{padding:18px 20px}.a1cat-dialog-foot{padding-bottom:max(18px,env(safe-area-inset-bottom))}.a1cat-list .a1cat-dialog .a1cat-control,.a1cat-list .a1cat-dialog .a1cat-btn{height:44px;min-height:44px}}
 `;
-const categoryStyle = `.a1cat-editor .category-note{color:var(--theme--foreground-subdued);margin:12px 0;overflow-wrap:anywhere}.a1cat-editor .category-comparison{max-width:100%;overflow-wrap:anywhere;border:1px solid var(--theme--border-color);padding:12px;margin:12px 0}.a1cat-editor .category-comparison button{min-height:40px;padding:8px 12px;border:1px solid var(--theme--border-color);border-radius:6px;margin:4px}.a1cat-editor .ac-shell__context>.field{margin-bottom:16px}.a1cat-editor .ac-shell .v-form{min-width:0}@media(max-width:720px){.a1cat-editor .ac-tabs [role=tabpanel]{min-width:0}.a1cat-editor .ac-shell__context{max-width:100%}}`;
+const categoryStyle = `
+.a1cat-editor .ac-shell{container-type:inline-size;--theme--foreground-subdued:var(--theme--foreground,#4f5464)}
+.a1cat-editor .ac-shell__header{display:flex;align-items:stretch;flex-direction:column;gap:12px;margin-bottom:0}
+.a1cat-editor .ac-shell__header>div:first-child h1{font-size:20px;line-height:1.3;margin:0;overflow-wrap:anywhere}
+.a1cat-editor .ac-toolbar{display:flex;align-items:center;flex-direction:row;width:100%;gap:16px;padding:10px 0;border-bottom:1px solid var(--theme--border-color,#d9e1e8)}
+.a1cat-editor .ac-toolbar>div:first-child{min-width:0;flex:1}
+.a1cat-editor .ac-toolbar>div:first-child strong{display:none}
+.a1cat-editor .ac-toolbar>div:first-child p{margin:0;color:var(--theme--foreground,#4f5464)}
+.a1cat-editor .ac-toolbar__actions{width:auto;flex:0 0 auto;justify-content:flex-end}
+.a1cat-editor .ac-toolbar__actions>button:first-child:not(:disabled){background:var(--theme--primary,#286b51);border-color:var(--theme--primary,#286b51);color:#fff}
+.a1cat-editor .ac-toolbar__actions>button:disabled,.a1cat-editor .ac-tabs__list>button:disabled{opacity:1;color:var(--theme--foreground,#4f5464)}
+.a1cat-editor .ac-shell__grid:not(.ac-shell__grid--single){grid-template-columns:minmax(0,1fr) minmax(280px,300px);gap:16px;margin-top:12px}
+.a1cat-editor .ac-shell__main{container-type:inline-size;min-width:0;--theme--form--field--input--height:40px;--input-height:40px}
+.a1cat-editor .ac-shell__main .v-form.grid{row-gap:16px;column-gap:16px}
+.a1cat-editor .ac-shell__main .v-textarea,.a1cat-editor .ac-shell__main .v-textarea textarea{--input-height-md:80px;min-height:80px}
+.a1cat-editor .ac-shell__main input::placeholder,.a1cat-editor .ac-shell__main textarea::placeholder{color:var(--theme--foreground,#4f5464);opacity:1}
+.a1cat-editor .ac-shell__main .field-note,.a1cat-editor .ac-shell__main .field__note,.a1cat-editor .ac-shell__main .field-hint{color:var(--theme--foreground,#4f5464)}
+.a1cat-editor .ac-tabs__list>button:not([aria-selected=true]){color:var(--theme--foreground,#4f5464)}
+.a1cat-editor .category-note{color:var(--theme--foreground,#4f5464);margin:8px 0;overflow-wrap:anywhere}
+.a1cat-editor .category-comparison{max-width:100%;overflow-wrap:anywhere;border:1px solid var(--theme--border-color);padding:12px;margin:12px 0}
+.a1cat-editor .category-comparison button{min-height:40px;padding:8px 12px;border:1px solid var(--theme--border-color);border-radius:6px;margin:4px}
+.a1cat-editor .ac-shell__context{min-width:0}
+.a1cat-editor .category-media-field{min-width:0;margin-bottom:12px}
+.a1cat-editor .ac-shell__context .v-upload{--input-height-md:80px;min-height:80px;padding:8px}
+.a1cat-editor .ac-shell__context .image-preview{max-height:140px;overflow:hidden}
+.a1cat-editor .ac-shell__context .image-preview>img{max-height:140px;object-fit:contain}
+.a1cat-editor .category-media-note{margin:4px 0;color:var(--theme--foreground,#4f5464);font-size:12px}
+.a1cat-editor .category-media-field [role=status]{margin:4px 0;color:var(--theme--foreground,#4f5464);font-size:12px}
+.a1cat-editor .category-seo-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px 24px;min-width:0}
+.a1cat-editor .category-seo-layout>section{min-width:0}
+.a1cat-editor .category-seo-layout h2{font-size:15px;line-height:1.4;font-weight:600;margin:0 0 12px;overflow-wrap:anywhere}
+.a1cat-editor .category-seo-preview{border-left:1px solid var(--theme--border-color,#d9e1e8);padding-left:20px;overflow-wrap:anywhere}
+.a1cat-editor .category-seo-preview strong{display:block;color:var(--theme--primary,#286b51);font-weight:600}
+.a1cat-editor .category-seo-preview p{margin:6px 0 0;white-space:pre-wrap}
+.a1cat-editor .category-seo-settings{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 20px;border-top:1px solid var(--theme--border-color,#d9e1e8);padding-top:14px}
+.a1cat-editor .category-seo-settings>div{min-width:0}
+.a1cat-editor .category-seo-settings .category-media-field{margin-bottom:0}
+.a1cat-editor .category-seo-settings .v-upload{--input-height-md:80px;min-height:80px;padding:8px}
+.a1cat-editor .category-seo-settings .image-preview{max-height:140px;overflow:hidden}
+.a1cat-editor .category-seo-settings .image-preview>img{max-height:140px;object-fit:contain}
+@container (max-width:720px){
+  .a1cat-editor .ac-shell__grid:not(.ac-shell__grid--single){grid-template-columns:minmax(0,1fr);gap:16px}
+  .a1cat-editor .ac-shell__main{--theme--form--field--input--height:44px;--input-height:44px}
+  .a1cat-editor .ac-shell__main input,.a1cat-editor .ac-shell__main select{min-height:44px}
+  .a1cat-editor .ac-toolbar{align-items:flex-start;flex-wrap:wrap}
+  .a1cat-editor .ac-toolbar__actions{flex:1 1 100%;justify-content:flex-start}
+  .a1cat-editor .ac-shell__context{max-width:100%}
+  .a1cat-editor .category-seo-layout{grid-template-columns:minmax(0,1fr);gap:16px}
+  .a1cat-editor .category-seo-preview{border-left:0;border-top:1px solid var(--theme--border-color,#d9e1e8);padding:14px 0 0}
+  .a1cat-editor .category-seo-settings{grid-column:auto;grid-template-columns:minmax(0,1fr);gap:16px}
+}
+@container (max-width:520px){
+  .a1cat-editor .ac-shell__main .v-form.grid [data-field]{grid-column:1/-1!important}
+  .a1cat-editor .ac-shell__main .v-form.grid{row-gap:14px}
+}
+`;
 export const CategoriesSection=defineComponent({name:"CategoriesSection",props:{id:{type:[String,Number],default:null}},setup:props=>()=>props.id==null||props.id===""?h(CategoryList):h(CategoryEditor,{id:props.id})});
 export default CategoriesSection;

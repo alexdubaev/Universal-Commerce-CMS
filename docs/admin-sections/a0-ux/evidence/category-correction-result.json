@@ -1,0 +1,50 @@
+{
+  "ownerAcceptance": "rejected; correction installed; acceptance still pending",
+  "scopedModules": [
+    "sections/categories.js src/dist"
+  ],
+  "before": {
+    "inputHeight": 54,
+    "rowGap": 36,
+    "formHeight": 1003,
+    "mutedText": "rgb(162,181,205)"
+  },
+  "after": {
+    "desktopInput": 40,
+    "mobileInput": 44,
+    "desktopRowGap": 16,
+    "mobileRowGap": 14,
+    "desktopFormHeight": 443,
+    "desktopFormBottom": 674,
+    "desktopViewportHeight": 924,
+    "textContrastOnWhite": 7.54,
+    "primaryContrastOnWhite": 7.09,
+    "emptyUploadsHeight": 80,
+    "mediaAsideWidth": 300
+  },
+  "viewports": [
+    1872,
+    390,
+    320
+  ],
+  "singleColumnTabs": [
+    "Содержание",
+    "SEO",
+    "Дополнительно"
+  ],
+  "mobileOverlapFoundAndFixed": true,
+  "save": {
+    "fields": [
+      "title",
+      "description"
+    ],
+    "statusRemains": "draft"
+  },
+  "cancelAndTabsRetainInput": true,
+  "readonlyParentUnchanged": true,
+  "consoleErrors": [],
+  "review": "a0_density_review bounded incremental review; no remaining confirmed findings; mobile closure verified by lead",
+  "mechanicalScan": [],
+  "bundleSHA256": "9affeaae01a5cba1dfa4afe41437c150c299f0c274f530779b8fb7e5778d7891",
+  "productFilesDigestSHA256": "1b5c18c876d8997fb405494fe72bb4fc9cb3699c2d82b3b7d7042273b174e80d"
+}

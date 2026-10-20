@@ -1,0 +1,44 @@
+{
+  "run": "156bb190-71fa-449a-9a05-f5d734ecf2ba",
+  "target": "http://127.0.0.1:18056",
+  "owned": [
+    {
+      "collection": "categories",
+      "id": "d2fc610a-8fa9-47ba-aa17-9b8d274a863d",
+      "tagField": "slug",
+      "tagValue": "a0-ux-156bb190-71fa-449a-9a05-f5d734ecf2ba-category"
+    },
+    {
+      "collection": "pages",
+      "id": "61ee11b9-a84f-4f93-b6d2-1c89ba04410d",
+      "tagField": "slug",
+      "tagValue": "a0-ux-156bb190-71fa-449a-9a05-f5d734ecf2ba-page"
+    },
+    {
+      "collection": "page_sections",
+      "id": "0ce5672c-900e-4020-880e-f2dfabbaa23b",
+      "tagField": "title",
+      "tagValue": "Первый тестовый блок 156bb190"
+    },
+    {
+      "collection": "page_sections",
+      "id": "bc5fa711-a69f-40a6-b3d7-07eef0210a26",
+      "tagField": "title",
+      "tagValue": "Второй тестовый блок 156bb190"
+    },
+    {
+      "collection": "articles",
+      "id": "97ba6ec1-025f-4ef3-8394-36c57f87a21d",
+      "tagField": "slug",
+      "tagValue": "a0-ux-156bb190-71fa-449a-9a05-f5d734ecf2ba-article"
+    },
+    {
+      "collection": "products",
+      "id": "f8045717-63ec-41e3-9003-99b36c8d1daf",
+      "tagField": "slug",
+      "tagValue": "a0-ux-156bb190-71fa-449a-9a05-f5d734ecf2ba-product"
+    }
+  ],
+  "cleanup": "complete after owner acceptance; all six exact IDs absent, guarded delete child-first",
+  "cleanupEvidence": "accepted-fixture-cleanup.json"
+}

@@ -8,6 +8,7 @@ import { PageSectionEditor } from "../page-sections.js";
 export const PAGE_FIELDS = Object.freeze(["id","status","title","slug","page_type","h1","eyebrow","intro","seo_title","seo_description","seo_text","og_image","canonical_url","is_indexable","seo","translations","created_at","updated_at"]);
 const LIST_FIELDS = ["id","title","slug","page_type","status","updated_at"];
 const EDITABLE = PAGE_FIELDS.filter(f => !["id","created_at","updated_at"].includes(f));
+const MEDIA_FIELDS = new Set(["og_image"]);
 const CORE = ["title","slug","status","page_type","h1"];
 const SORT_FIELDS = ["title","slug","page_type","status","updated_at"];
 const SYSTEM_TYPES = ["home","catalog","articles"];
@@ -313,6 +314,12 @@ export function createPageController(api,{onChange}={}) {
     if(!comparison||!state||busy||opening||child.saving)return {ok:false,reason:"compare-first"};
     busy=true;notify();try{const pending=state.reconcile(loader,id,{keepEdits:Boolean(keepEdits)});notify();const r=await pending;if(r.ok){comparison=null;failure=null;parentStale=false;statusState=null;validation=[];explicitSeoFields.clear();}return r;}finally{busy=false;notify();}
   }
+  async function discardChanges(){
+    if(busy||opening||child.saving||uncertainCreate||createdId)return {ok:false,reason:"unavailable"};
+    if(creating){draft=copy(defaults);comparison=null;validation=[];notify();return {ok:true};}
+    if(!state||!snapshot().parentDirty)return {ok:false,reason:"unavailable"};
+    busy=true;notify();try{const pending=state.reconcile(loader,id,{keepEdits:false});notify();const result=await pending;if(result.ok){comparison=null;failure=null;parentStale=false;statusState=null;validation=[];explicitSeoFields.clear();}return result;}finally{busy=false;notify();}
+  }
   async function recoverCreate(){
     if(!creating||!uncertainCreate||busy||opening||typeof draft.slug!=="string"||!draft.slug.trim())return {ok:false,reason:"unavailable"};
     busy=true;notify();try{const r=await api.get("/items/pages",{params:buildCollectionQuery({fields:["id","title","slug","status","page_type"].filter(f=>has(permissions.read,f)),pageSize:2,filter:{slug:{_eq:draft.slug}},sort:"id"})});if(!Array.isArray(data(r))||data(r).length>2)throw Error("Invalid recovery result");recovery={records:copy(data(r))};return {ok:true};}catch(e){return {ok:false,error:e};}finally{busy=false;notify();}
@@ -323,7 +330,7 @@ export function createPageController(api,{onChange}={}) {
     if(next.saved)parentStale=true;
     notify();
   }
-  return {open,change,changeTab,save,setStatus,compare,reconcile,recoverCreate,childState,snapshot,canChange,dispose:()=>{disposed=true;generation++;}};
+  return {open,change,changeTab,save,setStatus,compare,reconcile,discardChanges,recoverCreate,childState,snapshot,canChange,dispose:()=>{disposed=true;generation++;}};
 }
 
 const badge=value=>h("span",{class:`a3pages-badge a3pages-badge--${Object.hasOwn(STATUS,value)?value:"unknown"}`},STATUS[value]??value??"Статус недоступен");
@@ -425,7 +432,8 @@ const PageEditor=defineComponent({
       if(r?.createdId)router.replace(`/product-editor/sections/pages/${encodeURIComponent(r.createdId)}`);
     }
     const compare=()=>run(()=>controller.compare());
-    const reconcile=keep=>{if(!keep&&!confirm("Отбросить локальные правки страницы и загрузить текущие значения? Правки блоков сохранятся."))return;return run(()=>controller.reconcile(keep));};
+    let confirmDiscard=()=>Promise.resolve(false);
+    const reconcile=async keep=>{if(!keep&&!await confirmDiscard())return;return run(()=>controller.reconcile(keep));};
     function form(subset,s){
       const delta=Object.fromEntries(subset.filter(f=>Object.hasOwn(s.values,f)&&!same(s.values[f],s.baseline[f])).map(f=>[f,s.values[f]]));
       const renderedId=props.id,renderedTab=active.value;
@@ -453,16 +461,17 @@ const PageEditor=defineComponent({
       const pendingOutcome=s.conflict||s.writeUncertain||s.parentStale||s.ready&&Boolean(s.readError);
       // Aggregate unsaved state prevents an all-saved message while a block is dirty.
       const toolbarState={...s,dirty:s.dirty,saving:s.saving||s.childSaving,conflict:false,writeUncertain:false,saveError:null,readError:null,saved:s.saved&&!s.childDirty};
-      const comparison=s.comparison?h("div",{class:"a3pages-diff"},EDITABLE.filter(f=>Object.hasOwn(s.values,f)&&Object.hasOwn(s.comparison,f)&&!same(s.values[f],s.comparison[f])).map(f=>h("article",[h("h3",FIELD_LABELS[f]??"Статус"),h(ReadonlyDetails,{values:{local:s.values[f],remote:s.comparison[f]},fields:[{field:"local",label:"Ваше значение"},{field:"remote",label:"На сервере"}]})]))):null;
+      const comparison=s.comparison?h("div",{class:"a3pages-diff"},EDITABLE.filter(f=>Object.hasOwn(s.values,f)&&Object.hasOwn(s.comparison,f)&&!same(s.values[f],s.comparison[f])).map(f=>h("article",[h("h3",FIELD_LABELS[f]??"Статус"),h(ReadonlyDetails,{values:{local:MEDIA_FIELDS.has(f)?s.values[f]==null||s.values[f]===""?null:"Файл выбран":s.values[f],remote:MEDIA_FIELDS.has(f)?s.comparison[f]==null||s.comparison[f]===""?null:"Файл выбран":s.comparison[f]},fields:[{field:"local",label:"Ваше значение"},{field:"remote",label:"На сервере"}]})]))):null;
       const conflict=pendingOutcome?h("section",{class:"a3pages-note a3pages-conflict",role:"region","aria-label":"Сверка страницы"},[
         h("h2",s.creating?"Создание не подтверждено":s.conflict?"Страница изменена в другом окне":s.parentStale?"После сохранения блока сверьте страницу":"Результат сохранения нужно проверить"),
         h("p",s.creating?"Запрос мог создать запись. Повторная отправка заблокирована; проверка адреса не подтверждает авторство найденной записи.":"Ваш ввод сохранён на экране. Сравнение и обновление данных ничего не записывают; сохранение выполняется отдельно."),
-        s.creating?button("Проверить точный адрес",()=>run(()=>controller.recoverCreate()),{disabled:s.saving}):button("Сравнить текущие значения",compare,{disabled:s.saving||s.childSaving}),comparison,
-        s.comparison?h("div",{class:"a3pages-actions"},[button("Оставить мои изменения",()=>reconcile(true),{disabled:s.saving||s.childSaving}),button("Загрузить текущие значения",()=>reconcile(false),{disabled:s.saving||s.childSaving})]):null,
+        s.creating?button("Проверить точный адрес",()=>run(()=>controller.recoverCreate()),{disabled:s.saving}):button("Сравнить изменения",compare,{disabled:s.saving||s.childSaving}),comparison,
+        s.comparison?h("div",{class:"a3pages-actions"},[button("Оставить мои правки",()=>reconcile(true),{disabled:s.saving||s.childSaving}),button("Загрузить сохранённые значения",()=>reconcile(false),{disabled:s.saving||s.childSaving})]):null,
         s.recovery?h("div",[h("p",s.recovery.records.length?"Найдены записи с этим адресом. Они не присвоены вашему запросу; откройте их отдельно и сравните данные.":"Запись не найдена. Это не доказывает, что запрос не будет завершён. Повтор создания отключён."),...s.recovery.records.map(row=>h("div",[navigateLink(router,row.id,row.title??row.id,{target:"_blank",rel:"noopener noreferrer",onClick:e=>e.stopPropagation()}),h(ReadonlyDetails,{values:row,fields:[{field:"id",label:"Идентификатор"},{field:"slug",label:"Адрес"},{field:"status",label:"Статус"}]})]))]):null,
       ]):null;
-      const childEditor=s.ready&&!s.creating?h("div",{class:"a3pages-sections"},[
-        h(PageSectionEditor,{key:String(props.id),parentCollection:"pages",parentId:s.baseline.id,api,metadata:Object.fromEntries(s.childMetadata.map(f=>[f.field,{...f,name:CHILD_LABELS[f.field]??f.name??f.field}])),editableFields:CHILD_FIELDS,displayFields:["status","sort_order"],permissions:s.childPermissions,guardedContract:true,readonly:s.readonly||s.saving||s.conflict||s.writeUncertain||s.parentStale||s.childSaving,labels:SECTION_LABELS,onStateChange:next=>controller.childState(next),onSaved:()=>controller.childState({dirty:controller.snapshot().childDirty,saving:false,saved:true})}),
+      const hasMountedRecord=s.ready||Boolean(s.baseline?.id);
+      const childEditor=hasMountedRecord&&!s.creating?h("div",{class:"a3pages-sections"},[
+        h(PageSectionEditor,{key:String(props.id),parentCollection:"pages",parentId:s.baseline.id,api,metadata:Object.fromEntries(s.childMetadata.map(f=>[f.field,{...f,name:CHILD_LABELS[f.field]??f.name??f.field}])),editableFields:CHILD_FIELDS,displayFields:["status","sort_order"],permissions:s.childPermissions,guardedContract:true,readonly:s.readonly||s.saving||s.conflict||s.writeUncertain||s.parentStale||s.childSaving,labels:SECTION_LABELS,confirmDiscard:()=>confirmDiscard(),onStateChange:next=>controller.childState(next),onSaved:()=>controller.childState({dirty:controller.snapshot().childDirty,saving:false,saved:true})}),
       ]):h("p",{class:"a3pages-note"},"Сначала создайте страницу. После создания здесь появится её реальный список блоков.");
       const main=h("div",{class:"a3pages-layout"},[h("div",[
         h("section",{class:"a3pages-form-section"},[h("h2","Название и адрес"),h("p",{class:"a3pages-muted"},"Название помогает найти страницу в админке. Заголовок на сайте задаётся отдельно."),form(["title","slug","page_type"],s),h("p",{class:"a3pages-help"},"Тип страницы сам по себе не создаёт публичный маршрут. Проверка адреса здесь не заменяет проверку на сервере.")]),
@@ -473,18 +482,19 @@ const PageEditor=defineComponent({
         h("aside",{class:"a3pages-context"},[h("h2","Пример поискового сниппета"),h("p",{class:"a3pages-muted"},"Схема отображения, не результат выдачи."),h("div",{class:"a3pages-context-card a3pages-snippet"},[h("small",pageRouteContext(s.values).path??"Адрес страницы"),h("strong",s.values.seo_title||s.values.title||"Заголовок страницы"),h("p",s.values.seo_description||s.values.intro||"Описание страницы")]),h("h2","Изображение для ссылок"),og?h(MediaPicker,{field:{...og,name:FIELD_LABELS.og_image},primaryKey:props.id,initialValue:{og_image:s.baseline.og_image},modelValue:s.values.og_image,permissions:{read:s.permissions.read,update:s.creating?s.permissions.create:s.permissions.update},readonly:s.readonly||!controller.canChange("og_image"),disabled:s.saving||s.childSaving||s.writeUncertain,allowSelect:s.fileReadAccess,allowUpload:false,missingAsset:assetMissing.value,"onUpdate:modelValue":value=>controller.change("og_image",value)}):null,h("p",{class:"a3pages-help"},"При снятии связи файл остаётся в библиотеке Directus.")]),
       ]);
       const other=h("div",[form(["translations"],s),h("section",{class:"a3pages-form-section"},[h("h2","Системные сведения"),h(ReadonlyDetails,{values:s.baseline,fields:[{field:"id",label:"Идентификатор"},{field:"created_at",label:"Создано"},{field:"updated_at",label:"Изменено"}]})])]);
-      const panels=s.ready?TABS.map(tab=>h("section",{key:tab.id,hidden:active.value!==tab.id,class:`a3pages-tab a3pages-tab--${tab.id}`},tab.id==="main"?main:tab.id==="seo"?seo:tab.id==="sections"?childEditor:other)):[];
+      const panels=hasMountedRecord?TABS.map(tab=>h("section",{key:tab.id,hidden:active.value!==tab.id,class:`a3pages-tab a3pages-tab--${tab.id}`},tab.id==="main"?main:tab.id==="seo"?seo:tab.id==="sections"?childEditor:other)):[];
       const statusModal=h("dialog",{ref:statusDialog,class:"a3pages-dialog","aria-labelledby":"a3pages-status-title",onCancel:e=>{e.preventDefault();statusDialog.value?.close();},onClose:()=>statusOpener.value?.focus()},[
         h("h2",{id:"a3pages-status-title"},"Изменить статус страницы"),h("p","Это отдельное действие может изменить доступность страницы на сайте. Статусы блоков не меняются."),pageRouteContext(s.baseline).fallback?h("p","Встроенная страница может остаться доступной после снятия записи с публикации."):null,
         h("label",{class:"a3pages-filter-field"},[h("span","Статус"),h("select",{class:"a3pages-control",value:nextStatus.value,"aria-label":"Новый статус",onChange:e=>nextStatus.value=e.target.value},choices(s.metadata.find(f=>f.field==="status")).filter(v=>Object.hasOwn(STATUS,v)).map(v=>h("option",{value:v},STATUS[v])))]),
         h("div",{class:"a3pages-dialog-foot"},[button("Отмена",()=>statusDialog.value?.close()),button("Подтвердить изменение",async()=>{statusDialog.value?.close();await run(()=>controller.setStatus(nextStatus.value,{confirmed:true}));},{disabled:!s.canStatus||nextStatus.value===s.baseline.status,class:"a3pages-btn a3pages-primary"})]),
       ]);
-      return h(AdminShell,{title,state:{...toolbarState,loading:false,readonly:false},dirty:s.dirty,saving:s.saving||s.childSaving,readonly:false}, {
+      return h(AdminShell,{title,state:{...toolbarState,loading:false,readonly:false},dirty:s.dirty,saving:s.saving||s.childSaving,readonly:false,cancelTitle:"Отменить изменения страницы?",onCancel:()=>run(()=>controller.discardChanges())}, {
         heading:()=>h("div",[h("a",{class:"a3pages-back",href:"/admin/product-editor/sections/pages",onClick:e=>{if(e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();router.push("/product-editor/sections/pages");}},"‹ Все страницы"),h("div",{class:"a3pages-heading"},[h("h1",title),badge(s.values.status)])]),
-        toolbar:()=>h(EditorToolbar,{title:"",state:toolbarState,readonly:!s.canSave,saveLabel:s.creating?"Создать черновик":"Сохранить",onSave:save,onBack:()=>router.push("/product-editor/sections/pages")},{default:()=>button("Версии",()=>{},{disabled:true,title:"Общий workflow версий пока недоступен"})}),
+        toolbar:({requestCancel=()=>{},requestDiscard=()=>Promise.resolve(false)}={})=>{confirmDiscard=requestDiscard;return h(EditorToolbar,{title:"",state:toolbarState,readonly:!s.canSave,cancelLabel:s.parentDirty&&!s.conflict&&!s.writeUncertain&&!s.parentStale?"Отменить изменения":"",backLabel:"К списку страниц",saveLabel:s.creating?"Создать черновик":"Сохранить",onCancel:requestCancel,onSave:save,onBack:()=>router.push("/product-editor/sections/pages")});},
         conflict:()=>null,
         main:()=>h("div",{class:"a3pages a3pages-editor"},[h("style",pagesStyle),
-          s.loading?h("div",{class:"a3pages-empty",role:"status"},"Загружаем страницу…"):!s.ready?h("div",{class:"a3pages-empty",role:"alert"},[h("h2","Страница недоступна"),h("p",errorText(s.readError)),button("Повторить загрузку",()=>run(()=>controller.open(props.id)))]):[
+            !hasMountedRecord&&s.loading?h("div",{class:"a3pages-empty",role:"status"},"Загружаем страницу…"):!hasMountedRecord&&!s.ready?h("div",{class:"a3pages-empty",role:"alert"},[h("h2","Страница недоступна"),h("p",errorText(s.readError)),button("Повторить загрузку",()=>run(()=>controller.open(props.id)))]):[
+              s.loading?h("p",{role:"status"},"Обновляем сохранённые значения…"):null,
             sourceNotice(s),s.readonly&&!pendingOutcome&&!s.saving&&!s.childSaving&&!s.sourceLinked&&s.sourceCheck&&!pageRouteContext(s.baseline).system?h("p",{class:"a3pages-note",role:"status"},"Режим просмотра. Редактирование недоступно по текущим правам."):null,
             s.baseline.status==="published"&&s.parentDirty?h("p",{class:"a3pages-note",role:"note"},"Редактируется опубликованная запись. После сохранения изменения могут появиться на сайте."):null,
             conflict,notice.value?h("p",{role:"alert",class:"a3pages-note"},notice.value):null,

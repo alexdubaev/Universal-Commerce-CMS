@@ -1,0 +1,364 @@
+{
+  "run": "156bb190-71fa-449a-9a05-f5d734ecf2ba",
+  "target": "http://127.0.0.1:18056",
+  "checks": [
+    {
+      "name": "category: two tabs and acknowledged save",
+      "status": "FAIL",
+      "error": "locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Изменения сохранены', { exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "name": "category: two-tab save (correct exact status punctuation)",
+      "status": "PASS",
+      "detail": {
+        "writes": 1,
+        "fields": [
+          "title",
+          "h1"
+        ],
+        "draft": true
+      }
+    },
+    {
+      "name": "category: native cancel dialog keyboard + parent discard",
+      "status": "FAIL",
+      "error": "pw.expect is not a function"
+    },
+    {
+      "name": "category: cancel read result after keyboard check",
+      "status": "PASS",
+      "detail": {
+        "initialFocus": "Остаться",
+        "TabShiftTabTrapped": true,
+        "EscapePreserved": true,
+        "returnedFocus": "Отменить изменения",
+        "serverWrites": 0
+      }
+    },
+    {
+      "name": "category: in-flight save and duplicate click",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'К списку категорий', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\">К списку категорий</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    22 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "category: held POST duplicate lock (retry with releasable gate)",
+      "status": "FAIL",
+      "error": "locator.dblclick: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Сохранить', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\">Сохранить</button>\u001b[22m\n\u001b[2m  - attempting dblclick action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying dblclick action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying dblclick action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    23 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying dblclick action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "category: pending POST lock and double click confirmed",
+      "status": "PASS",
+      "detail": {
+        "writes": 1,
+        "saveDisabled": true,
+        "exitDisabled": true
+      }
+    },
+    {
+      "name": "category: conflict compare read-only and keep requires Save",
+      "status": "FAIL",
+      "error": "page.screenshot: Target page, context or browser has been closed"
+    },
+    {
+      "name": "category: conflict keep + separate Save completed",
+      "status": "PASS",
+      "detail": {
+        "compareWrites": 0,
+        "keepWrites": 0,
+        "separateSave": true,
+        "serverTitle": "Локальный вариант 156bb190"
+      }
+    },
+    {
+      "name": "category: lost response after actual commit",
+      "status": "PASS",
+      "detail": {
+        "actualHTTP": 200,
+        "serverPersisted": true,
+        "posts": 1,
+        "verifyPosts": 0
+      }
+    },
+    {
+      "name": "pages: parent cancel preserves two child drafts",
+      "status": "FAIL",
+      "error": "locator.fill: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.page-section-editor textarea[field=\"text\"]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea disabled type=\"text\" width=\"full\" field=\"text\" loading=\"false\" data-v-d343b993=\"\" class=\"sans-serif\" batch-mode=\"false\" batch-active=\"false\" comparison-mode=\"false\" collection=\"page_sections\" raw-editor-enabled=\"false\" field-data=\"[object Object]\" value=\"Первый изменённый 156bb190\" primary-key=\"0ce5672c-900e-4020-880e-f2dfabbaa23b\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"Несохранённый первый 156bb190\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    23 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "pages: parent cancel preserves two child drafts (fresh parent)",
+      "status": "FAIL",
+      "error": "expect(locator).toHaveValue(expected) failed\n\nLocator: locator('.page-section-editor textarea[field=\"text\"]')\nExpected: \"Несохранённый второй 156bb190\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" locator('.page-section-editor textarea[field=\"text\"]') with timeout 5000ms\n  - waiting for locator('.page-section-editor textarea[field=\"text\"]')\n"
+    },
+    {
+      "name": "category: validation retains input and route dialog keyboard",
+      "status": "PASS",
+      "detail": {
+        "fieldAdvice": true,
+        "inputRetained": true,
+        "escapeStayed": true,
+        "confirmedDestination": "categories list",
+        "nativeValidationToken": "reported for closure"
+      }
+    },
+    {
+      "name": "articles: cancel ordinary parent edits without write",
+      "status": "FAIL",
+      "error": "material missing"
+    },
+    {
+      "name": "articles: cancel completed and material tab opens",
+      "status": "FAIL",
+      "error": "material missing"
+    },
+    {
+      "name": "articles: parent cancel and material smoke final",
+      "status": "PASS",
+      "detail": {
+        "cancelWrites": 0,
+        "titleRestored": true,
+        "materialLoaded": true,
+        "draft": "draft"
+      }
+    },
+    {
+      "name": "home: read-only smoke without singleton mutation",
+      "status": "PASS",
+      "detail": {
+        "tabs": [
+          "Первый экран",
+          "Секции",
+          "SEO",
+          "Основное"
+        ],
+        "writes": 0,
+        "singletonUntouched": true
+      }
+    },
+    {
+      "name": "fallback routes: safe text and real recovery destinations",
+      "status": "FAIL",
+      "error": "locator.waitFor: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Этот раздел пока недоступен', { exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "name": "fallbacks: safe recovery final",
+      "status": "PASS",
+      "detail": {
+        "noInternalRouteNames": true,
+        "noSave": true,
+        "workingRecovery": true
+      }
+    },
+    {
+      "name": "products: unchanged editor smoke",
+      "status": "PASS",
+      "detail": {
+        "readTabs": true,
+        "writes": 0,
+        "productEditorUnchanged": true
+      }
+    },
+    {
+      "name": "category: failed conflict reread preserves input and lock",
+      "status": "PASS",
+      "detail": {
+        "readFailure": true,
+        "retained": true,
+        "locked": true,
+        "noFalseSuccess": true
+      }
+    },
+    {
+      "name": "category: CAS still blocks competitor update after comparison",
+      "status": "PASS",
+      "detail": {
+        "secondConflict": true,
+        "noForcedOverwrite": true,
+        "confirmedDiscard": true
+      }
+    },
+    {
+      "name": "FINAL pages: real parent cancel preserves both mounted child drafts",
+      "status": "PASS",
+      "detail": {
+        "parentRestored": true,
+        "bothChildDraftsRetained": true,
+        "cancelPosts": 0
+      }
+    },
+    {
+      "name": "FINAL child: acknowledged save clears Saving exactly once",
+      "status": "FAIL",
+      "error": "HTTP 401 GET /items/page_sections/0ce5672c-900e-4020-880e-f2dfabbaa23b"
+    },
+    {
+      "name": "FINAL child: server confirms save and toolbar settled",
+      "status": "PASS",
+      "detail": {
+        "serverConfirmed": true,
+        "noStaleSaving": true,
+        "singleStatus": true,
+        "otherDraftRetained": true
+      }
+    },
+    {
+      "name": "FINAL validation: readable summary without native translation token",
+      "status": "PASS",
+      "detail": {
+        "clearFieldName": true,
+        "inputRetained": true,
+        "noRawToken": true
+      }
+    },
+    {
+      "name": "FINAL dialog: targeted responsive bounds + focus + contrast",
+      "status": "PASS",
+      "detail": {
+        "viewports": [
+          {
+            "x": 7,
+            "right": 312.984375,
+            "width": 305.984375,
+            "viewport": 320,
+            "textFits": true
+          },
+          {
+            "x": 18,
+            "right": 372,
+            "width": 354,
+            "viewport": 390,
+            "textFits": true
+          },
+          {
+            "x": 269,
+            "right": 755,
+            "width": 486,
+            "viewport": 1024,
+            "textFits": true
+          },
+          {
+            "x": 525,
+            "right": 1011,
+            "width": 486,
+            "viewport": 1536,
+            "textFits": true
+          }
+        ],
+        "confirmContrast": "7.09",
+        "keyboardTrap": true,
+        "EscapePreserved": true,
+        "focusReturned": "К списку категорий"
+      }
+    },
+    {
+      "name": "FINAL child: malformed acknowledgement after real commit keeps one uncertain state",
+      "status": "PASS",
+      "detail": {
+        "HTTP": 200,
+        "malformedAck": true,
+        "oneUncertainMessage": true,
+        "noRawError": true,
+        "posts": 1,
+        "verifyPosts": 0,
+        "sharedDirectusDiscardConfirmed": true
+      }
+    },
+    {
+      "name": "FINAL generic defaults: installed type without section overrides",
+      "status": "PASS",
+      "detail": {
+        "alreadyInstalledComponent": true,
+        "labelsOverrides": false,
+        "noModuleSubstitution": true,
+        "russianGroups": true,
+        "knownAndUnknownTypes": true,
+        "noBack": true,
+        "unknownStoredValueUnchanged": true
+      }
+    },
+    {
+      "name": "FINAL common panels: desktop/mobile layout and native drawers",
+      "status": "FAIL",
+      "error": "locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button').filter({ has: locator('[data-icon=\"right_panel_open\"]') })\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" data-v-cd27340f=\"\" class=\"button small align-center icon normal\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"overlay\" data-v-1801ebd8=\"\"></div> from <div id=\"dialog-outlet\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is visible, enabled and stable\u001b[22m\n\u001b[2m      - scrolling into view if needed\u001b[22m\n\u001b[2m      - done scrolling\u001b[22m\n\u001b[2m      - <div class=\"overlay\" data-v-1801ebd8=\"\"></div> from <div id=\"dialog-outlet\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    23 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is visible, enabled and stable\u001b[22m\n\u001b[2m       - scrolling into view if needed\u001b[22m\n\u001b[2m       - done scrolling\u001b[22m\n\u001b[2m       - <div class=\"overlay\" data-v-1801ebd8=\"\"></div> from <div id=\"dialog-outlet\">…</div> subtree intercepts pointer events\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+    },
+    {
+      "name": "FINAL common panel bounds after native backdrop close",
+      "status": "PASS",
+      "detail": {
+        "sizes": [
+          {
+            "width": 1536,
+            "visibleControls": 7,
+            "fit": true
+          },
+          {
+            "width": 390,
+            "visibleControls": 7,
+            "fit": true
+          },
+          {
+            "width": 1024,
+            "visibleControls": 7,
+            "fit": true
+          },
+          {
+            "width": 320,
+            "visibleControls": 7,
+            "fit": true
+          }
+        ],
+        "nativePanelsOpenedAndBackdropClosed": true
+      }
+    },
+    {
+      "name": "FINAL contrast closure: common block labels measured",
+      "status": "PASS",
+      "detail": {
+        "labels": [
+          {
+            "text": "01",
+            "color": "rgb(79, 84, 100)",
+            "font": "14px",
+            "contrastOnWhite": 7.54
+          },
+          {
+            "text": "Тип: Произвольный блок · Статус: Черновик · Порядок: 1",
+            "color": "rgb(79, 84, 100)",
+            "font": "12px",
+            "contrastOnWhite": 7.54
+          },
+          {
+            "text": "Скрыт",
+            "color": "rgb(79, 84, 100)",
+            "font": "12px",
+            "contrastOnWhite": 7.54
+          },
+          {
+            "text": "02",
+            "color": "rgb(79, 84, 100)",
+            "font": "14px",
+            "contrastOnWhite": 7.54
+          },
+          {
+            "text": "Тип: Тип блока не распознан · Статус: Черновик · Порядок: 2",
+            "color": "rgb(79, 84, 100)",
+            "font": "12px",
+            "contrastOnWhite": 7.54
+          },
+          {
+            "text": "Скрыт",
+            "color": "rgb(79, 84, 100)",
+            "font": "12px",
+            "contrastOnWhite": 7.54
+          }
+        ],
+        "bundleSHA256": "397dbf5c455d68d85f330dcd0bec4f6edfc62ad2f2aa84d48dee1f6d769fa66f"
+      }
+    }
+  ],
+  "roleLimit": {
+    "testedIdentity": "existing Administrator",
+    "managerRoleAvailable": false,
+    "rolesCreated": false,
+    "permissionsChanged": false
+  }
+}

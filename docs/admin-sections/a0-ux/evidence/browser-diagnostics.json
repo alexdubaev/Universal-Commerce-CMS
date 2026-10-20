@@ -1,0 +1,10 @@
+{
+  "finalInstalledContextErrors": [],
+  "earlierDiscoveryDiagnostic": [
+    {
+      "kind": "pageerror",
+      "message": "Unexpected token '<'"
+    }
+  ],
+  "note": "Earlier Unexpected token < was not reproduced in the final installed context or on repeated article/product tabs. Deliberate aborted responses/409s were test stimuli, not counted as uncaught page errors."
+}

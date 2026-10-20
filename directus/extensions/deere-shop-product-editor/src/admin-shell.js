@@ -1,10 +1,20 @@
-import { defineComponent, h, onMounted, onUnmounted, resolveComponent } from "vue";
+import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";
 
 const fieldList = (metadata) => Array.isArray(metadata) ? metadata : Object.values(metadata ?? {});
 const fieldName = (field) => field?.field ?? field?.name;
 const canRead = (permissions, field) => permissions?.read === true || (Array.isArray(permissions?.read) && (permissions.read.includes("*") || permissions.read.includes(field)));
 const canUpdate = (permissions, field) => permissions?.update === true || (Array.isArray(permissions?.update) && (permissions.update.includes("*") || permissions.update.includes(field)));
+const validationText = (error) => {
+  const code = error?.code ?? error?.type ?? error?.message?.replace?.(/^validationError\./, "");
+  const known = { FAILED_VALIDATION: "Значение не прошло проверку.", REQUIRED: "Обязательное поле.", RECORD_NOT_UNIQUE: "Такое значение уже используется.", INVALID_PAYLOAD: "Проверьте значение поля." };
+  if (typeof error?.message === "string" && !error.message.startsWith("validationError.")) return error.message;
+  return known[code] ?? "Проверьте значение поля.";
+};
+const nativeValidationType = (error) => {
+  const code = error?.code ?? error?.type ?? error?.message?.replace?.(/^validationError\./, "");
+  return ({ REQUIRED: "required", RECORD_NOT_UNIQUE: "unique", required: "required", regex: "regex", unique: "unique", nnull: "nnull" })[code] ?? null;
+};
 
 /**
  * Build a controlled v-form contract for an explicit subset of Directus metadata.
@@ -27,7 +37,14 @@ export function buildNativeFieldProps({ metadata, fields, fieldSubset = [], prim
   });
   const picked = Object.fromEntries(selected.filter(({ field }) => Object.hasOwn(modelValue ?? {}, field)).map(({ field }) => [field, modelValue[field]]));
   const baseline = { ...(initialValues ?? {}) };
-  return { primaryKey, initialValues: baseline, modelValue: picked, fields: selected, disabled: Boolean(disabled), nonEditable: Boolean(readonly || disabled), validationErrors: Array.isArray(validationErrors) ? validationErrors : [] };
+  const nativeErrors = Array.isArray(validationErrors) ? validationErrors.flatMap((error) => {
+    if (!error || typeof error !== "object") return [error];
+    if (error.code == null && error.type == null && error.message == null) return [error];
+    const type = nativeValidationType(error);
+    if (!type && (typeof error.type === "string" || ["FAILED_VALIDATION", "INVALID_PAYLOAD"].includes(error.code) || String(error.message ?? "").startsWith("validationError."))) return [];
+    return [{ ...error, ...(type ? { type } : {}), message: validationText(error) }];
+  }) : [];
+  return { primaryKey, initialValues: baseline, modelValue: picked, fields: selected, disabled: Boolean(disabled), nonEditable: Boolean(readonly || disabled), validationErrors: nativeErrors };
 }
 
 export const NativeFieldGroup = defineComponent({
@@ -94,31 +111,34 @@ export const MediaPicker = defineComponent({
 
 const shellId = (prefix) => `${prefix}-${++componentSequence}`;
 let componentSequence = 0;
-const statusText = (state = {}) => state.loading ? "Загрузка…" : state.readError ? "Не удалось загрузить данные." : state.saving ? "Сохранение…" : state.saveError ? "Не удалось сохранить изменения." : state.conflict ? "Данные изменились в другом окне." : state.writeUncertain ? "Результат сохранения не подтверждён." : state.dirty ? "Есть несохранённые изменения." : state.saved ? "Изменения сохранены." : state.readonly ? "Режим просмотра." : "Все изменения сохранены.";
-const errorMessage = (error) => typeof error === "string" ? error : error?.message ? String(error.message) : "Не удалось сохранить изменения.";
-const statusMessages = (state = {}, retry) => [
-  state.loading ? h("p", { role: "status" }, "Загрузка данных…") : null,
-  state.readError ? h("div", { role: "alert" }, [h("span", "Не удалось загрузить данные."), retry ? h("button", { type: "button", onClick: retry }, "Повторить") : null]) : null,
-  state.saveError ? h("p", { role: "alert" }, state.saveError === true ? "Не удалось сохранить изменения." : errorMessage(state.saveError)) : null,
-  state.writeUncertain ? h("p", { role: "alert" }, "Результат сохранения не подтверждён. Обновите данные перед продолжением.") : null,
-  state.conflict ? h("p", { role: "alert" }, "Данные изменились в другом окне. Сравните версии и выберите решение.") : null,
-  state.permissionDenied ? h("p", { role: "status" }, "Недостаточно прав для изменения данных.") : null,
-  state.saved ? h("p", { role: "status" }, "Изменения сохранены.") : null,
-  state.readonly ? h("p", { role: "status" }, "Доступен только просмотр.") : null,
-].filter(Boolean);
+const statusText = (state = {}) => state.loading ? "Загрузка…" : state.readError ? "Не удалось загрузить данные." : state.saving ? "Сохраняем изменения…" : state.conflict ? "Эта запись изменилась, пока вы её редактировали. Ваши правки остались в форме. Сравните изменения перед сохранением." : state.writeUncertain ? "Не удалось проверить, сохранились ли изменения. Введённые данные остались в открытой форме." : state.saveError ? "Не удалось сохранить изменения. Проверьте данные и повторите попытку." : state.dirty ? "Есть несохранённые изменения." : state.saved ? "Изменения сохранены." : state.readonly ? "Режим просмотра." : "Нет несохранённых изменений";
+const errorMessage = (error) => error?.status === 403 || error?.response?.status === 403 ? "Изменение недоступно для вашей учётной записи." : "Не удалось сохранить изменения. Проверьте данные и повторите попытку.";
 
 /** Native Directus layout and navigation guard for controlled extension views. */
 export const AdminShell = defineComponent({
   name: "AdminShell",
-  props: { title: { type: String, default: "" }, mode: { type: String, default: "editor" }, state: { type: Object, default: () => ({}) }, dirty: { type: Boolean, default: null }, saving: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, guardNavigation: { type: Boolean, default: true } },
-  emits: ["save", "back", "retry", "reconcile"],
+  props: { title: { type: String, default: "" }, mode: { type: String, default: "editor" }, state: { type: Object, default: () => ({}) }, dirty: { type: Boolean, default: null }, saving: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, guardNavigation: { type: Boolean, default: true }, cancelTitle: { type: String, default: "Отменить изменения?" } },
+  emits: ["save", "back", "retry", "reconcile", "cancel"],
   setup(props, { slots, emit }) {
+    const dialog = ref(null);
+    let settleDialog = null;
     const dirtyNow = () => props.dirty ?? Boolean(props.state?.dirty);
     const savingNow = () => Boolean(props.saving || props.state?.saving);
-    const confirmNavigation = () => {
-      if (savingNow()) return false;
-      return !dirtyNow() || (typeof window !== "undefined" && window.confirm("Есть несохранённые изменения. Покинуть страницу?"));
+    const requestConfirmation = (kind) => {
+      if (savingNow()) return Promise.resolve(false);
+      if (dialog.value) return Promise.resolve(false);
+      return new Promise((resolve) => { settleDialog = resolve; dialog.value = kind; });
     };
+    const finishConfirmation = (accepted) => {
+      const kind = dialog.value;
+      const settle = settleDialog;
+      if (accepted && savingNow()) accepted = false;
+      dialog.value = null;
+      settleDialog = null;
+      if (kind === "cancel" && accepted) emit("cancel");
+      settle?.(Boolean(accepted));
+    };
+    const confirmNavigation = () => !dirtyNow() || requestConfirmation("leave");
     const routeGuard = () => savingNow() ? false : (!props.guardNavigation || confirmNavigation());
     onBeforeRouteLeave(routeGuard); onBeforeRouteUpdate(routeGuard);
     const unload = (event) => { if (!props.guardNavigation || (!dirtyNow() && !savingNow())) return; event.preventDefault(); event.returnValue = ""; };
@@ -128,15 +148,34 @@ export const AdminShell = defineComponent({
       const state = { ...props.state, dirty: dirtyNow(), saving: savingNow(), readonly: props.readonly || props.state?.readonly };
       const listMode = props.mode === "list";
       const view = resolveComponent("private-view");
-      const toolbar = slots.toolbar?.({ state, title: props.title }) ?? (listMode ? null : h(EditorToolbar, { title: props.title, state, readonly: state.readonly, onSave: () => emit("save"), onBack: () => emit("back"), onReconcile: (choice) => emit("reconcile", choice) }));
+      const toolbar = slots.toolbar?.({ state, title: props.title, requestCancel: () => requestConfirmation("cancel"), requestDiscard: () => requestConfirmation("discard") }) ?? (listMode ? null : h(EditorToolbar, { title: props.title, state, readonly: state.readonly, onSave: () => emit("save"), onBack: () => emit("back"), cancelLabel: "Отменить изменения", onCancel: () => requestConfirmation("cancel"), onReconcile: (choice) => emit("reconcile", choice) }));
       const context = slots.context?.({ state });
       const hasContext = context != null && (!Array.isArray(context) || context.length > 0);
+      const vDialog = resolveComponent("v-dialog");
+      const vCard = resolveComponent("v-card");
+      const vCardTitle = resolveComponent("v-card-title");
+      const vCardText = resolveComponent("v-card-text");
+      const vCardActions = resolveComponent("v-card-actions");
+      const vButton = resolveComponent("v-button");
+      const leave = dialog.value === "leave";
+      const discard = dialog.value === "discard";
+      const confirmation = h(vDialog, { modelValue: Boolean(dialog.value), persistent: true, onEsc: () => finishConfirmation(false), "onUpdate:modelValue": (open) => { if (!open) finishConfirmation(false); } }, {
+        default: () => h(vCard, null, [
+          h(vCardTitle, leave ? "Выйти без сохранения?" : discard ? "Отменить мои правки?" : props.cancelTitle),
+          h(vCardText, leave ? "Несохранённый ввод будет потерян." : discard ? "Будут загружены сохранённые значения. Это действие не отменяет уже сохранённые изменения." : "Будут отменены только несохранённые изменения этой формы."),
+          h(vCardActions, null, [
+            h(vButton, { autofocus: true, secondary: true, onClick: () => finishConfirmation(false) }, { default: () => "Остаться" }),
+            h(vButton, { kind: "primary", onClick: () => finishConfirmation(true) }, { default: () => leave ? "Выйти без сохранения" : discard ? "Отменить мои правки" : "Отменить изменения" }),
+          ]),
+        ]),
+      });
       return h(view, { title: props.title }, { default: () => h("main", { class: "ac-shell" }, [
         h("style", null, shellStyle),
-        h("header", { class: "ac-shell__header" }, [h("div", slots.heading?.({ state, title: props.title }) ?? [h("h1", props.title), listMode ? null : h("p", { class: "ac-shell__status", "aria-live": "polite" }, statusText(state))]), toolbar]),
-        ...statusMessages(listMode ? { loading: state.loading, readError: state.readError } : state, () => { if (slots.retry) slots.retry(); else emit("retry"); }),
+        h("header", { class: "ac-shell__header" }, [h("div", slots.heading?.({ state, title: props.title }) ?? [h("h1", props.title)]), toolbar]),
+        !listMode && state.readError ? h("div", { role: "alert" }, [h("span", "Не удалось загрузить данные."), h("button", { type: "button", onClick: () => { if (slots.retry) slots.retry(); else emit("retry"); } }, "Повторить загрузку")]) : null,
         slots.conflict?.({ state }),
         h("div", { class: `ac-shell__grid${hasContext ? "" : " ac-shell__grid--single"}` }, [h("section", { class: "ac-shell__main" }, slots.main?.({ state }) ?? slots.default?.({ state })), hasContext ? h("aside", { class: "ac-shell__context" }, context) : null]),
+        confirmation,
       ]) });
     };
   },
@@ -167,8 +206,8 @@ export const SectionTabs = defineComponent({
 /** Toolbar actions stay controlled and only emit user intent. */
 export const EditorToolbar = defineComponent({
   name: "EditorToolbar",
-  props: { title: { type: String, default: "" }, state: { type: Object, default: () => ({}) }, readonly: { type: Boolean, default: true }, canPublish: { type: Boolean, default: false }, saveLabel: { type: String, default: "Сохранить" } },
-  emits: ["save", "publish", "back", "reconcile"],
+  props: { title: { type: String, default: "" }, state: { type: Object, default: () => ({}) }, readonly: { type: Boolean, default: true }, canPublish: { type: Boolean, default: false }, saveLabel: { type: String, default: "Сохранить" }, cancelLabel: { type: String, default: "" }, backLabel: { type: String, default: "" } },
+  emits: ["save", "publish", "back", "reconcile", "cancel"],
   setup(props, { emit, slots }) {
     return () => {
       const s = props.state ?? {};
@@ -177,8 +216,10 @@ export const EditorToolbar = defineComponent({
       return h("div", { class: "ac-toolbar" }, [h("div", [h("strong", props.title), h("p", { "aria-live": "polite" }, statusText(s))]), h("div", { class: "ac-toolbar__actions" }, [
         h("button", { type: "button", disabled: Boolean(saveDisabled), onClick: () => emit("save") }, props.saveLabel),
         props.canPublish ? h("button", { type: "button", disabled: Boolean(publishDisabled), onClick: () => emit("publish") }, "Опубликовать") : null,
-        h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("back") }, "Назад"),
-        s.conflict ? h("div", { class: "ac-toolbar__conflict" }, [h("p", { role: "alert" }, "Обнаружен конфликт данных."), h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { keepEdits: true }) }, "Сохранить мои изменения"), h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { keepEdits: false }) }, "Загрузить актуальные данные")]) : null,
+        s.conflict ? h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { action: "compare" }) }, "Сравнить изменения") : null,
+        s.writeUncertain && !s.conflict ? h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("reconcile", { action: "verify" }) }, "Проверить сохранение") : null,
+        s.dirty && !s.conflict && !s.writeUncertain && props.cancelLabel ? h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("cancel") }, props.cancelLabel) : null,
+        props.backLabel ? h("button", { type: "button", disabled: Boolean(s.saving), onClick: () => emit("back") }, props.backLabel) : null,
         slots.default?.({ state: s }),
       ])]);
     };
@@ -203,7 +244,7 @@ export function buildCollectionQuery({ fields = [], page = 1, pageSize = 25, sor
 export const ReadonlyDetails = defineComponent({
   name: "ReadonlyDetails",
   props: { values: { type: Object, default: () => ({}) }, fields: { type: Array, default: () => [] } },
-  setup(props) { return () => h("dl", { class: "ac-details" }, props.fields.map(({ field, label }) => { const value = props.values?.[field]; return h("div", { key: field }, [h("dt", label ?? field), h("dd", value && typeof value === "object" ? JSON.stringify(value) : value == null || value === "" ? "—" : String(value))]); })); },
+  setup(props) { return () => h("dl", { class: "ac-details" }, props.fields.map(({ field, label }) => { const value = props.values?.[field]; const safeLabel = typeof label === "string" && label.trim() ? label : "Дополнительные сведения"; const shown = value && typeof value === "object" ? "Составное значение скрыто" : value == null || value === "" ? "—" : String(value); return h("div", { key: field }, [h("dt", safeLabel), h("dd", shown)]); })); },
 });
 
 /** Controlled table with explicit fields and bounded pagination. */
@@ -249,9 +290,9 @@ const shellStyle = `
 .page-sections-list{display:grid;gap:8px;min-width:0}
 .page-sections-list>button{max-width:100%;text-align:left;overflow-wrap:anywhere}
 .page-sections-list>.page-sections-list__item{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;min-height:76px;padding:14px 16px;border-color:var(--theme--border-color,#d9e1e8);border-radius:10px;background:var(--theme--background,#fff)}
-.page-sections-list__number{color:var(--theme--foreground-subdued,#7b8791);font-variant-numeric:tabular-nums}
-.page-sections-list__body{display:grid;gap:5px;min-width:0}.page-sections-list__body strong{overflow-wrap:anywhere}.page-sections-list__body small{color:var(--theme--foreground-subdued,#7b8791);font-size:12px}.page-sections-list__dirty{color:var(--theme--primary,#286b51)!important}
-.page-sections-list__visibility{white-space:nowrap;color:var(--theme--primary,#286b51);font-size:12px}.page-sections-list__visibility--hidden,.page-sections-list__visibility--unknown{color:var(--theme--foreground-subdued,#7b8791)}
+.page-sections-list__number{color:var(--theme--foreground,#4f5464);font-variant-numeric:tabular-nums}
+.page-sections-list__body{display:grid;gap:5px;min-width:0}.page-sections-list__body strong{overflow-wrap:anywhere}.page-sections-list__body small{color:var(--theme--foreground,#4f5464);font-size:12px}.page-sections-list__dirty{color:var(--theme--primary,#286b51)!important}
+.page-sections-list__visibility{white-space:nowrap;color:var(--theme--primary,#286b51);font-size:12px}.page-sections-list__visibility--hidden,.page-sections-list__visibility--unknown{color:var(--theme--foreground,#4f5464)}
 @media(max-width:560px){.page-sections-list>.page-sections-list__item{grid-template-columns:28px minmax(0,1fr);gap:8px;padding:12px}.page-sections-list__visibility{grid-column:2}}
 .ac-toolbar{flex-wrap:wrap;min-width:0}
 .ac-toolbar>div:first-child{min-width:0;max-width:100%;overflow-wrap:anywhere}

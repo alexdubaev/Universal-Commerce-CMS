@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-20T13:50:00.413Z",
+  "run": "156bb190-71fa-449a-9a05-f5d734ecf2ba",
+  "acceptedByOwner": "А0 принимаю",
+  "deleted": [
+    {
+      "collection": "page_sections",
+      "id": "0ce5672c-900e-4020-880e-f2dfabbaa23b",
+      "status": 200,
+      "guarded": true
+    },
+    {
+      "collection": "page_sections",
+      "id": "bc5fa711-a69f-40a6-b3d7-07eef0210a26",
+      "status": 200,
+      "guarded": true
+    },
+    {
+      "collection": "products",
+      "id": "f8045717-63ec-41e3-9003-99b36c8d1daf",
+      "status": 200,
+      "guarded": true
+    },
+    {
+      "collection": "articles",
+      "id": "97ba6ec1-025f-4ef3-8394-36c57f87a21d",
+      "status": 200,
+      "guarded": true
+    },
+    {
+      "collection": "pages",
+      "id": "61ee11b9-a84f-4f93-b6d2-1c89ba04410d",
+      "status": 200,
+      "guarded": true
+    },
+    {
+      "collection": "categories",
+      "id": "d2fc610a-8fa9-47ba-aa17-9b8d274a863d",
+      "status": 200,
+      "guarded": true
+    }
+  ],
+  "exactIdRemaining": 0,
+  "filesDeleted": 0,
+  "singletonWrites": 0,
+  "otherFixturesTouched": false
+}

@@ -97,6 +97,11 @@ test('failed refetch after successful mutation blocks another write and retains 
 test('child save never saves parent; stale parent retains edits until explicit reconcile',async()=>{
  const api=fixture();const c=await open(api);c.change('title','Parent edit');c.childState({dirty:true,saving:false});assert.equal(c.snapshot().dirty,true);api.record={...api.record,updated_at:'child-v2'};c.childState({dirty:false,saving:false,saved:true});assert.equal(c.snapshot().parentStale,true);assert.equal(c.snapshot().values.title,'Parent edit');assert.equal(c.snapshot().canSave,false);assert.equal(posts(api).length,0);await c.compare();await c.reconcile(true);assert.equal(c.snapshot().values.title,'Parent edit');assert.equal(c.snapshot().baseline.updated_at,'child-v2');await c.save();assert.equal(posts(api).length,1);
 });
+test('parent cancel discards only parent edits without requiring conflict comparison',async()=>{
+ const api=fixture();const c=await open(api);c.change('title','Parent edit');c.childState({dirty:true,saving:false});
+ const result=await c.discardChanges();
+ assert.equal(result.ok,true);assert.equal(c.snapshot().values.title,initial.title);assert.equal(c.snapshot().parentDirty,false);assert.equal(c.snapshot().childDirty,true);assert.equal(posts(api).length,0);
+});
 test('status is an isolated CAS operation and rejects dirty parent or child state',async()=>{
  const api=fixture();const c=await open(api);c.change('h1','Parent edit');assert.equal((await c.setStatus('published',{confirmed:true})).ok,false);c.change('h1',initial.h1);c.childState({dirty:true});assert.equal((await c.setStatus('published',{confirmed:true})).ok,false);c.childState({dirty:false});assert.equal((await c.setStatus('published')).ok,false);assert.equal((await c.setStatus('published',{confirmed:true})).ok,true);assert.deepEqual(posts(api)[0].body,{expected:{id:'own-page',updated_at:null,status:'draft'},changes:{status:'published'}});
 });
@@ -155,6 +160,26 @@ test('view reports unsaved child edits through the actual shared toolbar',async(
  const renderedToolbar=toolbar.type.setup(toolbar.props,{emit(){},slots:{}})();
  assert.ok(JSON.stringify(renderedToolbar).includes('Есть несохранённые изменения.'));
  assert.equal(JSON.stringify(renderedToolbar).includes('Все изменения сохранены.'),false);
+});
+test('parent cancel keeps the child section editor mounted during its parent-only reload',async()=>{
+ const api=fixture();globalThis.__a3Api=api;
+ const editor=PagesSection.setup({id:'own-page'})().type,render=editor.setup({id:'own-page'});
+ await new Promise(r=>setImmediate(r));
+ let entered,release;const readStarted=new Promise(resolve=>entered=resolve),readResult=new Promise(resolve=>release=resolve);let gate=false;
+ const originalGet=api.get.bind(api);api.get=async(path,config)=>{if(gate&&path==='/items/pages/own-page'){gate=false;entered();await readResult;}return originalGet(path,config);};
+ let shell=render(),tabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs');
+ tabs.props['onUpdate:modelValue']('main');shell=render();
+ const mainTabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs');
+ const group=findNode(mainTabs.children.default(),n=>Array.isArray(n.props?.fieldSubset)&&n.props.fieldSubset.includes('title'));
+ assert.ok(group,'the page title field group should be rendered');
+ group.props['onUpdate:modelValue']({title:'Changed title'});
+ shell=render();tabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs');tabs.props['onUpdate:modelValue']('sections');shell=render();
+ assert.ok(findNode(findNode(shell.children.main(),n=>n.type?.name==='SectionTabs').children.default(),n=>n.type?.name==='PageSectionEditor'));
+ shell.children.toolbar({requestDiscard:async()=>true,requestCancel:async()=>false});gate=true;
+ const cancelled=shell.props.onCancel();await readStarted;
+ shell=render();
+ assert.ok(findNode(findNode(shell.children.main(),n=>n.type?.name==='SectionTabs').children.default(),n=>n.type?.name==='PageSectionEditor'),'the saved child editor instance must remain mounted while only the parent reloads');
+ release(response(api.record));await cancelled;delete globalThis.__a3Api;
 });
 test('guarded top-level unique/validation errors annotate native fields and retain reconciliation lock',async()=>{
  for(const [code,field] of [['RECORD_NOT_UNIQUE','slug'],['FAILED_VALIDATION','h1']]){

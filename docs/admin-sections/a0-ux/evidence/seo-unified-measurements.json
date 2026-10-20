@@ -1,0 +1,146 @@
+[
+  {
+    "viewport": {
+      "width": 1872,
+      "height": 924
+    },
+    "layout": {
+      "x": 352.5,
+      "y": 239,
+      "width": 1392,
+      "height": 332,
+      "bottom": 571,
+      "columns": "684px 684px"
+    },
+    "parts": [
+      {
+        "class": "category-seo-fields",
+        "x": 352.5,
+        "y": 239,
+        "width": 684,
+        "height": 190,
+        "bottom": 429
+      },
+      {
+        "class": "category-seo-preview",
+        "x": 1060.5,
+        "y": 239,
+        "width": 684,
+        "height": 190,
+        "bottom": 429
+      },
+      {
+        "class": "category-seo-settings",
+        "x": 352.5,
+        "y": 449,
+        "width": 1392,
+        "height": 122,
+        "bottom": 571
+      }
+    ],
+    "inputHeight": 44,
+    "documentOverflow": false,
+    "scrollContainer": {
+      "clientHeight": 869,
+      "scrollHeight": 869,
+      "clientWidth": 1537,
+      "scrollWidth": 1537
+    }
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "layout": {
+      "x": 16,
+      "y": 320.984375,
+      "width": 358,
+      "height": 630.953125,
+      "bottom": 951.9375,
+      "columns": "358px"
+    },
+    "parts": [
+      {
+        "class": "category-seo-fields",
+        "x": 16,
+        "y": 320.984375,
+        "width": 358,
+        "height": 192,
+        "bottom": 512.984375
+      },
+      {
+        "class": "category-seo-preview",
+        "x": 16,
+        "y": 528.984375,
+        "width": 358,
+        "height": 110.953125,
+        "bottom": 639.9375
+      },
+      {
+        "class": "category-seo-settings",
+        "x": 16,
+        "y": 655.9375,
+        "width": 358,
+        "height": 296,
+        "bottom": 951.9375
+      }
+    ],
+    "inputHeight": 44,
+    "documentOverflow": false,
+    "scrollContainer": {
+      "clientHeight": 734,
+      "scrollHeight": 858,
+      "clientWidth": 390,
+      "scrollWidth": 390
+    }
+  },
+  {
+    "viewport": {
+      "width": 320,
+      "height": 844
+    },
+    "layout": {
+      "x": 16,
+      "y": 220.953125,
+      "width": 288,
+      "height": 630.953125,
+      "bottom": 851.90625,
+      "columns": "288px"
+    },
+    "parts": [
+      {
+        "class": "category-seo-fields",
+        "x": 16,
+        "y": 220.953125,
+        "width": 288,
+        "height": 192,
+        "bottom": 412.953125
+      },
+      {
+        "class": "category-seo-preview",
+        "x": 16,
+        "y": 428.953125,
+        "width": 288,
+        "height": 110.953125,
+        "bottom": 539.90625
+      },
+      {
+        "class": "category-seo-settings",
+        "x": 16,
+        "y": 555.90625,
+        "width": 288,
+        "height": 296,
+        "bottom": 851.90625
+      }
+    ],
+    "inputHeight": 44,
+    "documentOverflow": false,
+    "scrollContainer": {
+      "clientHeight": 734,
+      "scrollHeight": 874,
+      "clientWidth": 320,
+      "scrollWidth": 320
+    }
+  }
+]

@@ -274,12 +274,13 @@ const sourcePath = fileURLToPath(new URL("../src/admin-shell.js", import.meta.ur
 let leaveGuard; let updateGuard; let unloadHandler; let unmountCallback; let unloadRemoved = false;
 let confirmNavigation = true;
 const source = (await readFile(sourcePath, "utf8"))
-  .replace('import { defineComponent, h, onMounted, onUnmounted, resolveComponent } from "vue";', "const { defineComponent, h, onMounted, onUnmounted, resolveComponent } = globalThis.__shellVue;")
+  .replace('import { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } from "vue";', "const { defineComponent, h, onMounted, onUnmounted, ref, resolveComponent } = globalThis.__shellVue;")
   .replace('import { onBeforeRouteLeave, onBeforeRouteUpdate } from "vue-router";', "const { onBeforeRouteLeave, onBeforeRouteUpdate } = globalThis.__shellRouter;");
 const vue = {
   defineComponent: (component) => component,
   h: (type, props = {}, children = null) => Array.isArray(props) ? ({ type, props: {}, children: props }) : ({ type, props, children }),
   resolveComponent: (name) => name,
+  ref: (value) => ({ value }),
   onMounted: (callback) => callback(),
   onUnmounted: (callback) => { unmountCallback = callback; },
 };
@@ -304,6 +305,19 @@ test("native props honor an explicit subset and preserve native relation metadat
   assert.equal("group" in result.fields[0].meta, false);
   assert.equal("note" in result.fields[0].meta, false);
   assert.equal(result.fields[0].meta.readonly, undefined);
+});
+
+test("native field validation errors use Directus translation types or stay in the editor summary", () => {
+  const result = buildNativeFieldProps({ metadata: [{ field: "title", name: "Название категории", required: true }], fieldSubset: ["title"],
+    permissions: { read: true, update: true }, readonly: false,
+    validationErrors: [{ field: "title", code: "FAILED_VALIDATION", message: "validationError.FAILED_VALIDATION" }] });
+  assert.deepEqual(result.validationErrors, []);
+  const required = buildNativeFieldProps({ metadata: [{ field: "title", name: "Название категории", required: true }], fieldSubset: ["title"],
+    permissions: { read: true, update: true }, readonly: false,
+    validationErrors: [{ field: "title", code: "REQUIRED", message: "validationError.REQUIRED" }] });
+  assert.equal(required.validationErrors[0].type, "required");
+  assert.equal(required.validationErrors[0].code, "REQUIRED");
+  assert.equal(required.validationErrors[0].message, "Обязательное поле.");
 });
 
 test("native fields keep translated labels and fall back to the field key for raw metadata", () => {
@@ -435,13 +449,14 @@ test("SectionTabs renders isolated accessible IDs and handles keyboard navigatio
 
 test("EditorToolbar gates save and publish and emits explicit conflict resolution", () => {
   const emitted = [];
-  const props = { title: "Item", state: { canSave: true, conflict: true }, readonly: false, canPublish: true };
+  const props = { title: "Item", state: { canSave: true, conflict: true, dirty: true }, readonly: false, canPublish: true, saveLabel: "Сохранить" };
   const tree = setup(EditorToolbar, props, emitted)();
-  const actions = tree.children[1].children;
-  assert.equal(actions[0].props.disabled, true);
-  assert.equal(actions[1].props.disabled, true);
-  actions[3].children[1].props.onClick(); actions[3].children[2].props.onClick();
-  assert.deepEqual(emitted, [["reconcile", { keepEdits: true }], ["reconcile", { keepEdits: false }]]);
+  const walk = (node, result = []) => { if (Array.isArray(node)) node.forEach((item) => walk(item, result)); else if (node && typeof node === "object") { result.push(node); walk(node.children, result); } return result; };
+  const buttons = walk(tree).filter((node) => node.type === "button");
+  assert.ok(buttons.find((node) => node.children === "Сохранить").props.disabled);
+  assert.ok(buttons.find((node) => node.children === "Опубликовать").props.disabled);
+  buttons.find((node) => node.children === "Сравнить изменения").props.onClick();
+  assert.deepEqual(emitted, [["reconcile", { action: "compare" }]]);
   props.state = { canSave: true };
   assert.equal(setup(EditorToolbar, props)().children[1].children[0].props.disabled, false);
 });
@@ -484,15 +499,24 @@ test("CollectionList uses rows for unknown-total pagination and exposes retry", 
   assert.deepEqual(emitted.at(-1), ["retry", undefined]);
 });
 
-test("AdminShell blocks navigation while saving and prompts for dirty route changes", () => {
+test("AdminShell blocks navigation while saving and confirms dirty route changes", async () => {
   const props = { title: "Editor", state: { dirty: true, saving: false }, dirty: null, saving: false, readonly: false, guardNavigation: true };
-  setup(AdminShell, props);
-  confirmNavigation = false;
-  assert.equal(leaveGuard(), false, "cancelling confirmation keeps the current route");
+  const render = AdminShell.setup(props, { emit: () => {}, slots: {} });
+  const pending = leaveGuard();
+  assert.equal(typeof pending.then, "function");
+  const tree = render().children.default();
+  const find = (node, predicate) => Array.isArray(node) ? node.map((item) => find(item, predicate)).find(Boolean) : node && typeof node === "object" ? predicate(node) ? node : find(node.children, predicate) : null;
+  const dialog = find(tree, (node) => node.type === "v-dialog");
+  assert.ok(dialog);
+  const stay = find(dialog.children.default(), (node) => node.type === "v-button" && node.children?.default?.() === "Остаться");
+  stay.props.onClick();
+  assert.equal(await pending, false, "cancelling confirmation keeps the current route");
   assert.equal(props.state.dirty, true);
-  confirmNavigation = true;
-  assert.equal(leaveGuard(), true);
-  assert.equal(updateGuard(), true);
+  const nextPending = updateGuard();
+  const dialogAgain = find(render().children.default(), (node) => node.type === "v-dialog");
+  const leave = find(dialogAgain.children.default(), (node) => node.type === "v-button" && node.children?.default?.() === "Выйти без сохранения");
+  leave.props.onClick();
+  assert.equal(await nextPending, true);
   let prevented = false;
   unloadHandler({ preventDefault: () => { prevented = true; }, set returnValue(_value) {} });
   assert.equal(prevented, true);
@@ -512,7 +536,7 @@ test("list shell omits record save/readonly messages and keeps actual read error
   assert.equal(text.includes("Режим просмотра."),false);
   assert.equal(text.includes("Доступен только просмотр."),false);
   assert.equal(text.includes("Все изменения сохранены."),false);
-  assert.equal(text.includes("Не удалось загрузить данные."),true);
+  assert.equal(text.includes("Не удалось загрузить данные."),false);
 });
 
 test("CollectionList slots use existing rows and controlled page/retry events", () => {

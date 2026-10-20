@@ -11,7 +11,7 @@ const testSource = source
   .replace('import { computed, defineComponent, h, onBeforeUnmount, ref, watch } from "vue";', `const computed = (get) => ({ get value() { return typeof get === "function" ? get() : get.get(); } }); const ref = (value) => ({ value }); const defineComponent = (value) => value; const h = (...args) => ({ type: args[0], props: args[1] && typeof args[1] === "object" && !Array.isArray(args[1]) ? args[1] : {}, children: args.length >= 3 ? args[2] : (Array.isArray(args[1]) || typeof args[1] === "string" ? args[1] : undefined) }); const onBeforeUnmount = () => {}; const watch = (getter, callback, options) => { if (options?.immediate) callback(getter()); };`)
   .replace('import { createEditorState } from "./admin-state.mjs";', `import { createEditorState } from ${JSON.stringify(stateUrl)};`)
   .replace('import { NativeFieldGroup, SectionTabs, EditorToolbar, ReadonlyDetails } from "./admin-shell.js";', "export const NativeFieldGroup = {}; export const SectionTabs = {}; export const EditorToolbar = {}; export const ReadonlyDetails = {};");
-const { createPageSectionController, PageSectionEditor, NativeFieldGroup, SectionTabs, EditorToolbar } = await import(`data:text/javascript;base64,${Buffer.from(testSource).toString("base64")}`);
+const { createPageSectionController, PageSectionEditor, NativeFieldGroup, SectionTabs, EditorToolbar, ReadonlyDetails } = await import(`data:text/javascript;base64,${Buffer.from(testSource).toString("base64")}`);
 
 const permissions = { read: true, update: true };
 const record = (id, page = 7, title = `Title ${id}`, updated_at = `v${id}`) => ({
@@ -377,7 +377,7 @@ test("renders native shell controls with row state and locks fields while a deta
   loadedNative.props["onUpdate:modelValue"]({ title: "Edited" });
   const saving = loadedToolbar.props.onSave();
   assert.ok(emitted.some(([name, value]) => name === "state-change" && value.dirty && value.saving));
-  const nextButton = walk(render(), (node) => node.type === "button" && node.children === "Next")[0];
+  const nextButton = walk(render(), (node) => node.type === "button" && node.children === "Вперёд")[0];
   assert.ok(nextButton);
   nextButton.props.onClick();
   await new Promise((resolveTick) => setTimeout(resolveTick, 0));
@@ -386,6 +386,110 @@ test("renders native shell controls with row state and locks fields while a deta
   await saving;
   assert.ok(emitted.some(([name, value]) => name === "state-change" && !value.dirty && !value.saving));
   assert.ok(emitted.some(([name]) => name === "dirty-change"));
+});
+
+test("block toolbar compare action reads current values without reconciling local edits", async () => {
+  const current = record(1);
+  let postCount = 0;
+  let detailReads = 0;
+  const props = { parentCollection: "pages", parentId: 7, metadata: {}, editableFields: ["title"], permissions,
+    guardedContract: true, readonly: false, api: {
+      get: async (url) => { if (url === "/items/page_sections") return listResponse([current]); detailReads++; return response(current); },
+      post: async () => { postCount++; throw Object.assign(Error("conflict"), { response: { status: 409 } }); },
+    } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  await walk(render(), (node) => node.type === "button" && node.props["aria-pressed"] === false)[0].props.onClick();
+  const toolbar = walk(render(), (node) => node.type === EditorToolbar)[0];
+  walk(render(), (node) => node.type === NativeFieldGroup)[0].props["onUpdate:modelValue"]({ title: "Keep this edit" });
+  await toolbar.props.onSave();
+  assert.equal(postCount, 1);
+  const beforeCompareReads = detailReads;
+  await toolbar.props.onReconcile({ action: "compare" });
+  assert.equal(detailReads, beforeCompareReads + 1);
+  assert.equal(postCount, 1);
+  assert.equal(walk(render(), (node) => node.type === NativeFieldGroup)[0].props.modelValue.title, "Keep this edit");
+});
+
+test("block toolbar receives a fresh status snapshot after its controller saves", async () => {
+  const current = record(1);
+  const props = { parentCollection: "pages", parentId: 7, metadata: {}, editableFields: ["title"], permissions,
+    guardedContract: true, readonly: false, api: {
+      get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current),
+      post: async () => response({ ...current, title: "Saved title", updated_at: "v2" }),
+    } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  await walk(render(), (node) => node.type === "button" && node.props["aria-pressed"] === false)[0].props.onClick();
+  const before = walk(render(), (node) => node.type === EditorToolbar)[0].props.state;
+  walk(render(), (node) => node.type === NativeFieldGroup)[0].props["onUpdate:modelValue"]({ title: "Saved title" });
+  await walk(render(), (node) => node.type === EditorToolbar)[0].props.onSave();
+  const after = walk(render(), (node) => node.type === EditorToolbar)[0].props.state;
+  assert.notEqual(after, before);
+  assert.equal(after.saving, false);
+  assert.equal(after.saved, true);
+});
+
+test("media references are described without exposing identifiers in conflict comparison", async () => {
+  const current = { ...record(1), image: "server-file-id" };
+  const props = { parentCollection: "pages", parentId: 7, metadata: {}, editableFields: ["image"], permissions,
+    guardedContract: true, readonly: false, api: {
+      get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current),
+      post: async () => { throw Object.assign(Error("conflict"), { response: { status: 409 } }); },
+    } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  await walk(render(), (node) => node.type === "button" && node.props["aria-pressed"] === false)[0].props.onClick();
+  walk(render(), (node) => node.type === NativeFieldGroup)[0].props["onUpdate:modelValue"]({ image: "local-file-id" });
+  await walk(render(), (node) => node.type === EditorToolbar)[0].props.onSave();
+  await walk(render(), (node) => node.type === EditorToolbar)[0].props.onReconcile({ action: "compare" });
+  const details = walk(render(), (node) => node.type === ReadonlyDetails);
+  assert.deepEqual(details.map((node) => node.props.values.image), ["Файл выбран", "Файл выбран"]);
+  assert.equal(JSON.stringify(details).includes("server-file-id"), false);
+  assert.equal(JSON.stringify(details).includes("local-file-id"), false);
+});
+
+test("standalone block editor requires its shared discard confirmation and keeps edits when declined", async () => {
+  const current = record(1);
+  const props = { parentCollection: "pages", parentId: 7, metadata: {}, editableFields: ["title"], permissions, confirmDiscard: async () => false,
+    guardedContract: true, readonly: false, api: {
+      get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current),
+      post: async () => { throw Object.assign(Error("conflict"), { response: { status: 409 } }); },
+    } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  await walk(render(), (node) => node.type === "button" && node.props["aria-pressed"] === false)[0].props.onClick();
+  walk(render(), (node) => node.type === NativeFieldGroup)[0].props["onUpdate:modelValue"]({ title: "Keep this edit" });
+  await walk(render(), (node) => node.type === EditorToolbar)[0].props.onSave();
+  await walk(render(), (node) => node.type === EditorToolbar)[0].props.onReconcile({ action: "compare" });
+  const discard = walk(render(), (node) => node.type === "button" && node.children === "Отменить мои правки")[0];
+  assert.ok(discard);
+  await discard.props.onClick();
+  assert.equal(walk(render(), (node) => node.type === NativeFieldGroup)[0].props.modelValue.title, "Keep this edit");
 });
 
 test("readonly users can switch readable tabs while native fields stay readonly", async () => {
@@ -488,7 +592,7 @@ test("opt-in section list shows only authorized display fields and localizes its
   };
   collect(tree);
   assert.ok(strings.some((value) => value.includes("Секции главной")));
-  assert.ok(strings.some((value) => value.includes("Тип: custom_steps")));
+  assert.ok(strings.some((value) => value.includes("Тип: Тип блока не распознан")));
   assert.ok(strings.some((value) => value.includes("Статус: Опубликована")));
   assert.ok(strings.some((value) => value.includes("Порядок: 14")));
   assert.ok(strings.includes("Видна"));
@@ -496,6 +600,29 @@ test("opt-in section list shows only authorized display fields and localizes its
   await rowButton.props.onClick();
   const toolbar = walk(render(), (node) => node.type === EditorToolbar)[0];
   assert.equal(toolbar.props.saveLabel, "Сохранить секцию");
+});
+
+test("supported custom section choices use a Russian label while unlisted values remain unknown", async () => {
+  const current = { ...record(1), page: null, home_page: "home-1", title: "Custom block", section_type: "custom" };
+  const props = { parentCollection: "home_page", parentId: "home-1", metadata: {
+    section_type: { meta: { options: { choices: [{ value: "custom", text: "Custom block" }] } } },
+  }, editableFields: ["title", "section_type"], displayFields: ["status"], permissions, guardedContract: true, readonly: false,
+    api: { get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current) } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  const tree = render();
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  const label = walk(tree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0].children[1].children[1].children;
+  assert.match(label, /Тип блока: Произвольный блок/);
+  props.metadata.section_type.meta.options.choices = [];
+  const unknownTree = render();
+  const unknownLabel = walk(unknownTree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0].children[1].children[1].children;
+  assert.match(unknownLabel, /Тип блока: Тип блока не распознан/);
 });
 
 test("parent readonly changes lock child save controls without changing default page labels", async () => {
@@ -519,5 +646,5 @@ test("parent readonly changes lock child save controls without changing default 
   const native = walk(tree, (node) => node.type === NativeFieldGroup)[0];
   assert.equal(toolbar.props.readonly, true);
   assert.equal(native.props.disabled, true);
-  assert.ok(walk(tree, (node) => node.type === "h3").some((node) => node.children === "Page sections"));
+  assert.ok(walk(tree, (node) => node.type === "h3").some((node) => node.children === "Блоки страницы"));
 });

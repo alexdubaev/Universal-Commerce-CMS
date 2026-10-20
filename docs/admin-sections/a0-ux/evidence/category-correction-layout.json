@@ -1,0 +1,68 @@
+[
+  {
+    "viewport": 1872,
+    "gridColumns": "1076px 300px",
+    "main": {
+      "x": 352.5,
+      "right": 1428.5,
+      "top": 190,
+      "bottom": 674,
+      "width": 1076
+    },
+    "aside": {
+      "x": 1444.5,
+      "right": 1744.5,
+      "top": 190,
+      "bottom": 674,
+      "width": 300
+    },
+    "input": 40,
+    "gap": "16px",
+    "formHeight": 443,
+    "overflow": false
+  },
+  {
+    "viewport": 390,
+    "gridColumns": "317.172px",
+    "main": {
+      "x": 56.828125,
+      "right": 374,
+      "top": 271.984375,
+      "bottom": 1117.09375,
+      "width": 317.171875
+    },
+    "aside": {
+      "x": 56.828125,
+      "right": 374,
+      "top": 1133.09375,
+      "bottom": 1371.09375,
+      "width": 317.171875
+    },
+    "input": 44,
+    "gap": "14px",
+    "formHeight": 804.109375,
+    "overflow": false
+  },
+  {
+    "viewport": 320,
+    "gridColumns": "288px",
+    "main": {
+      "x": 16,
+      "right": 304,
+      "top": 287.953125,
+      "bottom": 1135.953125,
+      "width": 288
+    },
+    "aside": {
+      "x": 16,
+      "right": 304,
+      "top": 1151.953125,
+      "bottom": 1389.953125,
+      "width": 288
+    },
+    "input": 44,
+    "gap": "14px",
+    "formHeight": 807,
+    "overflow": false
+  }
+]

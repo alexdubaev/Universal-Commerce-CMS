@@ -1,0 +1,34 @@
+{
+  "installedBundle": {
+    "sha256": "04f796f1cb0f4505a24894797d9a7f90c7037f33c44befbe402e9846466572cc",
+    "bytes": 1335276,
+    "at": "2026-10-20T12:54:17.450Z",
+    "url": "http://127.0.0.1:18056/extensions/sources/index.js",
+    "phase": "unified SEO"
+  },
+  "saveStatus": 200,
+  "writeCount": 1,
+  "changeKeys": [
+    "is_indexable",
+    "redirect_target",
+    "seo_description",
+    "seo_title"
+  ],
+  "freshGetConfirmed": true,
+  "draftPreserved": true,
+  "unknownSeoKeysPreserved": true,
+  "tabDraftPreserved": true,
+  "previewLive": true,
+  "htmlEscaped": true,
+  "dirtyClearDoesNotResurrectSavedJson": true,
+  "noDuplicateInputs": true,
+  "pageErrors": [],
+  "cancelNoWrite": true,
+  "escapeKeepsDraft": true,
+  "fixtureSentinelsAndFlagsRestored": true,
+  "fixtureRestoreStatus": 200,
+  "desktopNoScroll": true,
+  "desktopBottom": 571,
+  "mobileNoOverlap": true,
+  "mobileNoHorizontalOverflow": true
+}

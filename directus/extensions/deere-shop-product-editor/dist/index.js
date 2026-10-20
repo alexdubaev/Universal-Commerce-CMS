@@ -22,14 +22,15 @@ export const SectionRoute = defineComponent({
     id: { type: [String, Number], default: null },
   },
   setup(props) {
+    const router = useRouter();
     return () => {
       if (Object.hasOwn(sectionRegistry, props.collection)) {
-        if (props.collection === "home_page" && props.id != null && String(props.id) !== "") return h(AdminShell, { title: "Главная страница", readonly: true }, { default: () => h("p", { role: "alert" }, "Редактор главной страницы работает только с singleton-записью без ID в маршруте.") });
+        if (props.collection === "home_page" && props.id != null && String(props.id) !== "") return h(AdminShell, { title: "Главная страница", mode: "list", readonly: true }, { default: () => h("section", { role: "alert" }, [h("p", "Не удалось открыть главную страницу по этому адресу."), h("button", { type: "button", onClick: () => router.push("/product-editor/sections/home_page") }, "Открыть главную страницу")]) });
         const section = sectionRegistry[props.collection];
         return h(section.component, props.id == null ? {} : { id: props.id });
       }
-      return h(AdminShell, { title: "Раздел недоступен", readonly: true }, {
-        default: () => h("p", { role: "status" }, `Раздел «${props.collection}» недоступен.`),
+      return h(AdminShell, { title: "Раздел недоступен", mode: "list", readonly: true }, {
+        default: () => h("section", { role: "status" }, [h("p", "Этот раздел пока недоступен."), h("button", { type: "button", onClick: () => router.push("/product-editor") }, "К списку товаров")]),
       });
     };
   },

@@ -13,7 +13,7 @@ const source = await readFile(new URL('../../src/sections/articles.js', import.m
 const distSource = await readFile(new URL('../../dist/sections/articles.js', import.meta.url), 'utf8');
 const adminState = new URL('../../src/admin-state.mjs', import.meta.url).href;
 const moduleUrl = uri(rewrite(source).replaceAll('"../admin-shell.js"', JSON.stringify(shell)).replaceAll('"../admin-state.mjs"', JSON.stringify(adminState)));
-const { buildArticlesQuery, articlePermissions, validateArticle, parseArticleDate, createArticlesController, articlePublicationState, createNativeEditAuthorization } = await import(moduleUrl);
+const { buildArticlesQuery, articlePermissions, validateArticle, parseArticleDate, createArticlesController, articlePublicationState, createNativeEditAuthorization, articleComparisonRows } = await import(moduleUrl);
 
 const required = ['title','slug','excerpt','content','published_at'];
 const metadata = ['id','updated_at','created_at','status','title','slug','excerpt','content','content_blocks','editor_nodes','cover_image','image_alt','published_at','category_label','reading_time_minutes','author','reviewer','sources','related_categories','related_products','is_featured','sort_order','seo_title','seo_description','og_image','seo','translations'].map(field => ({
@@ -58,6 +58,30 @@ test('Unicode public slugs and required datetime validation preserve exact valid
   assert.equal(parseArticleDate(article.published_at),article.published_at);
   assert.equal(parseArticleDate('2026-02-30T12:00:00+03:00'),null);
   assert.equal(parseArticleDate('2026-10-18T13:00:00+03:00'),'2026-10-18T10:00:00.000Z');
+});
+
+test('article comparison limits labels and values to safe business descriptions', () => {
+  const rows = articleComparisonRows(
+    { id: 'article-1', updated_at: 'old-version', title: 'Локальное название', related_categories: ['550e8400-e29b-41d4-a716-446655440000'], seo: { token: 'private' } },
+    { id: 'article-1', updated_at: 'new-version', title: 'Сохранённое название', related_categories: [], seo: { token: 'changed' } },
+  );
+  assert.deepEqual(rows, [
+    { field: 'title', label: 'Название статьи', own: 'Локальное название', remote: 'Сохранённое название' },
+    { field: 'related_categories', label: 'Связанные категории', own: 'Связано', remote: 'Не указано' },
+    { field: 'seo', label: 'Настройки SEO', own: 'Составное значение скрыто', remote: 'Составное значение скрыто' },
+  ]);
+});
+
+test('cancel discards ordinary article edits without requiring comparison or writing', async () => {
+  const api = apiFixture();
+  const controller = createArticlesController(api);
+  assert.equal((await controller.open('article-1')).ok, true);
+  assert.equal(controller.change('title', 'Локальное название'), true);
+  const result = await controller.discardChanges();
+  assert.equal(result.ok, true);
+  assert.equal(controller.snapshot().values.title, article.title);
+  assert.equal(controller.snapshot().dirty, false);
+  assert.equal(api.calls.filter(([method]) => method === 'POST').length, 0);
 });
 
 test('cover-only save uses guarded CAS delta and leaves HTML, structural JSON, and SEO companion untouched', async () => {
