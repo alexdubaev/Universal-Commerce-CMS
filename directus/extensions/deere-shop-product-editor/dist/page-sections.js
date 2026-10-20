@@ -6,6 +6,7 @@ const COLLECTION = "page_sections";
 const PAGE_SIZE = 25;
 const REQUIRED = ["id", "updated_at", "page", "home_page"];
 const SYSTEM_FIELDS = new Set(["id", "status", "page", "home_page", "sort_order", "created_at", "updated_at", "user_created", "user_updated"]);
+const MEDIA_FIELDS = new Set(["image", "icon", "og_image", "cover_image", "hero_image"]);
 const copy = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 const allowed = (permissions, action, field) => permissions?.[action] === true ||
   (Array.isArray(permissions?.[action]) && (permissions[action].includes("*") || permissions[action].includes(field)));
@@ -15,6 +16,17 @@ const metadataWritable = (metadata, field) => {
   return !meta || (meta.type !== "alias" && meta.readonly !== true && meta.schema?.is_generated !== true && meta.meta?.readonly !== true && !String(meta.field ?? field).startsWith("group_") &&
     !["group-detail", "presentation", "note"].includes(meta.meta?.interface));
 };
+const DEFAULT_GROUPS = Object.freeze({ content: "Содержимое", group_content: "Содержимое", main: "Основное", group_main: "Основное", button: "Кнопка", group_button: "Кнопка", items: "Элементы", group_items: "Элементы", system: "Дополнительно", group_system: "Дополнительно", details: "Дополнительно", advanced: "Дополнительно", settings: "Настройки", other: "Дополнительно" });
+const sectionTypeLabel = (value, metadata) => {
+  const choices = metadata?.section_type?.meta?.options?.choices;
+  const choice = Array.isArray(choices) ? choices.find((item) => (typeof item === "object" ? item.value : item) === value) : null;
+  if (!choice) return "Тип блока не распознан";
+  const knownLabels = { text: "Текст", hero: "Первый экран", products: "Товары", categories: "Категории", features: "Преимущества", testimonials: "Отзывы", faq: "Вопросы и ответы", cta: "Призыв к действию", custom: "Произвольный блок", company_trust: "Доверие компании", featured_products: "Рекомендуемые товары", advantages: "Преимущества", steps: "Этапы", catalog_preview: "Обзор каталога", seo_text: "SEO-текст", lead_form: "Форма заявки", parts_request: "Запрос запчастей", recent_supplies: "Последние поступления", contacts: "Контакты", articles: "Статьи" };
+  if (knownLabels[value]) return knownLabels[value];
+  const label = choice && typeof choice === "object" && (choice.text ?? choice.label ?? choice.name);
+  return typeof label === "string" && /[А-Яа-яЁё]/.test(label) ? label : "Тип блока не распознан";
+};
+const FIELD_LABELS = Object.freeze({ title: "Заголовок", section_type: "Тип блока", is_visible: "Видимость", text: "Текст", subtitle: "Подзаголовок", image: "Изображение", image_alt: "Описание изображения", button_text: "Текст кнопки", button_url: "Ссылка кнопки", items: "Элементы", settings: "Настройки", translations: "Переводы" });
 
 function unwrapList(response) {
   const body = response?.data;
@@ -288,8 +300,7 @@ const fieldTabs = (fields, metadata, groupLabels = {}) => {
   const grouped = new Map();
   for (const field of fields) {
     const key = metadata?.[field]?.meta?.group ?? "content";
-    const label = String(key).replaceAll("_", " ");
-    if (!grouped.has(key)) grouped.set(key, { id: key, label: groupLabels[key] ?? label.charAt(0).toUpperCase() + label.slice(1), fields: [] });
+    if (!grouped.has(key)) grouped.set(key, { id: key, label: groupLabels[key] ?? DEFAULT_GROUPS[key] ?? "Дополнительно", fields: [] });
     grouped.get(key).fields.push(field);
   }
   return [...grouped.values()];
@@ -303,7 +314,7 @@ export const PageSectionEditor = defineComponent({
     displayFields: { type: Array, default: () => [] },
     labels: { type: Object, default: () => ({}) },
     permissions: { type: Object, default: () => ({ read: false, update: false }) },
-    guardedContract: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, api: { type: Object, required: true },
+    guardedContract: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, api: { type: Object, required: true }, confirmDiscard: { type: Function, default: null },
   },
   emits: ["dirty-change", "saved", "error", "navigation-blocked", "state-change"],
   setup(props, { emit }) {
@@ -322,7 +333,7 @@ export const PageSectionEditor = defineComponent({
     const state = computed(() => { revision.value; return controller.snapshot; });
     const selected = computed(() => state.value.selected);
     const tabs = computed(() => fieldTabs(props.editableFields.filter((field) => !SYSTEM_FIELDS.has(field) && allowed(props.permissions, "read", field)), props.metadata, props.labels?.groups));
-    const activeTab = computed(() => tabs.value.find((tab) => tab.id === tabId.value) ?? tabs.value[0] ?? { id: "content", label: "Content", fields: [] });
+    const activeTab = computed(() => tabs.value.find((tab) => tab.id === tabId.value) ?? tabs.value[0] ?? { id: "content", label: "Содержимое", fields: [] });
     const nativeValues = computed(() => Object.fromEntries(activeTab.value.fields.map((field) => [field, selected.value?.values?.[field]]).filter(([, value]) => value !== undefined)));
     const selectRow = async (id) => { await controller.select(id); revision.value++; };
     const controllerChangeTab = (id, fields, next) => controller.changeTab(id, fields, next);
@@ -335,8 +346,9 @@ export const PageSectionEditor = defineComponent({
     const save = async () => { if (selected.value) await controller.save(selected.value.id); revision.value++; };
     const reconcile = async (options) => { if (selected.value) await controller.reconcile(selected.value.id, options); revision.value++; };
     const compare = async () => { if (selected.value) await controller.compare(selected.value.id); revision.value++; };
-    const displayedFields = computed(() => [...new Set(["id", "updated_at", "page", "home_page", ...props.editableFields])]);
-    const renderDetails = (values, fields) => h(ReadonlyDetails, { values, fields: fields.map((field) => ({ field, label: props.labels?.fields?.[field] ?? props.metadata?.[field]?.name ?? field })) });
+    const confirmDiscard = () => props.confirmDiscard ? props.confirmDiscard() : Promise.resolve(false);
+    const fieldLabel = (field) => props.labels?.fields?.[field] ?? FIELD_LABELS[field] ?? "Значение";
+    const renderDetails = (values, fields) => h(ReadonlyDetails, { values: Object.fromEntries(fields.map((field) => [field, MEDIA_FIELDS.has(field) ? values[field] == null || values[field] === "" ? null : "Файл выбран" : values[field]])), fields: fields.map((field) => ({ field, label: fieldLabel(field) })) });
     return () => {
       revision.value;
       const current = selected.value;
@@ -346,44 +358,43 @@ export const PageSectionEditor = defineComponent({
       const labels = props.labels ?? {};
       const displayFields = props.displayFields ?? [];
       const text = (key, fallback) => typeof labels[key] === "string" ? labels[key] : fallback;
-      const statusLabel = (status) => labels.statusValues?.[status] ?? status ?? text("unknownValue", "—");
+      const statusLabel = (status) => labels.statusValues?.[status] ?? ({ draft: "Черновик", published: "Опубликован", archived: "В архиве" })[status] ?? text("unknownValue", "Недоступно");
       const controls = [h("div", { class: "page-sections-list" }, [
-        h("h3", text("listTitle", "Page sections")),
-        state.value.listLoading ? h("p", text("loadingList", "Loading sections…")) : null,
-        state.value.listError ? h("div", { role: "alert" }, [h("p", text("listError", "Sections could not be loaded. Writes are disabled.")), h("button", { type: "button", onClick: retry }, text("retry", "Retry"))]) : null,
-        !state.value.listLoading && !state.value.listError && !state.value.rows.length ? h("p", text("emptyList", "No sections on this page.")) : null,
+        h("h3", text("listTitle", "Блоки страницы")),
+        state.value.listLoading ? h("p", text("loadingList", "Загружаем блоки…")) : null,
+        state.value.listError ? h("div", { role: "alert" }, [h("p", text("listError", "Не удалось загрузить блоки. Изменение отключено.")), h("button", { type: "button", onClick: retry }, text("retry", "Повторить загрузку"))]) : null,
+        !state.value.listLoading && !state.value.listError && !state.value.rows.length ? h("p", text("emptyList", "Блоков пока нет.")) : null,
         ...state.value.rows.map((row, index) => {
-          const title = row.preview?.title || row.preview?.section_type || text("unknownSection", "Section");
+          const type = row.preview?.section_type == null ? null : sectionTypeLabel(row.preview.section_type, props.metadata);
+          const title = row.preview?.title || text("unknownSection", "Блок без названия");
           if (!displayFields.length) return h("button", { key: row.id, type: "button", disabled: !state.value.listValid,
             "aria-pressed": String(row.id) === String(state.value.selectedId), onClick: () => selectRow(row.id) },
-            `${title}${row.dirty ? ` • ${text("unsaved", "Unsaved")}` : ""}`);
+            `${title}${row.dirty ? ` • ${text("unsaved", "Есть несохранённые изменения")}` : ""}`);
           const preview = row.preview ?? {};
           const details = [
-            preview.section_type != null ? `${text("type", "Type")}: ${preview.section_type}` : null,
-            preview.status != null ? `${text("status", "Status")}: ${statusLabel(preview.status)}` : null,
-            preview.sort_order != null ? `${text("order", "Order")}: ${preview.sort_order}` : null,
+            type ? `${text("type", "Тип блока")}: ${type}` : null,
+            preview.status != null ? `${text("status", "Статус")}: ${statusLabel(preview.status)}` : null,
+            preview.sort_order != null ? `${text("order", "Порядок")}: ${preview.sort_order}` : null,
           ].filter(Boolean).join(" · ");
-          const visibility = preview.is_visible === true ? text("visible", "Visible") : preview.is_visible === false ? text("hidden", "Hidden") : text("visibilityUnavailable", "Visibility unavailable");
+          const visibility = preview.is_visible === true ? text("visible", "Видна") : preview.is_visible === false ? text("hidden", "Скрыта") : text("visibilityUnavailable", "Видимость недоступна");
           return h("button", { key: row.id, type: "button", class: "page-sections-list__item", disabled: !state.value.listValid,
             "aria-pressed": String(row.id) === String(state.value.selectedId), onClick: () => selectRow(row.id) }, [
             h("span", { class: "page-sections-list__number" }, String((state.value.page - 1) * PAGE_SIZE + index + 1).padStart(2, "0")),
-            h("span", { class: "page-sections-list__body" }, [h("strong", title), h("small", details || text("displayUnavailable", "Section details unavailable")),
-              row.dirty ? h("small", { class: "page-sections-list__dirty" }, text("unsaved", "Unsaved")) : null]),
+            h("span", { class: "page-sections-list__body" }, [h("strong", title), h("small", details || text("displayUnavailable", "Сведения недоступны")),
+            row.dirty ? h("small", { class: "page-sections-list__dirty" }, text("unsaved", "Есть несохранённые изменения")) : null]),
             h("span", { class: `page-sections-list__visibility${preview.is_visible === true ? "" : preview.is_visible === false ? " page-sections-list__visibility--hidden" : " page-sections-list__visibility--unknown"}` }, visibility),
           ]);
         }),
-        (state.value.page > 1 || state.value.total > PAGE_SIZE || state.value.total == null && state.value.rows.length === PAGE_SIZE) ? h("div", [h("button", { type: "button", disabled: state.value.page <= 1, onClick: () => controller.list(state.value.page - 1) }, text("previous", "Previous")),
-          h("span", ` ${text("page", "Page")} ${state.value.page} `), h("button", { type: "button", disabled: state.value.total != null ? state.value.page * PAGE_SIZE >= state.value.total : state.value.rows.length < PAGE_SIZE, onClick: () => controller.list(state.value.page + 1) }, text("next", "Next"))]) : null,
+        (state.value.page > 1 || state.value.total > PAGE_SIZE || state.value.total == null && state.value.rows.length === PAGE_SIZE) ? h("div", [h("button", { type: "button", disabled: state.value.page <= 1, onClick: () => controller.list(state.value.page - 1) }, text("previous", "Назад")),
+          h("span", ` ${text("page", "Страница")} ${state.value.page} `), h("button", { type: "button", disabled: state.value.total != null ? state.value.page * PAGE_SIZE >= state.value.total : state.value.rows.length < PAGE_SIZE, onClick: () => controller.list(state.value.page + 1) }, text("next", "Вперёд"))]) : null,
       ])];
-      if (!current) controls.push(h("p", text("selectPrompt", "Select a section to edit its native Directus fields.")));
+      if (!current) controls.push(h("p", text("selectPrompt", "Выберите блок для редактирования.")));
       else {
         const row = controller.getRow(current.id);
-        controls.push(h(EditorToolbar, { title: row?.values?.title || row?.values?.section_type || text("unknownSection", "Page section"), state: controller.editorState(row.id),
-          readonly: locked, canPublish: false, saveLabel: text("saveLabel", "Сохранить"), onSave: save, onReconcile: reconcile, onBack: () => { controller.setParent(props.parentCollection, props.parentId); } }));
-        if (state.value.selectedLoading) controls.push(h("p", text("loadingSection", "Loading section…")));
-        if (row?.readError) controls.push(h("div", { role: "alert" }, [h("p", text("readError", "This section could not be read.")), h("button", { type: "button", onClick: () => selectRow(row.id) }, text("retry", "Retry")) ]));
-        if (row?.conflict || row?.writeUncertain) controls.push(h("div", { role: "alert" }, [h("p", text("reconcileNeeded", "The save needs a fresh comparison before another write.")), h("button", { type: "button", onClick: compare }, text("compare", "Compare current record")),
-          h("button", { type: "button", onClick: () => reconcile({ keepEdits: true }) }, text("keepEdits", "Keep my edits after reload")), h("button", { type: "button", onClick: () => reconcile({ keepEdits: false }) }, text("useCurrent", "Use current values")) ]));
+        controls.push(h(EditorToolbar, { title: row?.values?.title || text("unknownSection", "Блок без названия"), state: { ...controller.editorState(row.id) },
+          readonly: locked, canPublish: false, saveLabel: text("saveLabel", "Сохранить блок"), onSave: save, onReconcile: (choice) => choice?.action === "compare" || choice?.action === "verify" ? compare() : reconcile(choice) }));
+        if (state.value.selectedLoading) controls.push(h("p", text("loadingSection", "Загружаем блок…")));
+        if (row?.readError) controls.push(h("div", { role: "alert" }, [h("p", text("readError", "Не удалось загрузить блок.")), h("button", { type: "button", onClick: () => selectRow(row.id) }, text("retry", "Повторить загрузку")) ]));
         if (tabs.value.length) controls.push(h(SectionTabs, { tabs: tabs.value.map(({ id, label }) => ({ id, label })), modelValue: activeTab.value.id, disabled: busy,
           "onUpdate:modelValue": (value) => { tabId.value = value; } }));
         const renderedFields = activeTab.value.fields;
@@ -396,15 +407,20 @@ export const PageSectionEditor = defineComponent({
             if (String(controller.snapshot.selectedId) !== String(renderedRowId) || activeTab.value.id !== renderedTabId) return;
             controllerChangeTab(renderedRowId, renderedFields, next);
           } }));
-        if (row?.saveError) controls.push(h("p", { role: "alert" }, row.saveError.message));
-        if (row?.saved) controls.push(h("p", { role: "status" }, text("saved", "Section saved.")));
-        if (state.value.comparison) controls.push(h("section", { class: "page-section-compare" }, [h("h4", text("currentRecord", "Current record")), renderDetails(state.value.comparison.remote, displayedFields.value), h("h4", text("yourValues", "Your values")), renderDetails(state.value.comparison.own, displayedFields.value)]));
-        controls.push(h("p", { class: "page-section-support-note" }, text("supportNote", "This editor preserves the section fields and JSON values. It does not imply that every section type is rendered by the storefront.")));
+        if (state.value.comparison) {
+          const comparable = props.editableFields.filter((field) => Object.hasOwn(state.value.comparison.own ?? {}, field) && Object.hasOwn(state.value.comparison.remote ?? {}, field) && JSON.stringify(state.value.comparison.own[field]) !== JSON.stringify(state.value.comparison.remote[field]));
+          controls.push(h("section", { class: "page-section-compare", "aria-label": "Сравнение изменений" }, [
+            h("h4", "Сравнение изменений"),
+            ...comparable.map((field) => h("div", { class: "page-section-compare__field" }, [h("strong", fieldLabel(field)), h("div", [h("span", "Ваш вариант"), renderDetails(state.value.comparison.own, [field])]), h("div", [h("span", "Сохранённый вариант"), renderDetails(state.value.comparison.remote, [field])])])),
+            h("button", { type: "button", disabled: busy, onClick: () => reconcile({ keepEdits: true }) }, "Оставить мои правки"),
+            h("button", { type: "button", disabled: busy, onClick: async () => { if (await confirmDiscard()) await reconcile({ keepEdits: false }); } }, "Отменить мои правки"),
+          ]));
+        }
       }
-      if (state.value.blockedParent) controls.push(h("div", { role: "alert" }, [h("p", text("blockedParent", "This parent changed while section edits were pending.")),
-        h("button", { type: "button", onClick: () => { if (controller.setParent(props.parentCollection, props.parentId, { discardEdits: true })) controller.list(1); } }, text("discardAndContinue", "Discard pending edits and continue"))]));
-      if (!state.value.canWrite && !props.readonly && state.value.listValid) controls.push(h("p", { role: "note" }, text("editingUnavailable", "Editing is disabled until the guarded update contract and field permissions are available.")));
-      return h("section", { class: "page-section-editor", "aria-label": text("ariaLabel", "Page sections") }, controls);
+      if (state.value.blockedParent) controls.push(h("div", { role: "alert" }, [h("p", text("blockedParent", "Владелец блока изменился во время редактирования.")),
+        h("button", { type: "button", onClick: () => { if (controller.setParent(props.parentCollection, props.parentId, { discardEdits: true })) controller.list(1); } }, text("discardAndContinue", "Отменить правки и продолжить"))]));
+      if (!state.value.canWrite && !props.readonly && state.value.listValid) controls.push(h("p", { role: "note" }, text("editingUnavailable", "Изменение недоступно при текущих настройках доступа.")));
+      return h("section", { class: "page-section-editor", "aria-label": text("ariaLabel", "Блоки страницы") }, controls);
     };
   },
 });

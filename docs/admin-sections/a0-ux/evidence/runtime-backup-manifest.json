@@ -1,0 +1,79 @@
+{
+  "base": "5cb9958181d4df211d9dcaccd16aa66439a8b8bb",
+  "target": "C:/Users/Alexandr/.codex/worktrees/storefront-directus-acceptance/Universal Commerce CMS",
+  "composeProject": "universal-commerce-cms-dev",
+  "backup": "dev/.storefront-acceptance/a0-runtime-backup",
+  "files": [
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/admin-shell.js",
+      "baseGitBlob": "dc27dcb64d524a7927b91f4883da948ebc74524b",
+      "sha256": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/page-sections.js",
+      "baseGitBlob": "bfc3f2b47ea98f58c03105169e5cd2e4bcd93752",
+      "sha256": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/index.js",
+      "baseGitBlob": "4c82b5ed94c47900ae2040b715748918d730b6a3",
+      "sha256": "36cfa640ec06b4989fbdd3f44900838665882b6ac7b027148254ce93c90c79ce"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/sections/categories.js",
+      "baseGitBlob": "8f485302b0b5982d0025b4d6ca04cef6c5c313c0",
+      "sha256": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/sections/home_page.js",
+      "baseGitBlob": "6381624bf31885c54ce148b77d87b6e4bad0dd1a",
+      "sha256": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/sections/pages.js",
+      "baseGitBlob": "9f82e62a6e29dd6a709136f3f2bfb3c54e32dc28",
+      "sha256": "7d6c45221e5346e31502caad251b3af80fb2a38015688f121eacafbf09170a14"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/sections/articles.js",
+      "baseGitBlob": "9927f8498c7faa866d32d307360115946f798ecc",
+      "sha256": "20dce8263d4c040b5ec08286e69d4b9110d6d5f37f258f37138714f478fdbfd2"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/admin-shell.js",
+      "baseGitBlob": "dc27dcb64d524a7927b91f4883da948ebc74524b",
+      "sha256": "6052971846d3714793aa675b84ca5dccc96a6edf43086763604d7e542dbf8f84"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/page-sections.js",
+      "baseGitBlob": "bfc3f2b47ea98f58c03105169e5cd2e4bcd93752",
+      "sha256": "e7faf8e36c1af0c8117e1fdc1c40c60698952543499a56b185f30aacbc27fb12"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/index.js",
+      "baseGitBlob": "4c82b5ed94c47900ae2040b715748918d730b6a3",
+      "sha256": "36cfa640ec06b4989fbdd3f44900838665882b6ac7b027148254ce93c90c79ce"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/sections/categories.js",
+      "baseGitBlob": "8f485302b0b5982d0025b4d6ca04cef6c5c313c0",
+      "sha256": "f594235c419f68e4634871522e6cc61ceaa59a36c9873406d15ddc7bb364161f"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/sections/home_page.js",
+      "baseGitBlob": "6381624bf31885c54ce148b77d87b6e4bad0dd1a",
+      "sha256": "d65d10657cbb3dfd59113bf7b3b7bb2239c33a606e3deeb0cba827bf95fd4c6e"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/sections/pages.js",
+      "baseGitBlob": "9f82e62a6e29dd6a709136f3f2bfb3c54e32dc28",
+      "sha256": "7d6c45221e5346e31502caad251b3af80fb2a38015688f121eacafbf09170a14"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/sections/articles.js",
+      "baseGitBlob": "9927f8498c7faa866d32d307360115946f798ecc",
+      "sha256": "20dce8263d4c040b5ec08286e69d4b9110d6d5f37f258f37138714f478fdbfd2"
+    }
+  ],
+  "candidateInstalled": false
+}

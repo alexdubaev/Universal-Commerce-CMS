@@ -12,9 +12,9 @@ const rewrite = s => s.replaceAll('"vue"', JSON.stringify(vue)).replaceAll('"vue
 const shell = uri(rewrite(await readFile(new URL('../../src/admin-shell.js', import.meta.url), 'utf8')));
 const source = await readFile(new URL('../../src/sections/categories.js', import.meta.url), 'utf8');
 const moduleUrl = uri(rewrite(source).replaceAll('"../admin-shell.js"', JSON.stringify(shell)).replaceAll('"../admin-state.mjs"', JSON.stringify(new URL('../../src/admin-state.mjs', import.meta.url).href)));
-const { buildCategoriesQuery, categoryPermissions, validateCategory, createCategoryController } = await import(moduleUrl);
-const fields = ['id','updated_at','created_at','title','slug','status','h1','parent','seo','seo_title','is_indexable','sort_order','translations'].map(field => ({ field, type: ['seo','translations'].includes(field) ? 'json' : field==='is_indexable'?'boolean':field==='sort_order'?'integer':'string', schema: { is_nullable: !['title','slug','status'].includes(field) }, meta: { required: ['title','slug','status'].includes(field), options: field === 'status' ? { choices: [{value:'draft'},{value:'published'},{value:'archived'}] } : null } }));
-const record = { id:'own', updated_at:null, created_at:'date', title:'Before', slug:'before', status:'draft', h1:null, parent:null, seo:{custom:{keep:1}}, seo_title:null, is_indexable:true, sort_order:0, translations:null };
+const { buildCategoriesQuery, categoryPermissions, validateCategory, categorySeoPreview, createCategoryController } = await import(moduleUrl);
+const fields = ['id','updated_at','created_at','title','slug','status','h1','parent','seo','seo_title','seo_description','is_indexable','redirect_target','og_image','sort_order','translations'].map(field => ({ field, type: ['seo','translations'].includes(field) ? 'json' : field==='is_indexable'?'boolean':field==='sort_order'?'integer':'string', schema: { is_nullable: !['title','slug','status'].includes(field) }, meta: { required: ['title','slug','status'].includes(field), options: field === 'status' ? { choices: [{value:'draft'},{value:'published'},{value:'archived'}] } : null } }));
+const record = { id:'own', updated_at:null, created_at:'date', title:'Before', slug:'before', status:'draft', h1:null, parent:null, seo:{custom:{keep:1}}, seo_title:null, seo_description:null, is_indexable:true, redirect_target:null, og_image:null, sort_order:0, translations:null };
 function apiFixture({ update = true, post } = {}) {
   const calls=[];
   return { calls, async get(path, options) { calls.push(['GET',path,options]); if(path==='/fields/categories')return {data:{data:fields}}; if(path==='/permissions/me')return {data:{data:{categories:{read:{access:'full',fields:['*']},update:{access:update?'full':'none',fields:['*']},create:{access:'none',fields:[]}}}}}; if(path.startsWith('/permissions/me/categories/'))return {data:{data:{update:{access:update}}}}; return {data:{data:structuredClone(record)}}; }, async post(path, body) { calls.push(['POST',path,body]); return post ? post(path,body) : {data:{data:{...record,...body.changes,updated_at:'v2'}}}; } };
@@ -40,6 +40,18 @@ test('validation uses live required and choices, rejects malformed slug and keep
   assert.deepEqual(new Set(errors.map(e=>e.field)),new Set(['title','slug','status']));
 });
 
+test('SEO preview uses dirty scalar edits, falls back to readable saved JSON, and omits denied fields', () => {
+  const values={title:'Category',seo_title:'',seo_description:null,seo:{title:'Saved SEO title',meta_description:'Saved description'}};
+  const readable=['title','seo_title','seo_description','seo'];
+  assert.deepEqual(categorySeoPreview(values,{},readable),{title:'Saved SEO title',description:'Saved description'});
+  assert.deepEqual(categorySeoPreview({...values,seo_title:'Draft title',seo_description:'Draft description'},{seo_title:true,seo_description:true},readable),{title:'Draft title',description:'Draft description'});
+  assert.deepEqual(categorySeoPreview({...values,seo_title:'Draft title'},{seo_title:true},['seo_title']),{title:'Draft title',description:null});
+  assert.deepEqual(categorySeoPreview(values,{seo_title:true},[]),{title:null,description:null});
+  assert.deepEqual(categorySeoPreview(values,{},['*']),{title:'Saved SEO title',description:'Saved description'});
+  assert.deepEqual(categorySeoPreview({...values,seo_title:'Current scalar'},{},readable),{title:'Current scalar',description:'Saved description'});
+  assert.deepEqual(categorySeoPreview(values,{seo_title:true},readable),{title:null,description:'Saved description'});
+});
+
 test('controller sends only changed allowed fields and preserves other tabs and JSON', async () => {
   const api=apiFixture(); const c=createCategoryController(api); assert.equal((await c.open('own')).ok,true);
   assert.equal(c.change('title','Local'),true); assert.equal(c.change('h1','Heading'),true);
@@ -48,6 +60,28 @@ test('controller sends only changed allowed fields and preserves other tabs and 
   const call=api.calls.find(v=>v[0]==='POST'); assert.equal(call[1],'/commerce/mutations/categories/own');
   assert.deepEqual(call[2],{expected:{id:'own',updated_at:null,title:'Before',h1:null},changes:{title:'Local',h1:'Heading'}});
   assert.deepEqual(c.snapshot().values.seo,{custom:{keep:1}});
+});
+
+test('separate SEO field groups retain edits and reset independently', async () => {
+  const api=apiFixture(); const c=createCategoryController(api); await c.open('own');
+  c.changeTab(['seo_title','seo_description'],{seo_title:'Title'});
+  c.changeTab(['seo_title','seo_description'],{seo_title:'Title',seo_description:'Description'});
+  c.changeTab(['is_indexable','redirect_target','og_image'],{is_indexable:false});
+  c.changeTab(['is_indexable','redirect_target','og_image'],{is_indexable:false,redirect_target:'/new'});
+  c.changeTab(['seo'],{seo:{...record.seo,title:'Plugin title'}});
+  assert.equal(c.snapshot().values.seo_title,'Title');
+  assert.equal(c.snapshot().values.seo_description,'Description');
+  assert.equal(c.snapshot().values.is_indexable,false);
+  assert.equal(c.snapshot().values.redirect_target,'/new');
+  assert.deepEqual(c.snapshot().values.seo,{...record.seo,title:'Plugin title'});
+  c.changeTab(['seo_title','seo_description'],{});
+  assert.equal(c.snapshot().values.seo_title,null);
+  assert.equal(c.snapshot().values.seo_description,null);
+  assert.equal(c.snapshot().values.is_indexable,false);
+  assert.deepEqual(c.snapshot().values.seo,{...record.seo,title:'Plugin title'});
+  c.change('og_image','asset-2');
+  assert.equal((await c.save()).ok,true);
+  assert.deepEqual(api.calls.find(v=>v[0]==='POST')[2].changes,{is_indexable:false,redirect_target:'/new',og_image:'asset-2',seo:{...record.seo,title:'Plugin title'}});
 });
 
 test('readonly identity never mutates; duplicate submit is blocked; 409 keeps local data', async () => {
@@ -61,6 +95,16 @@ test('readonly identity never mutates; duplicate submit is blocked; 409 keeps lo
 
 test('malformed acknowledgements block retry and preserve input until explicit reload', async () => {
   const api=apiFixture({post:async()=>({data:{data:{id:'own'}}})}); const c=createCategoryController(api); await c.open('own'); c.change('title','Keep local'); assert.equal((await c.save()).ok,false); assert.equal(c.snapshot().writeUncertain,true); assert.equal(c.snapshot().values.title,'Keep local'); await c.save(); assert.equal(api.calls.filter(v=>v[0]==='POST').length,1);
+});
+
+test('discarding category edits reloads the saved record without issuing a write', async () => {
+  const api=apiFixture(); const c=createCategoryController(api); await c.open('own');
+  c.change('title','Unsaved name');
+  const result=await c.discardChanges();
+  assert.equal(result.ok,true);
+  assert.equal(c.snapshot().values.title,'Before');
+  assert.equal(c.snapshot().dirty,false);
+  assert.equal(api.calls.filter(call=>call[0]==='POST').length,0);
 });
 
 test('uncertain native create recovers by bounded exact slug read without retry or success claim', async () => {

@@ -1,0 +1,10 @@
+{
+  "changedFields": [
+    "seo_title",
+    "seo_description"
+  ],
+  "title": "Тест SEO до раскладки",
+  "description": "Синтетическое описание для проверки сохранения SEO до изменения раскладки.",
+  "pluginTitle": "Тест SEO до раскладки",
+  "status": "draft"
+}

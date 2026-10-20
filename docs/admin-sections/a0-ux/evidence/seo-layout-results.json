@@ -1,0 +1,41 @@
+{
+  "approvedByOwner": "давай",
+  "userAcceptance": "pending; layout approval is not final A0 acceptance",
+  "modules": [
+    "sections/categories.js src/dist",
+    "test/sections/categories.test.mjs"
+  ],
+  "desktopTwoColumns": true,
+  "desktopNormalLayoutHeight": 375,
+  "desktopBottom": 615,
+  "pluginInitiallyCollapsed": true,
+  "pluginRemainsMountedOnCollapse": true,
+  "pluginInputRetainedAcrossCollapseAndTabs": true,
+  "keyboardDisclosure": true,
+  "normalGroupUntouched": true,
+  "save": {
+    "actualHTTP": 200,
+    "changedFields": [
+      "seo_title",
+      "seo_description",
+      "is_indexable",
+      "redirect_target"
+    ],
+    "freshReadConfirmed": true,
+    "status": "draft",
+    "visibilityAndRedirectRestoredByOwnedFixtureCAS": true
+  },
+  "noWriteOnCollapseOrCancel": true,
+  "viewports": [
+    1872,
+    1536,
+    390,
+    320
+  ],
+  "mobileNoOverlap": true,
+  "consoleErrors": [],
+  "review": "fresh a0_seo_review, no findings, no UI claims",
+  "mechanicalScan": [],
+  "bundleSHA256": "5979bf3ea2ec5cee7ceb7042b69cf236b0edef1b125ef6b8969797c1ba832b55",
+  "productFilesDigestSHA256": "ae48f7ad591fb480afb32dd126aa1f8943cc62c1b8306cf938bdf1a2f29b980b"
+}
