@@ -1,0 +1,47 @@
+{
+  "base": "97c3339178f1febee5ed3c23f3b2e6dd2417f5c8",
+  "files": [
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/index.js",
+      "sha256": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/index.js",
+      "sha256": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/editor-state.mjs",
+      "sha256": "89e23bdf963f45af74069a5cde068ecadccd063c32f664fe780b2a1bc2a0f40e"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/editor-state.mjs",
+      "sha256": "89e23bdf963f45af74069a5cde068ecadccd063c32f664fe780b2a1bc2a0f40e"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/test/editor-state.test.mjs",
+      "sha256": "d4e11cbeacd17e3beb5b03444a3f30fbaacd355a7366697dee26173aa2753d2d"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/test/products-ux.test.mjs",
+      "sha256": "12f4234fbac44c8db4115de545e1c80057419a4507519d1512d4b16ffedfa006"
+    },
+    {
+      "path": "directus/schema/blueprint.mjs",
+      "sha256": "d1d116e594dea777e404c53f69572d98318a323d16afaf175ee0579733112703"
+    },
+    {
+      "path": "directus/schema/apply-schema.mjs",
+      "sha256": "ad0bd4ca21be60eb58244568b7369a94b5c9c5921166586d480d0e8de37f1424"
+    },
+    {
+      "path": "directus/schema/apply-schema.test.mjs",
+      "sha256": "51a17afb7b803e4b08a04076fc573675c90180e3b1623be74b7cb5ea8a0d4caf"
+    }
+  ],
+  "localGate": "PASS exact final source",
+  "backendTests": 295,
+  "storefrontTests": 36,
+  "chromiumJourneys": 2,
+  "remainingManualStep": "None; owner UI acceptance complete",
+  "ownerAcceptance": "ACCEPTED 2026-10-22: Принимаю"
+}

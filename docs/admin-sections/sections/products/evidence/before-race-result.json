@@ -1,0 +1,15 @@
+{
+  "input": "Synthetic test part 03",
+  "newerBeforeRelease": "Synthetic test part 03\tNeutral Parts Lab\tFX-83c74e34-0003\tОпубликован\t—",
+  "afterOlderRelease": "Synthetic test part 02\tSample Mechanics\tFX-83c74e34-0002\tОпубликован\t—",
+  "events": [
+    {
+      "query": "older part 02",
+      "phase": "read-complete-held"
+    },
+    {
+      "query": "older part 02",
+      "phase": "released"
+    }
+  ]
+}

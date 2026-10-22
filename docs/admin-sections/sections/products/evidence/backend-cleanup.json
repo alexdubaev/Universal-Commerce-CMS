@@ -1,0 +1,56 @@
+{
+  "records": [
+    {
+      "collection": "product_images",
+      "id": "23905575-0805-4ce1-8fa1-a1926e12706d",
+      "removedBy": "verified native gallery save"
+    },
+    {
+      "collection": "product_images",
+      "id": "6bb2a73c-bdea-43c9-be90-2609a73a9c7b",
+      "removedBy": "verified native gallery save"
+    },
+    {
+      "collection": "product_images",
+      "id": "e30b557c-6b95-4239-806e-a8cf5548b33d",
+      "removedBy": "guarded cleanup",
+      "http": 200
+    },
+    {
+      "collection": "product_specifications",
+      "id": "7d43b786-bb65-4e93-93b9-7d3fa15b4b09",
+      "removedBy": "guarded cleanup",
+      "http": 200
+    },
+    {
+      "collection": "products",
+      "id": "de011e68-f5f4-4137-958a-7f41afb18b76",
+      "removedBy": "guarded cleanup",
+      "http": 200
+    },
+    {
+      "collection": "products",
+      "id": "b87b545f-5f04-4c7f-88f3-2d5d98fc0c0b",
+      "removedBy": "guarded cleanup",
+      "http": 200
+    }
+  ],
+  "remaining": [
+    {
+      "collection": "products",
+      "ownIds": 2,
+      "remaining": 0
+    },
+    {
+      "collection": "product_images",
+      "ownIds": 3,
+      "remaining": 0
+    },
+    {
+      "collection": "product_specifications",
+      "ownIds": 1,
+      "remaining": 0
+    }
+  ],
+  "filesDeleted": 0
+}

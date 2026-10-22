@@ -1,0 +1,14 @@
+{
+  "created": [
+    {
+      "id": "62a2e7d2-9949-4138-9e12-4658d32b8af1",
+      "title": "Проверка PRODUCTS-UX — без записи",
+      "sku": "UX-20261022-NOT-SAVED",
+      "slug": "ux-20261022-not-saved",
+      "status": "archived"
+    }
+  ],
+  "cleanup": "guarded CAS full initial snapshot + require_unreferenced",
+  "deleteStatus": 200,
+  "remainingExactIds": []
+}

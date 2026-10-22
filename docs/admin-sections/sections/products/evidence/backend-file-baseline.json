@@ -1,0 +1,26 @@
+{
+  "storage": "own confirmed uploads volume, read-only hash",
+  "files": [
+    {
+      "id": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09",
+      "filename_disk": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09.png",
+      "sha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c"
+    },
+    {
+      "id": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+      "filename_disk": "f227bec3-d6d0-4498-9c69-24ef07d34a18.png",
+      "sha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c"
+    }
+  ],
+  "metadataDigests": [
+    {
+      "id": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09",
+      "sha256": "d907bb1596b1c4d5428341476aa9d45019eaafdde4bd43fc50ce9737134c96c9"
+    },
+    {
+      "id": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+      "sha256": "210360ae170d2fbbdc7a25f201c0084408ebc3e28071d0863ff6366fba6606dd"
+    }
+  ],
+  "note": "Raw HTTP variant returned403; existing UI transforms returned200; no access settings changed"
+}

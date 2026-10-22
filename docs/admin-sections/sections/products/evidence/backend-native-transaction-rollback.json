@@ -1,0 +1,17 @@
+{
+  "http": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALUE_TOO_LONG",
+        "message": "Value in collection \"product_images\" is too long."
+      }
+    ]
+  },
+  "attemptedPrice": 25,
+  "attemptedChildStatusLength": 300,
+  "parentUnchanged": true,
+  "removedChildStillPresentAndUnchanged": true,
+  "remainingChildUnchanged": true,
+  "relationPolicy": "delete"
+}

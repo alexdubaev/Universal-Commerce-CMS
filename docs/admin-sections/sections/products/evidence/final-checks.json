@@ -1,0 +1,12 @@
+{
+  "actualSourceRuntimeStillExact": true,
+  "focusedProductTests": 14,
+  "focusedApplierTests": 8,
+  "localGate": "PASS",
+  "galleryDetach": "PASS authorized backend closure",
+  "metadataRollback": "PASS",
+  "fileMetadataAndBytes": "UNCHANGED",
+  "allOwnedRecordsRemaining": 0,
+  "publication": "AUTHORIZED; actual result recorded in PR timeline and final HANDOFF",
+  "ownerAcceptance": "ACCEPTED 2026-10-22: Принимаю"
+}

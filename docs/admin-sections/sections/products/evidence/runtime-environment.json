@@ -1,0 +1,37 @@
+{
+  "runtime": "127.0.0.1:18056",
+  "os": "Windows",
+  "compose": "universal-commerce-cms-dev",
+  "extensionBind": "C:/Users/Alexandr/.codex/worktrees/storefront-directus-acceptance/Universal Commerce CMS/directus/extensions",
+  "limitedRole": "No manager role available; native Administrator-only",
+  "syntheticFixtures": [
+    {
+      "collection": "products",
+      "id": "8107742f-2695-4c59-8034-9f661dcd53ad"
+    },
+    {
+      "collection": "products",
+      "id": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e"
+    },
+    {
+      "collection": "product_images",
+      "id": "267a3250-28ac-42d2-ae63-a3e3e8fd7fa0"
+    },
+    {
+      "collection": "product_images",
+      "id": "fb83120a-f94b-41d6-a800-ef952d895160"
+    },
+    {
+      "collection": "product_specifications",
+      "id": "c2f66854-2f0b-4633-8022-18af920b0f4d"
+    },
+    {
+      "collection": "product_documents",
+      "id": "24757b7c-cef5-4a95-a026-845e7dcb4435"
+    }
+  ],
+  "filesCreated": 0,
+  "extensionResources": [
+    "http://127.0.0.1:18056/extensions/sources/index.js"
+  ]
+}

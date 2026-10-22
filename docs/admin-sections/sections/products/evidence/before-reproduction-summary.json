@@ -1,0 +1,37 @@
+{
+  "date": "2026-10-22",
+  "base": "97c3339178f1febee5ed3c23f3b2e6dd2417f5c8",
+  "worktree": "C:/Users/Alexandr/.codex/worktrees/products-ux-16-review/Universal Commerce CMS",
+  "branch": "codex/products-ux-16-review",
+  "implementation": "not started; owner approval required",
+  "runtime": "Windows Docker Desktop universal-commerce-cms-dev 127.0.0.1:18056",
+  "a0": "issue15 owner accepted 2026-10-20; PR23 merged; 14 installed src/dist files hashes match A0 manifest",
+  "checks": {
+    "editorStateBaseline": "5/5 pass",
+    "verifyLocal": "NOT RUN: no product code changed",
+    "desktop": "1536x1024 before screenshots",
+    "mobile": "390x844 before screenshots",
+    "consolePageErrors": []
+  },
+  "reproduced": [
+    "Missing filters and sorting",
+    "Blank no-results table",
+    "List read error without dedicated retry",
+    "Older actual GET overwrites newer GET search result",
+    "Search state lost after card return",
+    "New unsaved form claims all changes saved",
+    "Archived status action reads Save draft"
+  ],
+  "injectedFaults": [
+    "409 before write suggests reload instead of comparison",
+    "Aborted mutation before send produces raw Network Error and allows retry",
+    "200 id-only acknowledgment plus aborted readback claims success despite unchanged persisted title"
+  ],
+  "fixtures": {
+    "created": 1,
+    "exactId": "62a2e7d2-9949-4138-9e12-4658d32b8af1",
+    "cleanup": "CAS with full initial scalar snapshot and require_unreferenced",
+    "remaining": 0
+  },
+  "afterImages": "static proposal screenshots; not installed; no runtime code substitution"
+}

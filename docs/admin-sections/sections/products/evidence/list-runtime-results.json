@@ -1,0 +1,14 @@
+{
+  "contextRestored": true,
+  "latestResponseWins": true,
+  "filtersAndSortReadOnly": true,
+  "views": [
+    {
+      "width": 390,
+      "height": 844,
+      "documentOverflow": false
+    }
+  ],
+  "roleBoundary": "Administrator-only; no manager role available",
+  "syntheticTransportDenial": "403 intercepted, honest no-access and retry"
+}

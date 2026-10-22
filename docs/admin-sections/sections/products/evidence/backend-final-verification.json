@@ -1,0 +1,72 @@
+{
+  "filesAfterCleanup": [
+    {
+      "id": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09",
+      "unchangedAfterCleanup": true,
+      "sha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c"
+    },
+    {
+      "id": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+      "unchangedAfterCleanup": true,
+      "sha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c"
+    }
+  ],
+  "allImplementationAndBackendFixtures": [
+    {
+      "collection": "products",
+      "ownedIds": 7,
+      "remaining": 0
+    },
+    {
+      "collection": "product_images",
+      "ownedIds": 5,
+      "remaining": 0
+    },
+    {
+      "collection": "product_specifications",
+      "ownedIds": 2,
+      "remaining": 0
+    },
+    {
+      "collection": "product_documents",
+      "ownedIds": 1,
+      "remaining": 0
+    }
+  ],
+  "finalRelation": {
+    "collection": "product_images",
+    "field": "product",
+    "related_collection": "products",
+    "schema": {
+      "constraint_name": "product_images_product_foreign",
+      "table": "product_images",
+      "column": "product",
+      "foreign_key_schema": "public",
+      "foreign_key_table": "products",
+      "foreign_key_column": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE"
+    },
+    "meta": {
+      "id": 33,
+      "many_collection": "product_images",
+      "many_field": "product",
+      "one_collection": "products",
+      "one_field": "image_items",
+      "one_collection_field": null,
+      "one_allowed_collections": null,
+      "junction_field": null,
+      "sort_field": "sort_order",
+      "one_deselect_action": "delete"
+    }
+  },
+  "fullRelationGraphSHA256": "8cc022cd8fa382e1a2a086424057b98f1ac35bbc93e8fb0f822f830766fe4dac",
+  "unrelatedRelationGraphUnchanged": true,
+  "localGate": "PASS",
+  "independentReview": "Confirmed native closure, no open findings",
+  "ownerAcceptance": "ACCEPTED 2026-10-22: Принимаю",
+  "originalReproductionIds": {
+    "count": 1,
+    "remaining": 0
+  }
+}

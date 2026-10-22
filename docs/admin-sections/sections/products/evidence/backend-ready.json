@@ -1,0 +1,25 @@
+{
+  "sourceStillMatchesCheckedManifest": true,
+  "secretsScan": {
+    "files": 53,
+    "findings": 0
+  },
+  "images": [
+    {
+      "name": "backend-gallery-error-before.png",
+      "sha256": "a48a6bd5a21a213fa4344b5547efd917f7965202b9dd88019573b54d3a3a9583"
+    },
+    {
+      "name": "backend-gallery-after-desktop.png",
+      "sha256": "5fccc770c61d9665513d859cf7b0e322da2493fe7f1f1e367cdac0d3807fb4a6"
+    },
+    {
+      "name": "backend-gallery-empty-mobile.png",
+      "sha256": "cf279f10c1a3db11d9b6739bd447c32c7535c2892e50081ffee7dd30f3f41aa3"
+    }
+  ],
+  "technicalAcceptance": "PASS",
+  "publication": "AUTHORIZED; actual result recorded in PR timeline and final HANDOFF",
+  "production": "NOT TOUCHED",
+  "ownerAcceptance": "ACCEPTED 2026-10-22: Принимаю"
+}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { addDocumentSlot, buildExpectedSnapshot, buildGalleryPayload, buildNativeFormProps, buildProductChanges, getDocumentFolderId, isDirectusFileId, isSupportedDocumentList, mergeNativeEdits, mergeNativeTabEdits, normalizeGalleryRows, relationIds, reorderGallery, stageGalleryImage, updateDocumentSelection, validateProduct } from "../src/editor-state.mjs";
+import { addDocumentSlot, allowedProductFields, buildExpectedSnapshot, buildGalleryPayload, buildNativeFormProps, buildProductChanges, getDocumentFolderId, isDirectusFileId, isSupportedDocumentList, mergeNativeEdits, mergeNativeTabEdits, normalizeGalleryRows, productPermissions, relationIds, reorderGallery, stageGalleryImage, updateDocumentSelection, validateProduct, validateProductAcknowledgement } from "../src/editor-state.mjs";
 
 test("change builder keeps only edits and expected values come from original snapshot", () => {
   const baseline = { id: "p1", updated_at: "v1", title: "Old", price: 4, status: "draft" };
@@ -8,6 +8,37 @@ test("change builder keeps only edits and expected values come from original sna
   const changes = buildProductChanges(baseline, current);
   assert.deepEqual(changes, { title: "New" });
   assert.deepEqual(buildExpectedSnapshot(baseline, changes), { id: "p1", updated_at: "v1", title: "Old" });
+});
+
+test("change builder ignores numeric and relation response-shape differences", () => {
+  const baseline = { price: 0, category: "category-1", image_items: ["image-row-1"] };
+  const current = { price: "0", category: { id: "category-1" }, image_items: [{ id: "image-row-1", image: "file-1", alt_text: "same" }] };
+  assert.deepEqual(buildProductChanges(baseline, current), {});
+});
+
+test("product writes require effective field grants and omit ordinary status edits", () => {
+  const permissions = productPermissions({ products: { read: { access: "full", fields: ["title", "status"] }, update: { access: "full", fields: ["title", "status"] } } }, { update: { access: true } });
+  assert.deepEqual(allowedProductFields({ title: "Edited", status: "archived", sku: "hidden" }, permissions.update), { title: "Edited" });
+  assert.deepEqual(productPermissions({}, { update: { access: true } }).update, []);
+  assert.deepEqual(productPermissions({ products: { update: { access: "full", fields: ["*"] } } }, null).update, []);
+});
+
+test("field-limited update remains valid without unreadable mandatory fields", () => {
+  const permissions = productPermissions({ products: { read: { access: "partial", fields: ["id", "updated_at", "price"] }, update: { access: "partial", fields: ["price"] } } }, { update: { access: true } });
+  assert.equal(permissions.canRead, true);
+  assert.equal(permissions.canUpdate, true);
+  assert.deepEqual(allowedProductFields({ price: 0, title: "unreadable" }, permissions.update), { price: 0 });
+  assert.equal(validateProduct({ price: 0 }, { requiredFields: [] }), null);
+});
+
+test("product save acknowledgement needs exact identity, version, changed fields, and matching readback", () => {
+  const ack = { id: "p1", updated_at: null, price: 0 };
+  const changes = { price: 0 };
+  assert.deepEqual(validateProductAcknowledgement({ id: "p1", acknowledgement: ack, changes, readback: { id: "p1", updated_at: null, price: "0" } }), { ok: true });
+  assert.equal(validateProductAcknowledgement({ id: "p1", acknowledgement: { ...ack, id: "p2" }, changes, readback: { id: "p1", updated_at: null, price: 0 } }).ok, false);
+  assert.equal(validateProductAcknowledgement({ id: "p1", acknowledgement: { id: "p1", updated_at: null }, changes, readback: { id: "p1", updated_at: null, price: 0 } }).ok, false);
+  assert.deepEqual(validateProductAcknowledgement({ id: "p1", acknowledgement: ack, changes, readback: { id: "p1", updated_at: null, price: 5 } }), { ok: false, reason: "readback-mismatch", field: "price" });
+  assert.deepEqual(validateProductAcknowledgement({ id: "p1", acknowledgement: ack, changes, readback: { id: "p1", updated_at: "v2", price: 0 } }), { ok: false, reason: "version-mismatch" });
 });
 
 test("document picker preserves the storefront UUID-array contract", () => {

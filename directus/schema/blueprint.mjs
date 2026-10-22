@@ -671,6 +671,7 @@ export const schemaBlueprint = {
           required: true,
           relatedCollection: "products",
           oneField: "image_items",
+          oneDeselectAction: "delete",
           index: true,
           onDelete: "CASCADE",
         }),

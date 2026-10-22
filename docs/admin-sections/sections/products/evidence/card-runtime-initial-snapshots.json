@@ -1,0 +1,197 @@
+{
+  "base": {
+    "id": "8107742f-2695-4c59-8034-9f661dcd53ad",
+    "status": "draft",
+    "title": "Проверка UX: деталь 01",
+    "slug": "products-ux-20261022-mvjqamwu-01",
+    "sku": "UX-products-ux-20261022-mvjqamwu-01",
+    "category": null,
+    "short_description": "Исходное описание для проверки",
+    "full_description": "<p>Проверка сохранности описания.</p>",
+    "seo_text": "Не очищать поисковый текст products-ux-20261022-mvjqamwu",
+    "main_image": null,
+    "gallery": null,
+    "media_sources": {
+      "specifications": "legacy",
+      "documents": "legacy"
+    },
+    "price": "0.00",
+    "currency": "RUB",
+    "price_status": "fixed",
+    "availability_status": "in_stock",
+    "brand": "UX Laboratory products-ux-20261022-mvjqamwu",
+    "brand_key": "ux laboratory products-ux-20261022-mvjqamwu",
+    "identity_key": "771ace65cd12c76af728871fdc69d73b902c1635a29f29f2a6a8822b074ff288",
+    "mpn": null,
+    "gtin": null,
+    "sku_normalized": "UXPRODUCTSUX20261022MVJQAMWU01",
+    "mpn_normalized": null,
+    "part_type": null,
+    "delivery_status": null,
+    "specifications": [
+      {
+        "name": "Материал",
+        "value": "Сталь",
+        "unit": ""
+      }
+    ],
+    "documents": [
+      "5833e402-0cb6-4d2b-bec3-54a167494a6a"
+    ],
+    "source_name": null,
+    "source_url": null,
+    "verified_at": null,
+    "reviewed_by": null,
+    "seo_title": "Исходный поисковый заголовок",
+    "seo_description": "Исходное поисковое описание",
+    "og_image": null,
+    "image_alt": null,
+    "seo_quality_status": "pending",
+    "is_indexable": true,
+    "seo": {
+      "title": "Исходный поисковый заголовок",
+      "meta_description": "Исходное поисковое описание",
+      "unknown_products_ux_marker": "products-ux-20261022-mvjqamwu",
+      "additional_fields": {
+        "owner_marker": "products-ux-20261022-mvjqamwu"
+      }
+    },
+    "sort_order": 42,
+    "popularity_score": 0,
+    "is_featured": true,
+    "show_on_homepage": true,
+    "cta_text": "Не очищать: products-ux-20261022-mvjqamwu",
+    "related_products": null,
+    "lead_form": null,
+    "translations": null,
+    "created_at": "2026-10-22T16:03:05.050Z",
+    "updated_at": null,
+    "image_items": [],
+    "document_items": [],
+    "analogs_from": [],
+    "analogs_to": [],
+    "specification_items": []
+  },
+  "managed": {
+    "id": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+    "status": "draft",
+    "title": "Проверка UX: состав и фотографии",
+    "slug": "products-ux-20261022-mvjqamwu-02",
+    "sku": "UX-products-ux-20261022-mvjqamwu-02",
+    "category": null,
+    "short_description": null,
+    "full_description": null,
+    "seo_text": null,
+    "main_image": null,
+    "gallery": null,
+    "media_sources": {
+      "images": "children",
+      "specifications": "children",
+      "documents": "children"
+    },
+    "price": "150.00",
+    "currency": "RUB",
+    "price_status": "fixed",
+    "availability_status": "on_request",
+    "brand": "UX Laboratory products-ux-20261022-mvjqamwu",
+    "brand_key": "ux laboratory products-ux-20261022-mvjqamwu",
+    "identity_key": "5d8c7ffaa45ff96b6dfa5d763cf5f7d719607bdcadb8e97ebb330e2c1f71028d",
+    "mpn": null,
+    "gtin": null,
+    "sku_normalized": "UXPRODUCTSUX20261022MVJQAMWU02",
+    "mpn_normalized": null,
+    "part_type": null,
+    "delivery_status": null,
+    "specifications": null,
+    "documents": null,
+    "source_name": null,
+    "source_url": null,
+    "verified_at": null,
+    "reviewed_by": null,
+    "seo_title": null,
+    "seo_description": null,
+    "og_image": null,
+    "image_alt": null,
+    "seo_quality_status": "pending",
+    "is_indexable": true,
+    "seo": null,
+    "sort_order": 0,
+    "popularity_score": 0,
+    "is_featured": false,
+    "show_on_homepage": false,
+    "cta_text": null,
+    "related_products": null,
+    "lead_form": null,
+    "translations": null,
+    "created_at": "2026-10-22T16:03:05.087Z",
+    "updated_at": "2026-10-22T16:03:05.166Z",
+    "image_items": [
+      "267a3250-28ac-42d2-ae63-a3e3e8fd7fa0",
+      "fb83120a-f94b-41d6-a800-ef952d895160"
+    ],
+    "document_items": [
+      "24757b7c-cef5-4a95-a026-845e7dcb4435"
+    ],
+    "analogs_from": [],
+    "analogs_to": [],
+    "specification_items": [
+      "c2f66854-2f0b-4633-8022-18af920b0f4d"
+    ]
+  },
+  "images": [
+    {
+      "id": "267a3250-28ac-42d2-ae63-a3e3e8fd7fa0",
+      "status": "draft",
+      "product": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+      "image": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09",
+      "alt_text": "Первое тестовое фото",
+      "sort_order": 0,
+      "translations": {
+        "ru": "Не менять products-ux-20261022-mvjqamwu"
+      },
+      "created_at": "2026-10-22T16:03:05.112Z",
+      "updated_at": null
+    },
+    {
+      "id": "fb83120a-f94b-41d6-a800-ef952d895160",
+      "status": "archived",
+      "product": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+      "image": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+      "alt_text": "Второе тестовое фото",
+      "sort_order": 1,
+      "translations": {
+        "ru": "Сохранить перевод products-ux-20261022-mvjqamwu"
+      },
+      "created_at": "2026-10-22T16:03:05.131Z",
+      "updated_at": null
+    }
+  ],
+  "spec": {
+    "id": "c2f66854-2f0b-4633-8022-18af920b0f4d",
+    "status": "published",
+    "product": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+    "group_name": null,
+    "name": "Материал",
+    "value": "Сталь",
+    "unit": "",
+    "sort_order": 0,
+    "translations": {
+      "ru": "Тест products-ux-20261022-mvjqamwu"
+    },
+    "created_at": "2026-10-22T16:03:05.150Z",
+    "updated_at": null
+  },
+  "doc": {
+    "id": "24757b7c-cef5-4a95-a026-845e7dcb4435",
+    "status": "draft",
+    "product": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+    "file": "5833e402-0cb6-4d2b-bec3-54a167494a6a",
+    "title": "Тестовый документ",
+    "sort_order": 0,
+    "translations": {
+      "ru": "Тест products-ux-20261022-mvjqamwu"
+    },
+    "created_at": "2026-10-22T16:03:05.167Z",
+    "updated_at": null
+  }
+}
