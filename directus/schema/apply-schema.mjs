@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 
 import { schemaBlueprint } from "./blueprint.mjs";
 
@@ -132,6 +133,14 @@ export function buildRelationPayload(collectionName, field, junctionFields = [])
   if (!field.relatedCollection) {
     throw new Error(`${collectionName}.${field.name} is not relational`);
   }
+  if (
+    field.oneDeselectAction !== undefined &&
+    (field.type === "alias" ||
+      (field.oneDeselectAction !== "delete" &&
+        field.oneDeselectAction !== "nullify"))
+  ) {
+    throw new Error(`Unsupported deselect action for ${collectionName}.${field.name}`);
+  }
 
   return {
     collection: collectionName,
@@ -139,7 +148,8 @@ export function buildRelationPayload(collectionName, field, junctionFields = [])
     related_collection: field.relatedCollection,
     meta: {
       one_field: field.oneField ?? null,
-      one_deselect_action: field.translationRelation ? "delete" : "nullify",
+      one_deselect_action:
+        field.oneDeselectAction ?? (field.translationRelation ? "delete" : "nullify"),
       junction_field: field.junctionField ?? null,
       // A dangling sort_field (column absent from the junction, e.g.
       // products_analogs) breaks every fields=* read of the parent with a
@@ -219,6 +229,155 @@ export class DirectusAdminClient {
 }
 
 const relationKey = (collection, field) => `${collection}.${field}`;
+
+const relationForeignKeySnapshot = (relation, key) => {
+  const schema = relation.schema;
+  const requiredIdentityFields = ["table", "column", "foreign_key_table", "foreign_key_column"];
+  for (const name of [...requiredIdentityFields, "on_delete", "on_update"]) {
+    if (typeof schema?.[name] !== "string" || !schema[name]) {
+      throw new Error(`Unsafe relation metadata for ${key}: schema.${name} is required`);
+    }
+  }
+
+  const identity = Object.fromEntries(
+    ["constraint_name", "table", "column", "foreign_key_schema", "foreign_key_table", "foreign_key_column"]
+      .filter((name) => Object.hasOwn(schema, name))
+      .map((name) => [name, schema[name]]),
+  );
+  return {
+    identity,
+    on_delete: schema.on_delete,
+    on_update: schema.on_update,
+  };
+};
+
+const verifyRelationDeselectReadback = async (
+  client,
+  { key, collection, field, relatedCollection, desiredAction, before, expectedAlias },
+) => {
+  const relations = await client.request("/relations");
+  const matches = relations.filter((item) => item.collection === collection && item.field === field);
+  if (matches.length !== 1) {
+    throw new Error(`Relation readback failed for ${key}: expected one relation, found ${matches.length}`);
+  }
+  const saved = matches[0];
+  if (saved.related_collection !== relatedCollection) {
+    throw new Error(`Relation readback identity mismatch for ${key}`);
+  }
+  if (expectedAlias !== undefined && saved.meta?.one_field !== expectedAlias) {
+    throw new Error(`Relation readback alias mismatch for ${key}`);
+  }
+  if (saved.meta?.one_deselect_action !== desiredAction) {
+    throw new Error(`Relation readback policy mismatch for ${key}`);
+  }
+  const beforeMeta = { ...(before.meta ?? {}) };
+  const savedMeta = { ...(saved.meta ?? {}) };
+  delete beforeMeta.one_deselect_action;
+  delete savedMeta.one_deselect_action;
+  if (!isDeepStrictEqual(savedMeta, beforeMeta)) {
+    throw new Error(`Relation readback changed unrelated metadata for ${key}`);
+  }
+
+  let afterForeignKey;
+  try {
+    afterForeignKey = relationForeignKeySnapshot(saved, key);
+  } catch {
+    throw new Error(`Relation readback schema is missing or unsafe for ${key}`);
+  }
+  if (!isDeepStrictEqual(afterForeignKey, relationForeignKeySnapshot(before, key))) {
+    throw new Error(`Relation readback foreign key mismatch for ${key}`);
+  }
+};
+
+const explicitDeselectOverrides = (blueprint) => {
+  const overrides = [];
+  for (const collection of blueprint.collections) {
+    if (collection.folder) continue;
+    for (const field of collection.fields) {
+      if (field.oneDeselectAction === undefined) continue;
+      if (!field.relatedCollection || field.type === "alias") {
+        throw new Error(
+          `Deselect override requires a concrete relation: ${collection.name}.${field.name}`,
+        );
+      }
+      if (field.oneDeselectAction !== "delete" && field.oneDeselectAction !== "nullify") {
+        throw new Error(`Unsupported deselect action for ${collection.name}.${field.name}`);
+      }
+      overrides.push({ collection, field });
+    }
+  }
+  return overrides;
+};
+
+async function reconcileRelationDeselectOverrides(
+  client,
+  blueprint,
+  relations,
+  { dryRun = false, allowMissing = false } = {},
+) {
+  const actions = [];
+  for (const { collection, field } of explicitDeselectOverrides(blueprint)) {
+    const key = relationKey(collection.name, field.name);
+    const matches = relations.filter(
+      (item) => item.collection === collection.name && item.field === field.name,
+    );
+    if (matches.length === 0) {
+      if (allowMissing) continue;
+      throw new Error(`Missing existing relation for ${key}`);
+    }
+    if (matches.length !== 1) {
+      throw new Error(`Expected at most one existing relation for ${key}; found ${matches.length}`);
+    }
+    const current = matches[0];
+    if (current.related_collection !== field.relatedCollection) {
+      throw new Error(
+        `Relation identity mismatch for ${key}: expected ${field.relatedCollection}, found ${current.related_collection}`,
+      );
+    }
+    if (field.oneField !== undefined && current.meta?.one_field !== field.oneField) {
+      throw new Error(
+        `Relation alias mismatch for ${key}: expected ${field.oneField}, found ${current.meta?.one_field ?? "none"}`,
+      );
+    }
+    const foreignKey = relationForeignKeySnapshot(current, key);
+    if (current.meta?.one_deselect_action === field.oneDeselectAction) continue;
+    actions.push(`update relation deselect action ${key}`);
+    if (!dryRun) {
+      await client.request(`/relations/${collection.name}/${field.name}`, {
+        method: "PATCH",
+        body: JSON.stringify({
+          collection: collection.name,
+          field: field.name,
+          related_collection: field.relatedCollection,
+          meta: { one_deselect_action: field.oneDeselectAction },
+          schema: {
+            on_delete: foreignKey.on_delete,
+            on_update: foreignKey.on_update,
+          },
+        }),
+      });
+      await verifyRelationDeselectReadback(client, {
+        key,
+        collection: collection.name,
+        field: field.name,
+        relatedCollection: field.relatedCollection,
+        desiredAction: field.oneDeselectAction,
+        before: current,
+        expectedAlias: field.oneField,
+      });
+    }
+  }
+  return actions;
+}
+
+export async function applyRelationDeselectOverrides(
+  client,
+  blueprint = schemaBlueprint,
+  { dryRun = false } = {},
+) {
+  const relations = await client.request("/relations");
+  return reconcileRelationDeselectOverrides(client, blueprint, relations, { dryRun });
+}
 
 export async function applyBlueprint(client, blueprint, { dryRun = false } = {}) {
   const actions = [];
@@ -356,6 +515,13 @@ export async function applyBlueprint(client, blueprint, { dryRun = false } = {})
     }
   }
 
+  actions.push(
+    ...(await reconcileRelationDeselectOverrides(client, blueprint, currentRelations, {
+      dryRun,
+      allowMissing: true,
+    })),
+  );
+
   for (const [collection, items] of Object.entries(blueprint.seed)) {
     const isSingleton = blueprint.collections.some(
       (item) => item.name === collection && item.singleton,
@@ -404,8 +570,11 @@ export async function applyBlueprint(client, blueprint, { dryRun = false } = {})
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
+  const relationDeselectOnly = process.argv.includes("--relation-deselect-only");
   const client = await DirectusAdminClient.connectFromEnvironment();
-  const actions = await applyBlueprint(client, schemaBlueprint, { dryRun });
+  const actions = relationDeselectOnly
+    ? await applyRelationDeselectOverrides(client, schemaBlueprint, { dryRun })
+    : await applyBlueprint(client, schemaBlueprint, { dryRun });
 
   if (actions.length === 0) {
     console.log("Schema is already up to date.");

@@ -1,0 +1,53 @@
+[
+  {
+    "name": "Native UI main-photo detach",
+    "result": "PASS",
+    "http": 200,
+    "posts": 1,
+    "detachedChildAbsent": true,
+    "nextMain": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+    "remainingStatusAndTranslationsPreserved": true,
+    "otherProductAndReferenceUnchanged": true
+  },
+  {
+    "name": "Stale parent CAS cannot remove remaining image",
+    "result": "PASS",
+    "http": 409,
+    "parentAndRemainingChildUnchanged": true
+  },
+  {
+    "name": "Native mobile last-photo detach",
+    "result": "PASS",
+    "mainImageCleared": true,
+    "imageAltCleared": true,
+    "childRowsAbsent": true,
+    "otherOwnReferenceUnchanged": true,
+    "mobileWidth": 390
+  },
+  {
+    "name": "Files retained after first and last detach",
+    "result": "PASS",
+    "files": [
+      {
+        "id": "bcc7b7a7-47f9-44f1-99b6-00d4f0fb2a09",
+        "metadataUnchanged": true,
+        "rawBytesSha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c",
+        "rawBytesUnchanged": true
+      },
+      {
+        "id": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+        "metadataUnchanged": true,
+        "rawBytesSha256": "48a9b7ccc98afa03f6537ea9f28ba5509c90bee7fe52934c32c6418b52570b5c",
+        "rawBytesUnchanged": true
+      }
+    ],
+    "mediaFilesDeleted": 0,
+    "sharedOtherProductReferenceUnchanged": true
+  },
+  {
+    "name": "Unrelated parent values retained through first and last detach",
+    "result": "PASS",
+    "unknownAdditionalFieldsPreserved": true,
+    "businessScalarsPreserved": true
+  }
+]

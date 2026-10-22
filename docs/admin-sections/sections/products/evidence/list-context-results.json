@@ -1,0 +1,16 @@
+{
+  "beforeOpen": {
+    "search": "products-ux-20261022-mvjqamwu",
+    "status": "draft",
+    "availability": "in_stock",
+    "sort": "title",
+    "rows": "Проверка UX: деталь 01\tUX Laboratory products-ux-20261022-mvjqamwu\tUX-products-ux-20261022-mvjqamwu-01\tЧерновик\tВ наличии\t—"
+  },
+  "afterReturn": {
+    "search": "products-ux-20261022-mvjqamwu",
+    "status": "draft",
+    "availability": "in_stock",
+    "sort": "title",
+    "rows": "Проверка UX: деталь 01\tUX Laboratory products-ux-20261022-mvjqamwu\tUX-products-ux-20261022-mvjqamwu-01\tЧерновик\tВ наличии\t—"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "operation": "Detach own image child from own product",
+  "product": "1c59c084-45aa-4d8d-af82-06ae2f3a9e6e",
+  "child": "267a3250-28ac-42d2-ae63-a3e3e8fd7fa0",
+  "observed": {
+    "http": 500,
+    "code": "WRITE_FAILED",
+    "parentStillHasChild": true,
+    "childProductUnchanged": true,
+    "falseSuccess": false
+  },
+  "cause": "Directus processO2M follows one_deselect_action=nullify while product_images.product is required",
+  "alternatives": {
+    "nestedDetailedDelete": "Also follows nullify",
+    "separateChildDelete": "Separate transaction, does not preserve atomic parent CAS"
+  },
+  "scope": "Frontend-only; backend/schema protected; no safe authorized product fix",
+  "result": "FAIL, publication blocked"
+}

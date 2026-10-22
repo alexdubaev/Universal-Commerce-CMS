@@ -1,0 +1,33 @@
+{
+  "card320": {
+    "width": 320,
+    "scroll": 320,
+    "actions": [
+      {
+        "text": "К списку",
+        "left": 14,
+        "right": 114
+      },
+      {
+        "text": "Сохранить",
+        "left": 164,
+        "right": 273
+      },
+      {
+        "text": "Опубликовать",
+        "left": 14,
+        "right": 148
+      },
+      {
+        "text": "В архив",
+        "left": 164,
+        "right": 264
+      }
+    ]
+  },
+  "card390": {
+    "width": 390,
+    "scroll": 390
+  },
+  "normalTextContrastMinimum": 6.33
+}

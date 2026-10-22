@@ -8,6 +8,77 @@ export function createRequestSequence() {
   };
 }
 
+const PRODUCT_LIST_FIELDS = "id,title,brand,sku,status,availability_status,updated_at";
+const PRODUCT_LIST_SORTS = new Set(["title", "updated_at"]);
+export const productListSession = { search: "", filters: {}, sort: "-updated_at", page: 1 };
+
+export function buildProductListQuery({ page = 1, search = "", sort = "-updated_at", filters = {} } = {}) {
+  const field = String(sort).replace(/^-/, "");
+  if (!PRODUCT_LIST_SORTS.has(field) || !Number.isSafeInteger(page) || page < 1 || !Number.isSafeInteger((page - 1) * 25)) throw new TypeError("Invalid product list query");
+  const and = [];
+  const term = typeof search === "string" ? search.trim() : "";
+  if (term) and.push({ _or: ["title", "brand", "sku"].map((key) => ({ [key]: { _icontains: term } })) });
+  for (const key of ["status", "availability_status"]) {
+    const value = filters?.[key];
+    if (value != null && value !== "") and.push({ [key]: { _eq: value } });
+  }
+  return {
+    fields: PRODUCT_LIST_FIELDS, limit: 25, offset: (page - 1) * 25,
+    sort: `${sort},id`, meta: "filter_count", ...(and.length ? { filter: { _and: and } } : {}),
+  };
+}
+
+export function createProductListController(api, session = productListSession) {
+  const state = { search: "", filters: {}, sort: "-updated_at", page: 1, ...session, filters: { ...(session.filters ?? {}) }, rows: [], total: null, loading: false, errorKind: "", canCreate: false, permissionReady: false, disposed: false };
+  let request = 0;
+  const persist = () => { Object.assign(session, { search: state.search, filters: { ...state.filters }, sort: state.sort, page: state.page }); };
+  const snapshot = () => {
+    const activeQuery = Boolean(state.search.trim() || Object.values(state.filters).some(v => v != null && v !== ""));
+    let empty = "";
+    if (!state.loading && !state.errorKind && !state.rows.length) {
+      if (activeQuery) empty = "matches";
+      else if (state.page > 1) empty = "page";
+      else if (state.total === 0) empty = "catalog";
+      else empty = "unknown";
+    }
+    return { ...state, filters: { ...state.filters }, rows: [...state.rows], empty };
+  };
+  const load = async () => {
+    const seq = ++request; state.loading = true; state.errorKind = "";
+    try {
+      const response = await api.get("/items/products", { params: buildProductListQuery(state) });
+      if (state.disposed || seq !== request) return;
+      state.rows = Array.isArray(response?.data?.data) ? response.data.data : [];
+      const raw = response?.data?.meta?.filter_count;
+      state.total = Number.isSafeInteger(raw) && raw >= 0 ? raw : null;
+    } catch (error) {
+      if (state.disposed || seq !== request) return;
+      state.rows = []; state.total = null;
+      state.errorKind = [401, 403].includes(error?.response?.status ?? error?.status) ? "denied" : "failure";
+    } finally { if (!state.disposed && seq === request) state.loading = false; }
+    persist(); return snapshot();
+  };
+  return {
+    snapshot,
+    load,
+    retry: load,
+    setSearch: value => { state.search = String(value ?? ""); state.page = 1; persist(); },
+    setFilters: value => { state.filters = Object.fromEntries(["status", "availability_status"].map(k => [k, value?.[k] || null]).filter(([,v]) => v)); state.page = 1; persist(); },
+    setSort: value => { if (PRODUCT_LIST_SORTS.has(String(value).replace(/^-/, ""))) { state.sort = value; state.page = 1; persist(); } },
+    setPage: value => { if (Number.isSafeInteger(value) && value >= 1) { state.page = value; persist(); } },
+    async checkCreatePermission() {
+      try {
+        const p = (await api.get("/permissions/me"))?.data?.data?.products ?? {};
+        const fields = p.create?.access === "full" && Array.isArray(p.create.fields) ? p.create.fields : [];
+        const readable = permissionFields(p.read);
+        state.canCreate = ["title", "brand", "sku", "slug", "status"].every(f => hasPermissionField(fields, f) && hasPermissionField(readable, f)) && hasPermissionField(readable, "id");
+      } catch { state.canCreate = false; }
+      state.permissionReady = true; return state.canCreate;
+    },
+    dispose() { state.disposed = true; request++; },
+  };
+}
+
 export function canNavigateEditor({ saving, dirty, approved = false, internal = false }) {
   return internal || (!saving && (!dirty || approved));
 }
@@ -46,9 +117,9 @@ export function mergeNativeEdits(initialValues, nativeEdits, documentIds) {
   return { ...cloneValues(initialValues ?? {}), ...cloneValues(nativeEdits ?? {}), ...(documentIds === undefined ? {} : { documents: cloneValues(documentIds) }) };
 }
 
-export function validateProduct(values) {
+export function validateProduct(values, { requiredFields = ["title", "brand", "sku", "slug"] } = {}) {
   const labels = { title: "Название товара", brand: "Бренд", sku: "Артикул", slug: "Адрес товара" };
-  const missing = Object.keys(labels).filter((key) => !String(values?.[key] ?? "").trim());
+  const missing = requiredFields.filter((key) => labels[key] && !String(values?.[key] ?? "").trim());
   if (missing.length) return `Заполните обязательные поля: ${missing.map((key) => labels[key]).join(", ")}.`;
   if (Array.isArray(values.specifications) && values.specifications.some((row) => !String(row?.name ?? "").trim() || !String(row?.value ?? "").trim())) return "В каждой характеристике заполните название и значение.";
   if (values.documents != null && !Array.isArray(values.documents)) return "Сохранение отключено: список документов содержит неподдерживаемый формат. Обратитесь к администратору для исправления данных.";
@@ -65,9 +136,43 @@ export function buildProductChanges(baseline, current) {
   const changes = {};
   for (const [key, value] of Object.entries(current ?? {})) {
     if (key === "id" || key === "updated_at" || key === "created_at") continue;
-    if (JSON.stringify(value ?? null) !== JSON.stringify(baseline[key] ?? null)) changes[key] = value;
+    if (JSON.stringify(normalizeProductValue(key, value)) !== JSON.stringify(normalizeProductValue(key, baseline[key]))) changes[key] = value;
   }
   return changes;
+}
+
+const PRODUCT_EDITABLE_FIELDS = ["title", "brand", "sku", "slug", "category", "price_status", "price", "currency", "availability_status", "delivery_status", "main_image", "image_alt", "image_items", "specifications", "documents", "short_description", "full_description", "part_type", "cta_text", "is_featured", "show_on_homepage", "sort_order", "seo_title", "seo_description", "seo_text", "og_image", "is_indexable", "seo_quality_status", "source_name", "source_url", "verified_at", "reviewed_by", "mpn", "gtin"];
+const hasPermissionField = (fields, field) => Array.isArray(fields) && (fields.includes("*") || fields.includes(field));
+const permissionFields = (permission) => ["full", "partial"].includes(permission?.access) && Array.isArray(permission.fields) ? permission.fields : [];
+export function productPermissions(effective = {}, item = null) {
+  const collection = effective?.products ?? {};
+  const read = permissionFields(collection.read);
+  const update = item?.update?.access === true ? permissionFields(collection.update) : [];
+  const create = collection.create?.access === "full" ? permissionFields(collection.create) : [];
+  return { read, update, create, canRead: (read.includes("*") || read.includes("id")) && (read.includes("*") || read.includes("updated_at")), canUpdate: item?.update?.access === true && update.some((field) => PRODUCT_EDITABLE_FIELDS.includes(field) || field === "*"), canCreate: collection.create?.access === "full" && ["title", "brand", "sku", "slug", "status"].every((field) => hasPermissionField(create, field) && hasPermissionField(read, field)) };
+}
+export function allowedProductFields(values, fields, { omitStatus = true } = {}) {
+  return Object.fromEntries(PRODUCT_EDITABLE_FIELDS.filter((key) => (!omitStatus || key !== "status") && hasPermissionField(fields, key) && Object.hasOwn(values ?? {}, key)).map((key) => [key, cloneValues(values[key])]));
+}
+export function normalizeProductValue(field, value) {
+  if (value == null || value === "") return null;
+  if (["price", "sort_order"].includes(field) && Number.isFinite(Number(value))) return Number(value);
+  if (["category", "main_image", "og_image", "reviewed_by"].includes(field)) return value?.id ?? value;
+  if (["documents", "image_items"].includes(field) && Array.isArray(value)) return value.map((item) => item?.id ?? item);
+  if (field === "verified_at" && !Number.isNaN(Date.parse(value))) return new Date(value).toISOString();
+  return value;
+}
+export function validateProductAcknowledgement({ id, acknowledgement, changes, readback, reconcile = false }) {
+  if (!id || (!reconcile && String(acknowledgement?.id ?? "") !== String(id)) || (!reconcile && !Object.hasOwn(acknowledgement ?? {}, "updated_at"))) return { ok: false, reason: "invalid-acknowledgement" };
+  if (!readback || String(readback.id ?? "") !== String(id) || !Object.hasOwn(readback, "updated_at")) return { ok: false, reason: "invalid-readback" };
+  if (!reconcile && acknowledgement.updated_at !== readback.updated_at) return { ok: false, reason: "version-mismatch" };
+  for (const [field, expected] of Object.entries(changes)) {
+    if (!reconcile && !Object.hasOwn(acknowledgement, field)) return { ok: false, reason: "incomplete-acknowledgement", field };
+    if (!reconcile && field !== "image_items" && JSON.stringify(normalizeProductValue(field, acknowledgement[field])) !== JSON.stringify(normalizeProductValue(field, expected))) return { ok: false, reason: "acknowledgement-mismatch", field };
+    if (!Object.hasOwn(readback, field)) return { ok: false, reason: "incomplete-readback", field };
+    if (field !== "image_items" && JSON.stringify(normalizeProductValue(field, readback[field])) !== JSON.stringify(normalizeProductValue(field, expected))) return { ok: false, reason: "readback-mismatch", field };
+  }
+  return { ok: true };
 }
 
 export function buildExpectedSnapshot(baseline, changes) {

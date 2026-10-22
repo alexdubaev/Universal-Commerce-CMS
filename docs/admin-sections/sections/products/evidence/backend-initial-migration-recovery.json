@@ -1,0 +1,36 @@
+{
+  "observed": {
+    "collection": "product_images",
+    "field": "product",
+    "related_collection": "products",
+    "schema": null,
+    "meta": {
+      "id": 33,
+      "many_collection": "product_images",
+      "many_field": "product",
+      "one_collection": "products",
+      "one_field": "image_items",
+      "one_collection_field": null,
+      "one_allowed_collections": null,
+      "junction_field": null,
+      "sort_field": "sort_order",
+      "one_deselect_action": "delete"
+    }
+  },
+  "rootCause": "PATCH omitted collection/field/related_collection; Directus12.1.1 async alterTable callback queues drop then alterType rejects, FK recreation skipped despite HTTP200",
+  "restoredPayload": {
+    "collection": "product_images",
+    "field": "product",
+    "related_collection": "products",
+    "meta": {
+      "one_deselect_action": "nullify"
+    },
+    "schema": {
+      "on_delete": "CASCADE",
+      "on_update": "NO ACTION"
+    }
+  },
+  "restoredGraphSha256": "077e280835405a301c8e7c8eeca8c02deed44f597ef67d81321fc9e3265b6c54",
+  "matchesOriginalGraph": true,
+  "contentWritesDuringInterval": 0
+}

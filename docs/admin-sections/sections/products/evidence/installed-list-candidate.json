@@ -1,0 +1,27 @@
+{
+  "stage": "list only",
+  "base": "97c3339178f1febee5ed3c23f3b2e6dd2417f5c8",
+  "runtime": "C:/Users/Alexandr/.codex/worktrees/storefront-directus-acceptance/Universal Commerce CMS",
+  "files": [
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/index.js",
+      "beforeHash": "4750bdfa89462a427a36f3db31e8fa7259c2a168647073a00baefe6f752dcb72",
+      "afterHash": "3b4efe025fd9a8eff886b401b26ca2f822d6a66147f5f239eec31b21e054620f"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/index.js",
+      "beforeHash": "4750bdfa89462a427a36f3db31e8fa7259c2a168647073a00baefe6f752dcb72",
+      "afterHash": "3b4efe025fd9a8eff886b401b26ca2f822d6a66147f5f239eec31b21e054620f"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/editor-state.mjs",
+      "beforeHash": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+      "afterHash": "b4bd5834eadd8daff55d5330ad0f65ea80a8d1d162dca30082578c9631675b3b"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/editor-state.mjs",
+      "beforeHash": "09597baa045576239a2549c7872c9c784e9b46d222900fed101380750743fc45",
+      "afterHash": "b4bd5834eadd8daff55d5330ad0f65ea80a8d1d162dca30082578c9631675b3b"
+    }
+  ]
+}

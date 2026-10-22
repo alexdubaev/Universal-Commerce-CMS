@@ -1,0 +1,22 @@
+{
+  "status": 400,
+  "body": {
+    "errors": [
+      {
+        "code": "VALUE_TOO_LONG",
+        "message": "Value in collection \"product_specifications\" is too long."
+      }
+    ]
+  },
+  "order": {
+    "imageRelationIndex": 78,
+    "specificationRelationIndex": 79,
+    "source": "Directus12.1.1 PayloadService.processO2M iterates schema relations; child upsert/delete is awaited before next relation"
+  },
+  "attempted": {
+    "detachedChild": "23905575-0805-4ce1-8fa1-a1926e12706d",
+    "parentPrice": 25,
+    "invalidLaterSpec": "7d43b786-bb65-4e93-93b9-7d3fa15b4b09"
+  },
+  "parentAndAllOwnChildrenExactlyRestored": true
+}

@@ -1,0 +1,27 @@
+{
+  "collection": "product_images",
+  "field": "product",
+  "related_collection": "products",
+  "schema": {
+    "constraint_name": "product_images_product_foreign",
+    "table": "product_images",
+    "column": "product",
+    "foreign_key_schema": "public",
+    "foreign_key_table": "products",
+    "foreign_key_column": "id",
+    "on_update": "NO ACTION",
+    "on_delete": "CASCADE"
+  },
+  "meta": {
+    "id": 33,
+    "many_collection": "product_images",
+    "many_field": "product",
+    "one_collection": "products",
+    "one_field": "image_items",
+    "one_collection_field": null,
+    "one_allowed_collections": null,
+    "junction_field": null,
+    "sort_field": "sort_order",
+    "one_deselect_action": "nullify"
+  }
+}

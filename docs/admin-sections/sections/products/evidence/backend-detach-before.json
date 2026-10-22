@@ -1,0 +1,14 @@
+{
+  "http": 500,
+  "body": {
+    "errors": [
+      {
+        "code": "WRITE_FAILED",
+        "message": "Сохранение не подтверждено. Обновите данные перед повтором."
+      }
+    ]
+  },
+  "product": "de011e68-f5f4-4137-958a-7f41afb18b76",
+  "removedChild": "23905575-0805-4ce1-8fa1-a1926e12706d",
+  "parentAndRemainingChildUnchanged": true
+}

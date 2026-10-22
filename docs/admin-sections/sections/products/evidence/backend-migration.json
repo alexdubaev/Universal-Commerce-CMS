@@ -1,0 +1,53 @@
+{
+  "dryOutput": "Planned 1 actions:\n- update relation deselect action product_images.product",
+  "appliedOutput": "Applied 1 actions:\n- update relation deselect action product_images.product",
+  "repeatOutput": "Schema is already up to date.",
+  "reappliedOutput": "Applied 1 actions:\n- update relation deselect action product_images.product",
+  "relationAfterApply": {
+    "collection": "product_images",
+    "field": "product",
+    "related_collection": "products",
+    "schema": {
+      "constraint_name": "product_images_product_foreign",
+      "table": "product_images",
+      "column": "product",
+      "foreign_key_schema": "public",
+      "foreign_key_table": "products",
+      "foreign_key_column": "id",
+      "on_update": "NO ACTION",
+      "on_delete": "CASCADE"
+    },
+    "meta": {
+      "id": 33,
+      "many_collection": "product_images",
+      "many_field": "product",
+      "one_collection": "products",
+      "one_field": "image_items",
+      "one_collection_field": null,
+      "one_allowed_collections": null,
+      "junction_field": null,
+      "sort_field": "sort_order",
+      "one_deselect_action": "delete"
+    }
+  },
+  "unrelatedRelationGraphUnchanged": true,
+  "requiredFieldUnchanged": true,
+  "rollback": {
+    "verified": true,
+    "originalGraphSha256": "077e280835405a301c8e7c8eeca8c02deed44f597ef67d81321fc9e3265b6c54",
+    "payload": {
+      "collection": "product_images",
+      "field": "product",
+      "related_collection": "products",
+      "meta": {
+        "one_deselect_action": "nullify"
+      },
+      "schema": {
+        "on_delete": "CASCADE",
+        "on_update": "NO ACTION"
+      }
+    }
+  },
+  "method": "actual scoped CLI in own Node process",
+  "implementationSHA256": "ad0bd4ca21be60eb58244568b7369a94b5c9c5921166586d480d0e8de37f1424"
+}

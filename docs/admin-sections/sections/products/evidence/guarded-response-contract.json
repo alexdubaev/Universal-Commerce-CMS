@@ -1,0 +1,11 @@
+{
+  "kind": "actual no-op guarded request, own synthetic product only",
+  "status": 200,
+  "record": {
+    "id": "8107742f-2695-4c59-8034-9f661dcd53ad",
+    "updated_at": null,
+    "title": "Проверка UX: деталь 01",
+    "price": "0.00",
+    "status": "draft"
+  }
+}

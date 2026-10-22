@@ -1,0 +1,222 @@
+[
+  {
+    "name": "Card renders native grouped fields after render fix",
+    "result": "PASS",
+    "detail": {
+      "vueErrors": 0
+    }
+  },
+  {
+    "name": "Cross-tab price/description save and protected data retention",
+    "result": "PASS",
+    "detail": {
+      "posts": 1,
+      "status": "draft",
+      "price": "1250.00",
+      "activeTab": "Описание"
+    }
+  },
+  {
+    "name": "Loaded card reports actual draft and no unsaved changes",
+    "result": "PASS",
+    "detail": {
+      "status": "Черновик",
+      "warnings": 0
+    }
+  },
+  {
+    "name": "Validation returns to missing native field and preserves other-tab input",
+    "result": "PASS",
+    "detail": {
+      "focused": "title",
+      "posts": 0
+    }
+  },
+  {
+    "name": "Cancel confirmation Escape keeps input; confirmed cancel only reads",
+    "result": "PASS",
+    "detail": {
+      "cancelPosts": 0,
+      "escapeRetainsInput": true
+    }
+  },
+  {
+    "name": "Real concurrent update conflicts, compares without write, retains edits, conflicts again safely",
+    "result": "PASS",
+    "detail": {
+      "conflicts": 2,
+      "comparisonPosts": 0,
+      "keepPosts": 0,
+      "finalTitle": "Мой вариант названия"
+    }
+  },
+  {
+    "name": "Lost update response after actual commit locks form; verification performs GET only",
+    "result": "PASS",
+    "detail": {
+      "committedBeforeAbort": true,
+      "posts": 1,
+      "verificationWrites": 0,
+      "formLocked": true
+    }
+  },
+  {
+    "name": "Incomplete acknowledgement plus failed readback never reports success",
+    "result": "PASS",
+    "detail": {
+      "incompleteAckAccepted": false,
+      "mismatchRemainsBlocked": true,
+      "inputRetained": true,
+      "verificationPosts": 0
+    }
+  },
+  {
+    "name": "Double click sends one actual mutation and locks in-flight actions",
+    "result": "PASS",
+    "detail": {
+      "posts": 1,
+      "inFlightNavigationDisabled": true
+    }
+  },
+  {
+    "name": "Hidden price keeps numeric zero across save and mode restoration",
+    "result": "PASS",
+    "detail": {
+      "hiddenPrice": "0.00",
+      "restoredPrice": "0",
+      "status": "draft"
+    }
+  },
+  {
+    "name": "Explicit publish/unpublish/archive confirms intent; ordinary Save retains published and archived state",
+    "result": "PASS",
+    "detail": {
+      "cancelPublishPosts": 0,
+      "publishedSaveRetains": true,
+      "archivedSaveRetains": true,
+      "unpublish": "draft"
+    }
+  },
+  {
+    "name": "Native create produces one draft and canonical editable item route",
+    "result": "PASS",
+    "detail": {
+      "createdId": "1521a4de-8a5e-4692-846b-e30507777533",
+      "status": "draft",
+      "posts": 1,
+      "canonicalRoute": true
+    }
+  },
+  {
+    "name": "Actual uniqueness rejection keeps input and permits correction",
+    "result": "FAIL",
+    "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('Товар с таким брендом, артикулом или адресом уже существует.', { exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "name": "Injected denied save uses plain message and retains editable input",
+    "result": "PASS",
+    "detail": {
+      "transportInjection": true,
+      "nativeRoleAcceptance": false,
+      "inputRetained": true
+    }
+  },
+  {
+    "name": "Lost entire create response after commit blocks repeat and never infers ID by article",
+    "result": "PASS",
+    "detail": {
+      "actualCommittedId": "5988c9bc-e0ca-46be-adbc-3001921febc3",
+      "uiHasId": false,
+      "createPosts": 1,
+      "articleInferenceQueries": 0,
+      "repeatBlocked": true
+    }
+  },
+  {
+    "name": "Known create ID with incomplete acknowledgement reconciles by GET and canonical route",
+    "result": "FAIL",
+    "error": "locator.fill: Target page, context or browser has been closed"
+  },
+  {
+    "name": "Known create ID with incomplete acknowledgement reconciles by GET and canonical route (corrected harness)",
+    "result": "PASS",
+    "detail": {
+      "actualId": "c7a23245-91dc-43e3-9f4c-d57c20094928",
+      "posts": 1,
+      "verificationWrites": 0,
+      "canonicalRoute": true
+    }
+  },
+  {
+    "name": "Gallery main/order/alt persist; child status/translations retained",
+    "result": "FAIL",
+    "error": "Values have same structure but are not reference-equal:\n\n{\n  ru: 'Не менять products-ux-20261022-mvjqamwu'\n}\n"
+  },
+  {
+    "name": "Gallery preservation verified with JSON-value comparator (cross-realm harness correction)",
+    "result": "PASS",
+    "detail": {
+      "main": "f227bec3-d6d0-4498-9c69-24ef07d34a18",
+      "order": [
+        "fb83120a-f94b-41d6-a800-ef952d895160",
+        "267a3250-28ac-42d2-ae63-a3e3e8fd7fa0"
+      ],
+      "statusAndUnknownPreserved": true
+    }
+  },
+  {
+    "name": "Managed document/specification views are readable, translated and unchanged",
+    "result": "PASS",
+    "detail": {
+      "documentStateRussian": true,
+      "childrenUnchanged": true,
+      "galleryHiddenOffBasic": true
+    }
+  },
+  {
+    "name": "Actual 400 uniqueness message and permissions disabled state on corrected candidate",
+    "result": "PASS",
+    "detail": {
+      "nativeStatus": 400,
+      "friendlyUniqueness": true,
+      "inputRetained": true
+    }
+  },
+  {
+    "name": "Injected item update denial disables Save before any attempted write",
+    "result": "PASS",
+    "detail": {
+      "saveDisabled": true,
+      "publishDisabled": true,
+      "transportInjection": true,
+      "nativeManagerAcceptance": false
+    }
+  },
+  {
+    "name": "Partial gallery read disables gallery mutation without inventing missing values",
+    "result": "PASS",
+    "detail": {
+      "transportInjection": true,
+      "galleryInert": true,
+      "omittedAltNotInvented": true
+    }
+  },
+  {
+    "name": "Final candidate saves scalar edits and preserves legacy/unsupported values",
+    "result": "PASS",
+    "detail": {
+      "scalarSaved": true,
+      "legacySpecsAndDocumentsPreserved": true,
+      "unsupportedValuesPreserved": true,
+      "zeroPriceRetained": true
+    }
+  },
+  {
+    "name": "Keyboard tabs retain selection and show visible focus",
+    "result": "PASS",
+    "detail": {
+      "selected": "Описание",
+      "outline": "rgb(59, 91, 122) solid 2px"
+    }
+  }
+]

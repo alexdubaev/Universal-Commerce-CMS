@@ -1,0 +1,22 @@
+{
+  "base": "97c3339178f1febee5ed3c23f3b2e6dd2417f5c8",
+  "runtime": "C:/Users/Alexandr/.codex/worktrees/storefront-directus-acceptance/Universal Commerce CMS",
+  "files": [
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/index.js",
+      "sha256": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/index.js",
+      "sha256": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/src/editor-state.mjs",
+      "sha256": "89e23bdf963f45af74069a5cde068ecadccd063c32f664fe780b2a1bc2a0f40e"
+    },
+    {
+      "path": "directus/extensions/deere-shop-product-editor/dist/editor-state.mjs",
+      "sha256": "89e23bdf963f45af74069a5cde068ecadccd063c32f664fe780b2a1bc2a0f40e"
+    }
+  ]
+}
