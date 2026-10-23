@@ -1,0 +1,197 @@
+{
+  "base": "ca03a0bb619b55e24b0084e4c84950c587b9ee61",
+  "date": "2026-10-23",
+  "status": "proposal awaiting explicit owner approval; no application changes",
+  "target": "Windows Directus12.1.1 http://127.0.0.1:18056 universal-commerce-cms-dev",
+  "servedBundleSha256": "6369f43ea733132526c6d6520104142dbda5d4165bb8df8b26fa72306e22706e",
+  "files": [
+    {
+      "file": "after-advanced-desktop.jpg",
+      "sha256": "44787a0221c205c2e1c5748d8c39fef27ded886b1146f3fafbf062fc60aff3f5"
+    },
+    {
+      "file": "after-advanced-mobile.jpg",
+      "sha256": "eb28b13a42b2a612bda268550e308c3c02865f0e60c8503fdeb68f5a15ec391b"
+    },
+    {
+      "file": "after-conflict-desktop.jpg",
+      "sha256": "4b14889bf4c3e25d0eb1be43561f2784b60e3e0922e58b6bd0a3b333e5fde9f4"
+    },
+    {
+      "file": "after-conflict-mobile.jpg",
+      "sha256": "2fb2c711ab772d64110a382c6bcdef69fc8ce78e26474d67c1384b0733a209de"
+    },
+    {
+      "file": "after-content-desktop.jpg",
+      "sha256": "0a90b8fcdf9bb93fb231f7fc696d78c027776ebf9d6589a2f82bfe55e1c51646"
+    },
+    {
+      "file": "after-content-mobile.jpg",
+      "sha256": "183e70f865c611e4b6d9ce73f4ad63a37d35c4f14569dd3ea104788ad7fb2373"
+    },
+    {
+      "file": "after-denied-desktop.jpg",
+      "sha256": "e01520ba815576acee914300eca7c53a322845e8049a6708e52ca235b9d33d4f"
+    },
+    {
+      "file": "after-denied-mobile.jpg",
+      "sha256": "6f506a66dfe4d3fb2058d9ea174c32881504be885ff07e407f9a77616bb09f96"
+    },
+    {
+      "file": "after-empty-desktop.jpg",
+      "sha256": "b6a0a72ab157123a10e4ba8b4da4252070e906b1d4e2874b4e1e95be38b32916"
+    },
+    {
+      "file": "after-empty-mobile.jpg",
+      "sha256": "a245e1c382ff1832611a7326522ea85bbb6a66715479472c9d26af3cdfc4f5df"
+    },
+    {
+      "file": "after-error-desktop.jpg",
+      "sha256": "0a30d4aa4a3f945da162e171675e0680607a81344f16258c9a93cf6c2eb64c91"
+    },
+    {
+      "file": "after-error-mobile.jpg",
+      "sha256": "faabf0f9930538259926da010b89505705dfbdd74a09b774123d621f988374fb"
+    },
+    {
+      "file": "after-filters-desktop.jpg",
+      "sha256": "f191df7fe1f229ec2f6f257eb588c55b217aabd8e5f653c88175c869103078c3"
+    },
+    {
+      "file": "after-filters-mobile.jpg",
+      "sha256": "b53aab520d79fac911a2276502fdbfbb127ab85d11d8a169199f269f5863cc7b"
+    },
+    {
+      "file": "after-list-desktop.jpg",
+      "sha256": "06e20fb10b95d8367f241d58a920da3e32b536725f1902b875ced4337b1d6b42"
+    },
+    {
+      "file": "after-list-mobile.jpg",
+      "sha256": "97858179049cd3766d58bb84e7c8e5ba771c6dd60322586fad9eba562b3a6a59"
+    },
+    {
+      "file": "after-main-desktop.jpg",
+      "sha256": "30cc91c41c09dee5e0baaca3d50159e7973aa68e42b65baf9ee8e637adf46374"
+    },
+    {
+      "file": "after-main-mobile.jpg",
+      "sha256": "de6a2bea7c75df2a3da4643bf3e0283926af41f81209ae48c8930e6b658dbb42"
+    },
+    {
+      "file": "after-new-desktop.jpg",
+      "sha256": "00134b704e106a74b39e7596a249ee1f0c4c4d297bcfc0b20391c37e2d40b61d"
+    },
+    {
+      "file": "after-new-mobile.jpg",
+      "sha256": "082b891e3a883a6a0e0eeebce4e973d3d7ddbb2f49d7ad334da1d0655cc9c5fe"
+    },
+    {
+      "file": "after-no-results-desktop.jpg",
+      "sha256": "22c7a0ae30d116e30cf1805b0a1ff88b23cf183927327b093be1f49ff6afc8f3"
+    },
+    {
+      "file": "after-no-results-mobile.jpg",
+      "sha256": "a6c933eb93db5afd9efa2facfc2b569c8f1f517fc7e8c158755671d3a51c0325"
+    },
+    {
+      "file": "after-seo-desktop.jpg",
+      "sha256": "617e57c07617c64f9548850841451edfe4647d6da9bec40e4034a04b09cd6387"
+    },
+    {
+      "file": "after-seo-mobile.jpg",
+      "sha256": "ebefc0a06d05d1e1e73ca95062c9666e02860e858a37eb7afb2ae58853e32d0d"
+    },
+    {
+      "file": "after-sort-options-desktop.jpg",
+      "sha256": "4df83e9fc4dc619f3f6eb25c23b8a02e78d29600e7ed1e67109388df8279fe99"
+    },
+    {
+      "file": "after-sort-options-mobile.jpg",
+      "sha256": "c87ef16e9a76bbf8585775748480361f9027e55c9a47356f6886b60ac76aeeb4"
+    },
+    {
+      "file": "after-status-desktop.jpg",
+      "sha256": "c66a2e4da92fac7e8cc2daa961713b8645ed774b03831ab11d2453e726119b52"
+    },
+    {
+      "file": "after-status-mobile.jpg",
+      "sha256": "d01710f8d0b805899cd9f51e0050893d2df0d78c7ae024a5354ca948cc0d503b"
+    },
+    {
+      "file": "after-uncertain-desktop.jpg",
+      "sha256": "fa92a7de3b91bd344c29580671d9d81a77db8c6e839eca22ee33c0b2e90d3969"
+    },
+    {
+      "file": "after-uncertain-mobile.jpg",
+      "sha256": "01b229342497c96bb8d00418865087478c284e66a7c380c4d2520d9b9f96f81e"
+    },
+    {
+      "file": "after-validation-desktop.jpg",
+      "sha256": "99760625572d2a8344728bf11d02481bebe774194d42fa270b5ac2194d0a477d"
+    },
+    {
+      "file": "after-validation-mobile.jpg",
+      "sha256": "a4538d401463ce47958113adc867909e12b7caa5d0706f34a332eb9285301a61"
+    },
+    {
+      "file": "before-advanced-desktop.jpg",
+      "sha256": "97e766a13e0695327adacad8eda486c700642f85be6cf4583f8fe5e0689f0ad0"
+    },
+    {
+      "file": "before-advanced-mobile.jpg",
+      "sha256": "0532a16652f54300f4ae1ed981a46ac27954b1e9b14e4c4ff7c9f5077a9caf34"
+    },
+    {
+      "file": "before-content-desktop.jpg",
+      "sha256": "23d142bda7f5efe1428c82102aabf72de3a5d0fdcd981665d4837e9a44f4ce6c"
+    },
+    {
+      "file": "before-content-mobile.jpg",
+      "sha256": "aeb77a4da53dc287204736b38eff6c960e14d63681208ccce8d672d340e3ce2d"
+    },
+    {
+      "file": "before-filters-desktop.jpg",
+      "sha256": "5892ca3838a5317474011c831b2ca45272bff978c10e33d426303e90d17186d2"
+    },
+    {
+      "file": "before-filters-mobile.jpg",
+      "sha256": "8b34243d9b9ade31834fd624791092cdeb94d087644a616fb8f76bfc14bbf90b"
+    },
+    {
+      "file": "before-list-desktop.jpg",
+      "sha256": "ddaa383be44770c2ba4587b6e62d716b060bed88e4d7ed493a240c9a0769184f"
+    },
+    {
+      "file": "before-list-mobile.jpg",
+      "sha256": "a8febf584297be9f7d2ecde1d0500a837d63c9356ba78b19ed1d835932721315"
+    },
+    {
+      "file": "before-main-desktop.jpg",
+      "sha256": "f387ef7b60a60b31281b6799eb1901bdca3dcfe2a6912a18457113e47f319862"
+    },
+    {
+      "file": "before-main-mobile.jpg",
+      "sha256": "baa34d09c4dd694b9a439b8307ee8c18d47eaa42664a69e9d5b4a042172a5ae3"
+    },
+    {
+      "file": "before-no-results-desktop.jpg",
+      "sha256": "5470ade945221ca38c62ce6ff14832a3faea483515da0e6dbc5e2ebef1bef17f"
+    },
+    {
+      "file": "before-no-results-mobile.jpg",
+      "sha256": "2c606db0bfebc7c198b828dfab409f631645ddeae366afbcf387fc944de78778"
+    },
+    {
+      "file": "before-seo-desktop.jpg",
+      "sha256": "ae9156da52c7b4684b369d5a696eb220b68e11b09cd20b4b153318f900ecc2f6"
+    },
+    {
+      "file": "before-seo-mobile.jpg",
+      "sha256": "b922c16789b5f9d36a0ec13f28ccfc5a3e2d6992a02193f317eed40415c8fd66"
+    },
+    {
+      "file": "prototype.html",
+      "sha256": "46513e0333c4eaa85ac0b27cf3880754363d3d48b14750a8bf914544f924e269"
+    }
+  ]
+}

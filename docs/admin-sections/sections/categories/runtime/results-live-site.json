@@ -1,0 +1,33 @@
+{
+  "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb",
+  "categoryHash": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75",
+  "siteEffects": {
+    "requested": true,
+    "ran": true,
+    "ttlSeconds": 300,
+    "publicationApi": [
+      {
+        "status": "archived",
+        "visibleOwnRows": 0,
+        "excluded": true
+      },
+      {
+        "status": "published",
+        "visibleOwnRows": 1,
+        "ownRecordMatched": true
+      },
+      {
+        "status": "draft",
+        "visibleOwnRows": 0,
+        "excluded": true
+      }
+    ],
+    "storefrontRouteStatus": 200,
+    "renderedOwnContent": true
+  },
+  "cleanup": true,
+  "notes": [
+    "Live site-effects check used the existing verified non-admin gateway account; Next category caching is 300 seconds, so immediate storefront visibility after unpublishing was not asserted. Gateway exclusion of draft and archived states was checked directly.",
+    "Manager-role inspection: 0 pre-existing manager-like role(s) visible through policy relationships; no role was created or changed, and no access capability was inferred."
+  ]
+}

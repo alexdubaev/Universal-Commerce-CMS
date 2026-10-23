@@ -1,0 +1,98 @@
+[
+  {
+    "screen": "list",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "main",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "content",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "seo",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "advanced",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "filters",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "no-results",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "sort-options",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "empty",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "status",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "validation",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "new",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "conflict",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "uncertain",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "error",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  },
+  {
+    "screen": "denied",
+    "size": "1536x1024",
+    "scroll": 1536,
+    "width": 1536
+  }
+]

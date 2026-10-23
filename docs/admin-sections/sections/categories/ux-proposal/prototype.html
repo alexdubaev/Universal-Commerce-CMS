@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Автономный синтетический макет UX категории">
+  <title>Категории · предлагаемый вид</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #182431;
+      --muted: #66788a;
+      --line: #d9e1e8;
+      --surface: #fff;
+      --canvas: #f4f7fa;
+      --accent: #385b78;
+      --focus: #6644ff;
+      --green: #17643f;
+      --green-bg: #edf7f0;
+      --draft: #43546a;
+      --draft-bg: #f2f4f7;
+      --archived: #805015;
+      --archived-bg: #fff4e8;
+      --danger: #a3293a;
+      --danger-bg: #fff0f1;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--surface);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
+    body { margin: 0; min-width: 320px; background: var(--surface); }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button, a, select { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+    .shell { min-height: 100vh; }
+    .rail {
+      position: fixed; z-index: 5; inset: 0 auto 0 0; width: 54px; display: flex;
+      flex-direction: column; align-items: center; gap: 10px; padding: 10px 0;
+      background: #102235; color: #dce5ee;
+    }
+    .rail-label { margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .04em; writing-mode: vertical-rl; color: #dce5ee; }
+    .app { margin-left: 54px; min-height: 100vh; }
+    .topbar { height: 55px; display: flex; align-items: center; padding: 0 22px; gap: 14px;
+      background: #f7fafc; border-bottom: 1px solid #e3e9ee; color: #526273; }
+    .topbar-mobile-row { display: none; }
+    .topbar .crumb { font-size: 13px; }
+    .topbar .divider { width: 1px; height: 24px; background: var(--line); }
+    .proposal-label { margin-left: auto; font-size: 12px; color: #516477; white-space: nowrap; }
+    .proposal-label-mobile { display: none; }
+    .mobile-create { display: none; }
+    .workspace { height: calc(100dvh - 55px); overflow-y: auto; overflow-x: hidden; padding: 26px 28px 48px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 22px; }
+    h1 { margin: 0; font-size: 27px; line-height: 1.2; font-weight: 650; letter-spacing: -.35px; }
+    .count { margin-left: 8px; color: var(--muted); font-size: 14px; font-weight: 450; }
+    .button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 0 15px; border: 1px solid var(--line); border-radius: 6px; background: #fff; text-decoration: none; }
+    .button:hover { background: #f7fafc; }
+    .button.primary { color: #fff; border-color: var(--accent); background: var(--accent); font-weight: 600; }
+    .button.primary:hover { background: #2b4c68; }
+    .button.soft { background: #f4f8fb; }
+    .button.small { min-height: 34px; padding: 0 11px; font-size: 13px; }
+    .button:disabled { cursor: not-allowed; opacity: .55; }
+    .search-row { display: grid; grid-template-columns: minmax(220px, 1fr) auto 210px; gap: 10px; margin-bottom: 15px; }
+    .filter-group { display: flex; gap: 10px; }
+    .control { width: 100%; min-height: 40px; border: 1px solid #cbd6df; border-radius: 6px; background: white; padding: 0 12px; }
+    .search { position: relative; }
+    .search input { padding-left: 12px; }
+    .search::before { content: ""; }
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    thead { background: #f5f8fa; }
+    th { padding: 12px 14px; text-align: left; color: #526273; font-size: 12px; font-weight: 600; border-block: 1px solid #e5eaee; }
+    td { padding: 13px 14px; border-bottom: 1px solid #e5eaee; vertical-align: middle; }
+    tbody tr:hover { background: #fbfcfd; }
+    .name-col { width: 31%; } .parent-col { width: 18%; } .status-col { width: 15%; }
+    .order-col { width: 13%; } .modified-col { width: 18%; } .go-col { width: 5%; text-align: right; }
+    .record-link { display: block; text-decoration: none; }
+    .record-link:hover .record-title { text-decoration: underline; }
+    .record-title { display: block; font-weight: 650; line-height: 1.35; }
+    .slug { display: block; max-width: 100%; margin-top: 4px; color: #68798a; font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
+    .status { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 9px; border-radius: 5px;
+      font-size: 12px; line-height: 1.2; font-weight: 600; white-space: nowrap; }
+    .status::before { content: ""; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: currentColor; }
+    .status.published { color: var(--green); background: var(--green-bg); }
+    .status.draft { color: var(--draft); background: var(--draft-bg); }
+    .status.archived { color: var(--archived); background: var(--archived-bg); }
+    .muted { color: var(--muted); }
+    .chevron { color: #768696; font-size: 20px; }
+    .pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; color: #607184; font-size: 12px; }
+    .pager-controls { display: flex; align-items: center; gap: 8px; }
+    .pager button { width: auto; min-width: 64px; height: 36px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; color: #53687b; }
+    .notice { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border: 1px solid #d9e3eb;
+      border-left: 3px solid #54748d; border-radius: 5px; background: #f5f9fc; color: #40556a; line-height: 1.5; }
+    .notice strong { color: #2c4054; }
+    .notice.warn { border-color: #f0d9b8; border-left-color: #bd7b25; background: #fff9f1; color: #684617; }
+    .notice.error { border-color: #f1c9ce; border-left-color: #bd4552; background: var(--danger-bg); color: #782d38; }
+    .editor-heading { padding-bottom: 14px; }
+    .editor-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #e2e8ed; }
+    .editor-layout { display: grid; grid-template-columns: 225px minmax(0,1fr); min-height: calc(100vh - 55px); margin: -26px -28px -48px; }
+    .directus-sidebar { padding: 22px 12px; border-right: 1px solid #dfe6ec; background: #f7fafc; color: #34495d; }
+    .directus-sidebar .site-name { padding: 0 9px 18px; font-size: 13px; font-weight: 600; border-bottom: 1px solid #dfe6ec; }
+    .editor-workspace { min-width: 0; padding: 26px 24px 48px; }
+    .editor-heading h1 { font-size: 20px; font-weight: 500; }
+    .save-state { margin-top: 7px; color: #617285; font-size: 12px; }
+    .toolbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .editor-grid { display: grid; grid-template-columns: minmax(0,1fr) 300px; gap: 16px; margin-top: 12px; }
+    .editor-grid:not(.has-media) { grid-template-columns: minmax(0,1fr); }
+    .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: thin; }
+    .tab { flex: 0 0 auto; padding: 12px 15px; color: #506071; text-decoration: none; border-bottom: 2px solid transparent; }
+    .tab[aria-current="page"] { color: #172b3d; border-color: var(--accent); font-weight: 650; }
+    .form-pane { padding: 16px 0 0; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px 16px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label, .field-label { display: block; margin-bottom: 7px; color: #263a4d; font-size: 13px; font-weight: 650; }
+    .field input, .field textarea, .field select { display: block; width: 100%; min-height: 40px; padding: 9px 11px;
+      border: 1px solid #ccd6df; border-radius: 6px; background: #fff; }
+    .field textarea { min-height: 82px; resize: vertical; line-height: 1.45; }
+    .field input[readonly], .readonly-box { background: #f3f7fa; color: #45596d; }
+    .help { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .field-error { margin-top: 6px; color: var(--danger); font-size: 12px; }
+    .invalid { border-color: #c14450 !important; }
+    .readonly-box { min-height: 40px; display: flex; align-items: center; padding: 9px 12px; border: 1px solid #d8e1e8; border-radius: 6px; }
+    .status-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .media-card h2 { margin: 0 0 10px; font-size: 14px; font-weight: 650; }
+    .image-placeholder { min-height: 80px; display: grid; place-items: center; border: 1px dashed #cdd8e1; border-radius: 5px; color: #65788a; background: #fff; text-align: center; padding: 10px; }
+    .seo-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 16px; }
+    .seo-fields { display: grid; gap: 14px; }
+    .seo-preview { min-height: 180px; padding: 4px 16px; border-left: 1px solid #e2e8ed; }
+    .seo-preview-title { margin-bottom: 12px; font-weight: 650; }
+    .seo-preview-empty { color: #526273; }
+    .seo-indexable { margin-top: 16px; padding-top: 15px; border-top: 1px solid #e2e8ed; }
+    .filters-group { display: grid; grid-template-columns: 1fr; gap: 22px; margin: 16px 0; }
+    .sort-popover { position: absolute; z-index: 8; right: 0; top: calc(100% + 5px); width: min(290px, calc(100vw - 36px)); padding: 6px; border: 1px solid #d6dfe7; border-radius: 6px; background: white; box-shadow: 0 8px 24px rgb(22 39 56 / 16%); }
+    .sort-option { display: block; width: 100%; padding: 9px 10px; border: 0; border-radius: 4px; text-align: left; background: white; }
+    .sort-option:hover, .sort-option[aria-selected="true"] { background: #eef3f7; }
+    .details { margin-top: 16px; border: 1px solid #e1e7ec; border-radius: 7px; }
+    .details summary { padding: 13px 15px; cursor: pointer; color: #34495d; font-weight: 650; }
+    .details-body { padding: 0 15px 15px; }
+    .saved-value { padding: 10px 0; border-top: 1px solid #e8edf1; }
+    .saved-value dt { margin-bottom: 4px; color: #4c6073; font-size: 12px; font-weight: 650; }
+    .saved-value dd { margin: 0; color: #617286; line-height: 1.45; overflow-wrap: anywhere; }
+    .below-note { margin-top: 14px; }
+    .list-empty { max-width: 620px; margin: 40px auto 0; padding: 27px; text-align: center; border: 1px solid #e1e7ec; border-radius: 8px; }
+    .empty-icon { display: none; }
+    .list-empty h2 { margin: 0 0 8px; font-size: 18px; }
+    .list-empty p { margin: 0 auto 18px; max-width: 470px; color: #647587; line-height: 1.5; }
+    .state-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+    .state-card { max-width: 700px; margin: 54px auto 0; padding: 24px; border: 1px solid #e1e7ec; border-radius: 8px; }
+    .state-card h2 { margin: 0 0 9px; font-size: 20px; }
+    .state-card p { color: #607286; line-height: 1.55; }
+    .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+    .compare section { border: 1px solid #dfe6ec; border-radius: 6px; padding: 13px; }
+    .compare h3 { margin: 0 0 10px; font-size: 14px; }
+    .compare p { margin: 6px 0; color: #30465a; overflow-wrap: anywhere; }
+    .modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 18px; background: rgb(16 34 53 / 42%); }
+    .dialog { width: min(100%, 480px); padding: 20px; background: #fff; border-radius: 9px; box-shadow: 0 18px 55px rgb(14 32 48 / 24%); }
+    .modal-backdrop.filter-backdrop { display: block; padding: 0; background: transparent; pointer-events: none; }
+    .dialog.filter-dialog { position: fixed; top: 16px; right: 16px; width: 380px; max-height: calc(100vh - 32px); display: flex; flex-direction: column; padding: 0; overflow: hidden; border: 1px solid #d9e1e8; border-radius: 7px; box-shadow: 0 8px 28px rgb(17 37 55 / 18%); pointer-events: auto; }
+    .filter-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 18px; border-bottom: 1px solid #e2e8ed; }
+    .filter-head h2 { margin: 0; font-size: 18px; }
+    .filter-body { padding: 16px 18px; overflow: auto; }
+    .filter-footer { display: flex; justify-content: space-between; gap: 8px; padding: 12px 18px; border-top: 1px solid #e2e8ed; background: #fff; }
+    .filter-footer .button { min-width: 100px; }
+    .filter-close { min-height: 32px; padding: 0 9px; }
+    .dialog h2 { margin: 0 0 8px; font-size: 20px; }
+    .dialog p { color: #607286; line-height: 1.5; }
+    .choices { display: grid; gap: 8px; margin: 16px 0; }
+    .choice { display: flex; gap: 10px; align-items: flex-start; padding: 11px; border: 1px solid #d9e1e8; border-radius: 6px; }
+    .choice input { margin-top: 3px; }
+    .choice span { display: block; color: #607286; font-size: 12px; line-height: 1.45; }
+    .choice .status { display: inline-flex; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
+    .mobile-list { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+    [hidden] { display: none !important; }
+
+    @media (max-width: 760px) {
+      .rail { display: none; }
+      .app { margin-left: 0; }
+      .topbar { height: 110px; display: grid; grid-template-rows: 55px 55px; padding: 0 16px; gap: 0; }
+      .topbar > .crumb, .topbar > .divider { display: none; }
+      .topbar-mobile-row { display: flex; height: 55px; align-items: center; gap: 12px; }
+      .topbar-mobile-row:first-of-type { border-bottom: 1px solid #e3e9ee; }
+      .topbar-mobile-row .proposal-label { margin-left: auto; }
+      .proposal-label-desktop { display: none; }
+      .proposal-label-mobile { display: inline; }
+      .proposal-label { font-size: 11px; }
+      .workspace { height: calc(100dvh - 110px); padding: 20px 16px 36px; }
+      h1 { font-size: 23px; }
+      .page-heading { align-items: flex-start; margin-bottom: 18px; }
+      .page-heading .button { min-height: 40px; padding-inline: 11px; font-size: 13px; }
+      .search-row { grid-template-columns: minmax(0,1fr); gap: 8px; }
+      .filter-group { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; }
+      .table-wrap { display: none; }
+      .mobile-list { display: grid; gap: 0; border-top: 1px solid #e5eaee; }
+      .mobile-row { display: grid; grid-template-columns: minmax(0,1fr); gap: 4px; align-items: start; padding: 11px 3px; border-bottom: 1px solid #e5eaee; text-decoration: none; }
+      .mobile-title-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+      .mobile-title-line .record-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .mobile-row .status { flex: 0 0 auto; }
+      .mobile-row .slug { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+      .mobile-parent { color: #66788a; font-size: 12px; }
+      .pager { margin-top: 14px; }
+      .editor-layout { display: block; min-height: 0; margin: -20px -16px -36px; }
+      .directus-sidebar { display: none; }
+      .editor-workspace { padding: 20px 16px 36px; }
+      .editor-toolbar { align-items: flex-start; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+      .editor-heading { padding-bottom: 8px; }
+      .editor-heading h1 { font-size: 20px; }
+      .save-state { margin-top: 0; }
+      .toolbar-actions { width: 100%; min-width: 0; }
+      .toolbar-actions .button { flex: 1; min-width: 0; padding-inline: 9px; font-size: 13px; }
+      .editor-grid { grid-template-columns: minmax(0,1fr); gap: 14px; margin-top: 12px; }
+      .tabs { margin-inline: -16px; padding: 0 12px; }
+      .tab { padding: 12px 11px; }
+      .form-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 13px 12px; }
+      .field.full { grid-column: auto; }
+      .field.half, .field.full { grid-column: 1 / -1; }
+      .editor-grid { grid-template-columns: minmax(0,1fr); gap: 14px; }
+      .seo-layout { grid-template-columns: minmax(0,1fr); }
+      .seo-preview { min-height: 0; padding: 14px 0 0; border-left: 0; border-top: 1px solid #e2e8ed; }
+      .filters-group { grid-template-columns: 1fr; }
+      .modal-backdrop.filter-backdrop { position: fixed; inset: 0; background: #fff; pointer-events: auto; }
+      .dialog.filter-dialog { inset: 0; width: 100vw; height: 100vh; height: 100dvh; max-height: none; border: 0; border-radius: 0; box-shadow: none; }
+      .filter-head { min-height: 60px; padding: 12px 16px; }
+      .filter-body { flex: 1; padding: 16px; }
+      .filter-footer { position: sticky; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+      .compare { grid-template-columns: minmax(0,1fr); }
+      .state-card { margin-top: 26px; padding: 18px; }
+      .list-empty { margin-top: 28px; padding: 20px 16px; }
+    }
+    @media (max-width: 390px) {
+      .workspace { padding-inline: 16px; }
+      .topbar { padding-inline: 16px; }
+      .proposal-label { font-size: 10px; }
+      .search-row { grid-template-columns: minmax(0,1fr); }
+      .search-row .control { padding-inline: 9px; font-size: 13px; }
+      .tabs { margin-inline: -16px; }
+    }
+    @media (max-width: 760px) {
+      .mobile-create { display: inline; }
+      .desktop-create { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="rail" aria-label="Заглушка оболочки Directus"><span class="rail-label">CMS</span></div>
+    <main class="app">
+      <header class="topbar"><span class="crumb">Категории</span><span class="divider" aria-hidden="true"></span><span class="crumb" id="top-crumb">Список категорий</span><span class="proposal-label proposal-label-desktop">Предлагаемый вид · отдельный макет</span><div class="topbar-mobile-row"><span class="crumb">Universal Commerce</span></div><div class="topbar-mobile-row"><span class="crumb" id="mobile-crumb">Список категорий</span><span class="proposal-label proposal-label-mobile">Предлагаемый вид · отдельный макет</span></div></header>
+      <div class="workspace" id="app-content"></div>
+    </main>
+  </div>
+  <div id="overlay"></div>
+  <script>
+    (() => {
+      const records = [
+        { title: "Synthetic Tools", slug: "acceptance-83c74e34-sample-tools", status: "published", parent: "Верхний уровень", order: 0, modified: "—", indexable: true },
+        { title: "Synthetic Materials", slug: "acceptance-83c74e34-neutral-materials", status: "published", parent: "Верхний уровень", order: 0, modified: "—", indexable: true },
+        { title: "Synthetic Components", slug: "acceptance-83c74e34-fixture-components", status: "published", parent: "Верхний уровень", order: 0, modified: "—", indexable: true }
+      ];
+      const statusText = { published: "Опубликована", draft: "Черновик", archived: "В архиве" };
+      const state = { search: "Synthetic", status: "all", sort: "modified-desc", parent: "all", indexable: "all", tab: "main", dirty: false };
+      try { const saved = JSON.parse(sessionStorage.getItem("categories-ux-list-state-v2") || "null"); if (saved) Object.assign(state, saved); } catch { /* локальная демонстрация без сохранённых настроек */ }
+      const rememberList = () => { try { sessionStorage.setItem("categories-ux-list-state-v2", JSON.stringify({ search: state.search, status: state.status, sort: state.sort, parent: state.parent, indexable: state.indexable })); } catch { /* storage может быть недоступно */ } };
+      const query = new URLSearchParams(location.search);
+      let screen = query.get("screen") || "list";
+      const content = document.getElementById("app-content");
+      const topCrumb = document.getElementById("top-crumb");
+      const safe = (s) => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+      const go = (name, params = {}) => {
+        const next = new URLSearchParams({ screen: name, ...params });
+        history.pushState({}, "", `?${next}`);
+        screen = name;
+        render(name);
+      };
+      const navLink = (name, label, active) => `<a class="tab" href="?screen=${name}" ${active ? 'aria-current="page"' : ""}>${label}</a>`;
+      const statusBadge = (s) => `<span class="status ${s}">${statusText[s]}</span>`;
+      const toolbar = (title, stateTextLabel = "Нет несохранённых изменений", saveEnabled = true) => `
+        <div class="editor-heading"><h1>${safe(title)}</h1></div>
+        <div class="editor-toolbar"><div class="save-state" id="save-state">${stateTextLabel}</div>
+          <div class="toolbar-actions"><button class="button soft" id="save-button" ${saveEnabled ? "" : "disabled"}>Сохранить</button><a class="button" href="?screen=list" data-go="list">К списку категорий</a></div>
+        </div>`;
+      const tabs = (active) => `<nav class="tabs" aria-label="Разделы категории">${navLink("main", "Основное", active === "main")}${navLink("content", "Содержание", active === "content")}${navLink("seo", "Поиск и ссылки", active === "seo")}${navLink("advanced", "Дополнительно", active === "advanced")}</nav>`;
+      function renderList(mode = "list") {
+        topCrumb.textContent = "Список категорий";
+        document.getElementById("mobile-crumb").textContent = "Список категорий";
+        let rows = [...records];
+        const searchVal = mode === "empty" ? "" : (mode === "no-results" ? "несуществующий запрос" : state.search);
+        if (searchVal) rows = rows.filter(r => `${r.title} ${r.slug}`.toLowerCase().includes(searchVal.toLowerCase()));
+        if (state.status !== "all") rows = rows.filter(r => r.status === state.status);
+        if (state.parent === "none") rows = rows.filter(r => r.parent === "Верхний уровень");
+        if (state.indexable !== "all") rows = rows.filter(r => r.indexable === (state.indexable === "yes"));
+        if (state.sort === "name-asc") rows.sort((a,b) => a.title.localeCompare(b.title));
+        if (state.sort === "name-desc") rows.sort((a,b) => b.title.localeCompare(a.title));
+        if (state.sort === "slug-asc") rows.sort((a,b) => a.slug.localeCompare(b.slug));
+        if (state.sort === "slug-desc") rows.sort((a,b) => b.slug.localeCompare(a.slug));
+        if (state.sort === "order-asc") rows.sort((a,b) => a.order - b.order || a.title.localeCompare(b.title));
+        if (state.sort === "order-desc") rows.sort((a,b) => b.order - a.order || a.title.localeCompare(b.title));
+        if (mode === "empty") rows = [];
+        const row = r => `<tr><td class="name-col"><a class="record-link" href="?screen=main" data-go="main"><span class="record-title">${safe(r.title)}</span><span class="slug">${safe(r.slug)}</span></a></td><td class="parent-col muted">${safe(r.parent)}</td><td class="status-col">${statusBadge(r.status)}</td><td class="order-col">${r.order}</td><td class="modified-col muted">${safe(r.modified)}</td></tr>`;
+        const mobile = r => `<a class="mobile-row" href="?screen=main" data-go="main"><span class="mobile-title-line"><span class="record-title">${safe(r.title)}</span>${statusBadge(r.status)}</span><span class="slug">${safe(r.slug)}</span><span class="mobile-parent">Родитель: ${safe(r.parent)}</span></a>`;
+        let stateBlock = "";
+        if (mode === "empty") stateBlock = `<section class="list-empty"><h2>Категорий пока нет</h2><p>Создайте первую категорию, чтобы начать заполнять каталог.</p><div class="state-actions"><button class="button primary" data-go="new">Создать категорию</button></div></section>`;
+        else if (mode === "no-results" || (!rows.length && mode !== "empty")) stateBlock = `<section class="list-empty"><h2>Ничего не найдено</h2><p>Попробуйте изменить запрос или сбросить фильтр.</p><div class="state-actions"><button class="button" id="clear-search">Очистить поиск</button><button class="button" id="reset-filters">Сбросить фильтры</button></div></section>`;
+        else stateBlock = `<div class="table-wrap"><table aria-label="Категории"><thead><tr><th class="name-col">Название и адрес</th><th class="parent-col">Родительская категория</th><th class="status-col">Статус</th><th class="order-col">Порядок</th><th class="modified-col">Изменено</th></tr></thead><tbody>${rows.map(row).join("")}</tbody></table></div><div class="mobile-list">${rows.map(mobile).join("")}</div><div class="pager"><span>1–${rows.length} из ${rows.length}</span><div class="pager-controls"><button disabled aria-label="Предыдущая страница">Назад</button><span>1 / 1</span><button disabled aria-label="Следующая страница">Вперёд</button></div></div>`;
+        content.innerHTML = `
+          <div class="page-heading"><h1>Категории <span class="count">${rows.length}</span></h1><button class="button primary" data-go="new"><span class="desktop-create">Создать категорию</span><span class="mobile-create">Создать</span></button></div>
+          <div class="search-row">
+            <label class="search"><span class="sr-only">Поиск по названию или адресу</span><input id="search-input" class="control" type="search" placeholder="Поиск по названию или адресу" value="${safe(searchVal)}"></label>
+            <div class="filter-group"><select id="status-filter" class="control" aria-label="Фильтр по статусу"><option value="all">Все статусы</option><option value="published">Опубликованные</option><option value="draft">Черновики</option><option value="archived">В архиве</option></select><button class="button filter-button" id="filters-button">${state.parent !== "all" || state.indexable !== "all" ? `Фильтры · ${Number(state.parent !== "all") + Number(state.indexable !== "all")}` : "Фильтры"}</button></div>
+            <div style="position:relative"><select id="sort-select" class="control" aria-label="Сортировка"><option value="modified-desc">Изменены недавно</option><option value="modified-asc">Изменены давно</option><option value="name-asc">По названию: А → Я</option><option value="name-desc">По названию: Я → А</option><option value="slug-asc">По адресу: A–Z</option><option value="slug-desc">По адресу: Z–A</option><option value="order-asc">По порядку: меньший сначала</option><option value="order-desc">По порядку: больший сначала</option></select>${mode === "sort-options" ? `<div class="sort-popover" role="listbox" aria-label="Варианты сортировки">${[["modified-desc","Изменены недавно"],["modified-asc","Изменены давно"],["name-asc","По названию: А → Я"],["name-desc","По названию: Я → А"],["slug-asc","По адресу: A–Z"],["slug-desc","По адресу: Z–A"],["order-asc","По порядку: меньший сначала"],["order-desc","По порядку: больший сначала"]].map(([value,label]) => `<button class="sort-option" role="option" aria-selected="${state.sort === value}" data-sort="${value}">${label}</button>`).join("")}</div>` : ""}</div>
+          </div>
+          ${stateBlock}
+        `;
+        const search = document.getElementById("search-input");
+        search.addEventListener("input", e => { state.search = e.target.value; rememberList(); renderList("list"); const input = document.getElementById("search-input"); input.focus(); input.setSelectionRange(input.value.length, input.value.length); });
+        document.getElementById("status-filter").value = state.status;
+        document.getElementById("sort-select").value = state.sort;
+        document.getElementById("status-filter").addEventListener("change", e => { state.status = e.target.value; rememberList(); renderList(); });
+        document.getElementById("sort-select").addEventListener("change", e => { state.sort = e.target.value; rememberList(); renderList(); });
+        document.getElementById("filters-button").addEventListener("click", () => openFiltersDialog());
+        document.querySelectorAll("[data-sort]").forEach(el => el.addEventListener("click", () => { state.sort = el.dataset.sort; rememberList(); go("list"); }));
+        document.getElementById("clear-search")?.addEventListener("click", () => { state.search = ""; rememberList(); renderList(); document.getElementById("search-input").focus(); });
+        document.getElementById("reset-filters")?.addEventListener("click", () => { state.status = "all"; state.search = ""; state.parent = "all"; state.indexable = "all"; rememberList(); renderList(); document.getElementById("search-input").focus(); });
+        if (mode === "no-results") { document.getElementById("search-input").value = "несуществующий запрос"; }
+        bindNavigation();
+        if (mode === "filters") openFiltersDialog();
+      }
+      function renderEditor(active = "main", isNew = false) {
+        const title = isNew ? "Новая категория" : "Synthetic Tools";
+        topCrumb.textContent = isNew ? "Новая категория" : title;
+        document.getElementById("mobile-crumb").textContent = isNew ? "Новая категория" : title;
+        const uncertain = screen === "uncertain";
+        const mainForm = `
+          <div class="form-grid">
+            <div class="field half"><label for="title">Название категории *</label><input id="title" value="${uncertain ? "Промышленный привод" : (isNew ? "" : "Synthetic Tools")}" placeholder="Например, садовая техника"><div class="field-error" id="title-error" hidden>Укажите название категории.</div></div>
+            <div class="field half"><label for="slug">Адрес категории *</label><input id="slug" class="${screen === "validation" ? "invalid" : ""}" value="${screen === "validation" ? "existing-category" : (uncertain ? "industrial-drive" : (isNew ? "" : "acceptance-83c74e34-sample-tools"))}" placeholder="например, garden-tools"><div class="help">Публичный адрес: <strong>/category/адрес-категории</strong>. Изменение адреса меняет ссылку на сайте.</div>${screen === "validation" ? `<div class="field-error" role="alert">Этот адрес уже занят другой категорией. Выберите другой адрес.</div>` : ""}</div>
+            <div class="field full"><span class="field-label">Статус публикации</span><div class="status-line"><div class="readonly-box">${isNew ? statusBadge("draft") : statusBadge("published")}</div>${isNew ? "" : `<button class="button small" id="change-status">Изменить публикацию</button>`}</div><div class="help">${isNew ? "Новая категория будет сохранена как черновик." : "Статус можно изменить отдельно; изменение применится после сохранения."}</div></div>
+            <div class="field full"><span class="field-label">Находится в категории</span><div class="readonly-box">Верхний уровень каталога</div><div class="help">Перемещение категории пока недоступно. Остальные сведения можно изменить.</div></div>
+            <div class="field full"><label for="description">Краткое описание</label><textarea id="description" placeholder="Коротко опишите товары в этой категории"></textarea></div>
+            <div class="field full"><label for="order">Порядок в каталоге</label><input id="order" type="number" value="0"><div class="help">Меньшее число — выше в списках сайта. На главной показаны первые восемь опубликованных категорий.</div></div>
+          </div>`;
+        const contentForm = `<div class="form-grid"><div class="field full"><label for="h1">Заголовок на странице</label><input id="h1" value="" placeholder="Если пусто, используется название категории"></div><div class="field full"><label for="intro">Текст в начале страницы</label><textarea id="intro" placeholder="Короткое введение для посетителей"></textarea></div></div><details class="details"><summary>Другие сведения о содержании</summary><div class="details-body"><div class="notice warn">Эти сведения пока не отображаются на сайте и доступны только для просмотра.</div><dl><div class="saved-value"><dt>Дополнительный текст</dt><dd>Не заполнено</dd></div><div class="saved-value"><dt>Советы по выбору</dt><dd>Не заполнено</dd></div><div class="saved-value"><dt>Внутренние ссылки</dt><dd>Не заполнено</dd></div><div class="saved-value"><dt>Ответы на вопросы</dt><dd>Не заполнено</dd></div></dl></div></details>`;
+        const seoForm = `<div class="seo-layout"><div class="seo-fields"><div class="field"><label for="seo-title">Заголовок для поисковых систем</label><input id="seo-title" value=""></div><div class="field"><label for="seo-description">Описание для поисковых систем</label><textarea id="seo-description"></textarea></div></div><aside class="seo-preview"><div class="seo-preview-title">Предпросмотр в поиске</div><div class="seo-preview-empty">Заголовок и описание не заполнены.</div></aside></div><div class="field seo-indexable"><label for="indexable">Разрешить поисковым системам показывать страницу</label><select id="indexable"><option value="yes">Да</option><option value="no">Нет</option></select></div>`;
+        const advancedForm = `<div class="notice">Сохранённые сведения доступны только для просмотра и не меняются при сохранении категории.</div><dl class="details-body"><div class="saved-value"><dt>Показывать на главной</dt><dd>Не включено. Не управляет главной: там показываются первые восемь опубликованных категорий.</dd></div><div class="saved-value"><dt>Иконка категории</dt><dd>Не выбрана.</dd></div><div class="saved-value"><dt>Описание иконки</dt><dd>Не заполнено.</dd></div><div class="saved-value"><dt>Адрес перенаправления</dt><dd>Не заполнено. Сайт сейчас не использует это значение.</dd></div><div class="saved-value"><dt>Изображение для ссылки</dt><dd>Не выбрано. Сайт сейчас не использует отдельное изображение для ссылки.</dd></div><div class="saved-value"><dt>Переводы</dt><dd>Не заполнено.</dd></div><div class="saved-value"><dt>Дополнительное содержание</dt><dd>Не заполнено. Сведения для просмотра доступны во вкладке «Содержание».</dd></div><div class="saved-value"><dt>Время создания</dt><dd>7 октября 2026</dd></div><div class="saved-value"><dt>Последнее изменение</dt><dd>Не указано</dd></div><div class="saved-value"><dt>Идентификатор</dt><dd>Доступен только в системном интерфейсе.</dd></div></dl>`;
+        let panel = active === "main" ? mainForm : active === "content" ? contentForm : active === "seo" ? seoForm : advancedForm;
+        const media = `<section class="media-card"><h2>Основное изображение</h2><div class="image-placeholder" id="image-preview"><div><label for="image-file" class="button small">Выбрать файл</label><input id="image-file" type="file" accept="image/*" class="sr-only"></div></div><div class="help">Изображение сохраняется в CMS, но текущий сайт его не показывает.</div><div class="field" style="margin-top:12px"><label for="image-alt">Описание изображения</label><input id="image-alt" value="" placeholder="Коротко опишите изображение"></div></section>`;
+        const conflictNotice = screen === "conflict" ? `<section class="state-card below-note"><div class="notice error"><strong>Категория изменилась в другом окне. Ваши правки остались в форме.</strong></div><h2>Сравните значения</h2><div class="compare"><section><h3>Ваши правки</h3><p><strong>Название:</strong> Synthetic Tools</p><p><strong>Адрес:</strong> acceptance-83c74e34-sample-tools</p></section><section><h3>Текущие значения</h3><p><strong>Название:</strong> Synthetic Tooling</p><p><strong>Адрес:</strong> acceptance-83c74e34-sample-tools</p></section></div><div class="state-actions"><button class="button" id="keep-mine">Оставить мои правки</button><button class="button" id="take-latest">Отменить мои правки</button></div></section>` : "";
+        const uncertainNotice = screen === "uncertain" ? `<div class="notice warn below-note"><div><strong>Результат сохранения неизвестен. Ввод остался в форме.</strong><div class="help">Проверьте результат создания. Повторная отправка не выполняется.</div><button class="button small" id="check-create-result" type="button">Проверить результат создания</button><div class="help" id="create-check-result" hidden>Макет не подключён к серверу; запрос не повторён.</div></div></div>` : "";
+        const editorStatus = uncertain ? "Результат сохранения неизвестен. Ввод остался в форме." : (screen === "conflict" ? "Есть несохранённые изменения. Сравните значения." : (isNew ? "Новая категория будет сохранена как черновик." : "Нет несохранённых изменений"));
+        content.innerHTML = `<div class="editor-layout"><aside class="directus-sidebar"><div class="site-name">Universal Commerce</div></aside><div class="editor-workspace">${toolbar(title, editorStatus, !uncertain && screen !== "conflict")}${conflictNotice}${uncertainNotice}<div class="editor-grid ${active === "main" ? "has-media" : ""}"><section>${tabs(active)}<div class="form-pane">${panel}</div></section>${active === "main" ? `<aside>${media}</aside>` : ""}</div></div></div>`;
+        bindNavigation();
+        document.getElementById("change-status")?.addEventListener("click", openStatusDialog);
+        document.getElementById("image-file")?.addEventListener("change", e => { const file = e.target.files?.[0]; if (file) { document.getElementById("image-preview").textContent = `Выбран файл: ${safe(file.name)}`; state.dirty = true; document.getElementById("save-state").textContent = "Есть несохранённые изменения"; } });
+        document.getElementById("save-button")?.addEventListener("click", save);
+        document.getElementById("keep-mine")?.addEventListener("click", () => { document.querySelector(".state-card")?.remove(); document.getElementById("save-button").disabled = false; document.getElementById("save-state").textContent = "Есть несохранённые изменения"; });
+        document.getElementById("take-latest")?.addEventListener("click", () => { state.dirty = false; go("main"); document.getElementById("title").value = "Synthetic Tooling"; });
+        document.getElementById("check-create-result")?.addEventListener("click", () => { document.getElementById("create-check-result").hidden = false; });
+        document.querySelectorAll(".form-pane input, .form-pane textarea, .form-pane select").forEach(el => el.addEventListener("input", () => { state.dirty = true; const label = document.getElementById("save-state"); if (label) label.textContent = "Есть несохранённые изменения"; }));
+      }
+      function openStatusDialog() {
+        const overlay = document.getElementById("overlay");
+        overlay.innerHTML = `<div class="modal-backdrop" role="presentation"><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="status-title"><h2 id="status-title">Изменить публикацию</h2><p>Новый статус применится после сохранения категории.</p><fieldset class="choices" style="border:0;padding:0"><legend class="sr-only">Выберите статус публикации</legend><label class="choice"><input type="radio" name="publish" value="published" checked><div><strong>${statusBadge("published")}</strong><span>Страница доступна посетителям каталога.</span></div></label><label class="choice"><input type="radio" name="publish" value="draft"><div><strong>${statusBadge("draft")}</strong><span>Страница не показывается посетителям.</span></div></label><label class="choice"><input type="radio" name="publish" value="archived"><div><strong>${statusBadge("archived")}</strong><span>Страница снята с публикации и сохранена.</span></div></label></fieldset><div class="dialog-actions"><button class="button" id="cancel-status">Отмена</button><button class="button primary" id="apply-status">Применить к форме</button></div></section></div>`;
+        document.getElementById("cancel-status").addEventListener("click", () => { overlay.innerHTML = ""; document.getElementById("change-status")?.focus(); });
+        document.getElementById("apply-status").addEventListener("click", () => { const chosen = overlay.querySelector("input[name=publish]:checked").value; overlay.innerHTML = ""; const status = document.querySelector(".status-line .status"); if (status) { status.className = `status ${chosen}`; status.textContent = statusText[chosen]; } state.dirty = true; document.getElementById("save-state").textContent = `Статус «${statusText[chosen]}» применится после сохранения`; document.getElementById("change-status")?.focus(); });
+        overlay.querySelector("input").focus();
+        overlay.querySelector(".modal-backdrop").addEventListener("click", e => { if (e.target === e.currentTarget) document.getElementById("cancel-status").click(); });
+      }
+      function openFiltersDialog() {
+        const overlay = document.getElementById("overlay");
+        const draft = { parent: state.parent, indexable: state.indexable };
+        overlay.innerHTML = `<div class="modal-backdrop filter-backdrop" role="presentation"><section class="dialog filter-dialog" role="dialog" aria-modal="true" aria-labelledby="filters-title"><header class="filter-head"><h2 id="filters-title">Фильтры</h2><button class="button filter-close" id="close-filters">Закрыть</button></header><div class="filter-body"><div class="filters-group"><div class="field"><label for="filter-parent">Родительская категория</label><select id="filter-parent"><option value="all">Любая</option><option value="none">Верхний уровень каталога</option></select></div><div class="field"><label for="filter-indexable">Индексация страницы</label><select id="filter-indexable"><option value="all">Любое значение</option><option value="yes">Разрешена</option><option value="no">Запрещена</option></select></div></div></div><footer class="filter-footer"><button class="button" id="reset-filter-draft">Сбросить</button><button class="button primary" id="apply-filters">Применить</button></footer></section></div>`;
+        overlay.querySelector("#filter-parent").value = draft.parent;
+        overlay.querySelector("#filter-indexable").value = draft.indexable;
+        document.getElementById("close-filters").addEventListener("click", () => { overlay.innerHTML = ""; document.getElementById("filters-button")?.focus(); });
+        document.getElementById("reset-filter-draft").addEventListener("click", () => { overlay.querySelector("#filter-parent").value = "all"; overlay.querySelector("#filter-indexable").value = "all"; });
+        document.getElementById("apply-filters").addEventListener("click", () => { state.parent = overlay.querySelector("#filter-parent").value; state.indexable = overlay.querySelector("#filter-indexable").value; rememberList(); overlay.innerHTML = ""; renderList("list"); document.getElementById("filters-button")?.focus(); });
+        overlay.querySelector("#filter-parent").focus();
+      }
+      function save() {
+        const title = document.getElementById("title");
+        const error = document.getElementById("title-error");
+        if (title && !title.value.trim()) { error.hidden = false; title.focus(); return; }
+        const label = document.getElementById("save-state");
+        if (label) label.textContent = "Изменения сохранены в этом макете";
+        state.dirty = false;
+      }
+      function renderState(mode) {
+        const states = {
+          denied: { crumb: "Нет доступа", cls: "error", title: "Нет доступа к категориям", text: "У вашей учётной записи нет разрешения просматривать этот раздел. Если доступ нужен для работы, обратитесь к администратору каталога.", action: null },
+          error: { crumb: "Ошибка загрузки", cls: "error", title: "Не удалось загрузить категории", text: "Проверьте соединение и повторите загрузку. Поиск и фильтры сохранены.", action: "Повторить загрузку" }
+        }[mode];
+        topCrumb.textContent = states.crumb;
+        document.getElementById("mobile-crumb").textContent = states.crumb;
+        renderList("list");
+        content.querySelectorAll(".table-wrap,.mobile-list,.pager,.list-empty,.count").forEach(element => element.remove());
+        if (mode === "denied") content.querySelectorAll(".search-row,.page-heading button").forEach(element => element.remove());
+        content.insertAdjacentHTML("beforeend", `<section class="list-empty"><h2>${safe(states.title)}</h2><p>${safe(states.text)}</p>${states.action ? `<button class="button" id="state-action">${safe(states.action)}</button>` : ""}</section>`);
+        document.getElementById("state-action")?.addEventListener("click", () => render("list"));
+        bindNavigation();
+      }
+      function bindNavigation() {
+        document.querySelectorAll("[data-go]").forEach(el => el.addEventListener("click", event => { event.preventDefault(); const next = el.getAttribute("data-go"); go(next); }));
+        document.querySelectorAll(".tab[href]").forEach(el => el.addEventListener("click", event => { event.preventDefault(); go(el.getAttribute("href").split("screen=")[1]); }));
+      }
+      function render(mode) {
+        if (["list", "empty", "no-results", "filters", "sort-options"].includes(mode)) renderList(mode);
+        else if (["main", "new", "validation", "conflict", "status"].includes(mode)) { renderEditor("main", mode === "new"); if (mode === "status") setTimeout(openStatusDialog, 0); }
+        else if (["content", "seo", "advanced"].includes(mode)) renderEditor(mode);
+        else if (mode === "uncertain") renderEditor("main", true);
+        else if (["denied", "error"].includes(mode)) renderState(mode);
+        else renderList();
+      }
+      window.addEventListener("popstate", () => { screen = new URLSearchParams(location.search).get("screen") || "list"; render(screen); });
+      render(screen);
+    })();
+  </script>
+</body>
+</html>
