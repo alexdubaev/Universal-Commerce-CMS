@@ -1,0 +1,130 @@
+{
+  "type": "lead-consolidated installed acceptance; full run plus bounded harness closure",
+  "target": "http://127.0.0.1:18056",
+  "hashes": {
+    "categories.js": {
+      "candidate": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75",
+      "mounted": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75"
+    },
+    "served-extensions-index": "1ab7f3af5e8618528981dbb8db05350de521dec808f9ed41166d562b2d863afa"
+  },
+  "runtimeTopology": {
+    "project": "universal-commerce-cms-dev",
+    "directusComposeCheckout": "Universal Commerce CMS",
+    "databaseComposeCheckout": "Universal Commerce CMS",
+    "directusComposePath": "dev/compose.yml",
+    "databaseComposePath": "dev/compose.yml",
+    "composePathsDiffer": true,
+    "sameRepository": true,
+    "sharedProjectNetwork": true,
+    "dbHost": "db",
+    "directusUploadsVolume": "universal-commerce-cms-dev_directus-uploads",
+    "postgresDataVolume": "universal-commerce-cms-dev_postgres-data"
+  },
+  "results": [
+    {
+      "name": "synthetic list, real paging, all sort directions, stable id tie-breaker, desktop and mobile",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "list context survives card return with search, filters, sort and page",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "filter dialog cancel/apply focus; no results, controlled empty/error/403 labels",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "native category card content, SEO, readonly parent, preservation, and desktop/mobile capture",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "status intent changes are explicit; ordinary save preserves status; unknown status and native draft",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "native create with reserved transport UUID and lost acknowledgement blocks retry",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "duplicate address and validation focus; real CAS409 retains local changes and reconcile",
+      "status": "PASS",
+      "sourceRun": "62d7182a-57d0-4103-882c-c571f8d676b6"
+    },
+    {
+      "name": "lost committed update ack, malformed ack, and failed readback preserve local data",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "anonymous read and guarded write are denied; actual manager availability is reported",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "native Directus file library selection and unlink retain the owned file",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "controlled empty collection is distinguished from no-results state",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    },
+    {
+      "name": "only scoped own-fixture beforeunload dialogs were accepted",
+      "status": "PASS",
+      "sourceRun": "3beae68e-cb16-4430-973b-d77a53c882eb"
+    }
+  ],
+  "functionalScenarios": 12,
+  "cleanup": true,
+  "pageErrorCount": 0,
+  "sourceRuns": [
+    {
+      "run": "3beae68e-cb16-4430-973b-d77a53c882eb",
+      "exitCode": 1,
+      "explanation": "All other scenarios passed; CAS case stopped at an incorrect native-field selector in the probe. No product change followed."
+    },
+    {
+      "run": "62d7182a-57d0-4103-882c-c571f8d676b6",
+      "exitCode": 0,
+      "explanation": "CAS-only closure after matching native checkbox and active tabs, explicit Compare flow, and scoped status locator."
+    }
+  ],
+  "siteEffects": {
+    "requested": true,
+    "ran": true,
+    "ttlSeconds": 300,
+    "publicationApi": [
+      {
+        "status": "archived",
+        "visibleOwnRows": 0,
+        "excluded": true
+      },
+      {
+        "status": "published",
+        "visibleOwnRows": 1,
+        "ownRecordMatched": true
+      },
+      {
+        "status": "draft",
+        "visibleOwnRows": 0,
+        "excluded": true
+      }
+    ],
+    "storefrontRouteStatus": 200,
+    "renderedOwnContent": true
+  },
+  "notes": [
+    "Live site-effects check used the existing verified non-admin gateway account; Next category caching is 300 seconds, so immediate storefront visibility after unpublishing was not asserted. Gateway exclusion of draft and archived states was checked directly.",
+    "Manager-role inspection: 0 pre-existing manager-like role(s) visible through policy relationships; no role was created or changed, and no access capability was inferred."
+  ],
+  "expectedFaultConsoleErrors": 9
+}

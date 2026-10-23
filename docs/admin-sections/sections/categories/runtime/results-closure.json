@@ -1,0 +1,158 @@
+{
+  "run": "62d7182a-57d0-4103-882c-c571f8d676b6",
+  "target": "http://127.0.0.1:18056",
+  "mode": "installed candidate; no browser module substitution",
+  "hashes": {
+    "categories.js": {
+      "candidate": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75",
+      "mounted": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75"
+    },
+    "served-extensions-index": "1ab7f3af5e8618528981dbb8db05350de521dec808f9ed41166d562b2d863afa"
+  },
+  "runtimeTopology": {
+    "project": "universal-commerce-cms-dev",
+    "directusComposeCheckout": "Universal Commerce CMS",
+    "databaseComposeCheckout": "Universal Commerce CMS",
+    "directusComposePath": "dev/compose.yml",
+    "databaseComposePath": "dev/compose.yml",
+    "composePathsDiffer": true,
+    "sameRepository": true,
+    "sharedProjectNetwork": true,
+    "dbHost": "db",
+    "directusUploadsVolume": "universal-commerce-cms-dev_directus-uploads",
+    "postgresDataVolume": "universal-commerce-cms-dev_postgres-data"
+  },
+  "results": [
+    {
+      "name": "duplicate address and validation focus; real CAS409 retains local changes and reconcile",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    },
+    {
+      "name": "exact owned cleanup categories",
+      "status": "PASS"
+    }
+  ],
+  "notes": [],
+  "pass": 31,
+  "fail": 0,
+  "skipped": 0,
+  "cleanup": true,
+  "pageErrorCount": 0,
+  "consoleErrorCount": 5
+}
