@@ -1,0 +1,285 @@
+{
+  "date": "2026-10-24",
+  "baseSha": "22c2892e3ee632e0a08e0f9ba27bc47b7dc649bc",
+  "installedDirectus": "12.1.1",
+  "installedRelease": "22c2892e3ee632e0a08e0f9ba27bc47b7dc649bc",
+  "installedAggregateSha256": "28eedfd568f3d9228bef6b70ee1bd6fdaaac5a2049c0673d99e77e4b41eb9349",
+  "target": "http://127.0.0.1:18056",
+  "capture": "current Windows in-app browser; screenshots from tab.screenshot; no response override or bundle replacement",
+  "proposalSha256": "58718ec28d948446eece1523008a16ab11ee358b61e620906b80d66895357313",
+  "images": [
+    {
+      "file": "after-blocks-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "295c6ac83d0739d2d2988ab466591a018917f9067352039b39c2e60088606b53"
+    },
+    {
+      "file": "after-blocks-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "de071746314f0b4dc340c9c10acde8f9fcc2d0ba91864fb817f5c20442e7ace4"
+    },
+    {
+      "file": "after-content-lower-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "c4800892aa60e5e4bfefc7ad2105a4d807bc7a798a82c256cbcee2d1dfe2108b"
+    },
+    {
+      "file": "after-empty-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "1cafa4e1f8713fd300018b5212d88c925f511931db513700c0865e4a1251a80a"
+    },
+    {
+      "file": "after-empty-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "a74a0fa57a04075bd52a92ead1c1552c28b573d5f8f47f5ad05d5399570d8e09"
+    },
+    {
+      "file": "after-list-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "07e0994ddb6675f0a74c5a85b9ae77a87307c956eea892291bceb051c787402c"
+    },
+    {
+      "file": "after-list-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "996421b51a8a221581b26e5abb8a3922b1464143f2e5e0df4e7c86cd519ac728"
+    },
+    {
+      "file": "after-main-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "fdd7348e9ac181ec3cd101f4e0c84d27f4b716181719a5f2c328e0d714fa4063"
+    },
+    {
+      "file": "after-main-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "da95609ebf9a45c556ff388883be3aedd6a75d456fe8c3bb38d75d52f7a7e0ad"
+    },
+    {
+      "file": "after-new-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d1fe80010e3170bfb03427fcce5677a4fdd73eeeddb6b45012cd3de77ec4a683"
+    },
+    {
+      "file": "after-new-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "3aa2215649a08d20f04c64832517f6584c12474d9aa13a485708957d172a9b8d"
+    },
+    {
+      "file": "after-no-results-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "1071e6422d84a444ceef667459e809ea44edcc038a6cf6db93da634ccda381fb"
+    },
+    {
+      "file": "after-no-results-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "0bb599b9e5af8c838d785f1aea4b11dbfb1d94399bd0f98cc54ec88f4849422d"
+    },
+    {
+      "file": "after-public-link-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "a6bece5a71271fd637b769bfbb0b97b783e50ddbb4f10e2670ae18a0c82fee5f"
+    },
+    {
+      "file": "after-publication-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c01c71cafd954333e0a9550372285b7079f9a6f1b27e6c7fe3d61c231dd1a850"
+    },
+    {
+      "file": "after-publication-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "cb5aa28b60b961747a27bf84b93918f1c7143b3252f9661c6614470778b3fd49"
+    },
+    {
+      "file": "after-search-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "4f969e374be1919c8b37e04f30ac03beb2ebb5132a1fa057952e177a420f7cab"
+    },
+    {
+      "file": "after-search-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "8436a9b6da367a80f7218188ae7c8cdc57eaf806871c913c69ccc9eb38239204"
+    },
+    {
+      "file": "after-unconfigured-context-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "1966efa3ff9c34160fe75f236ffe9543604d3e5859480fa1091482f394400452"
+    },
+    {
+      "file": "after-unconfigured-desktop.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "0e24ec279b8b3366e0fcd6ea897eec850e406724487bfe68d7fd633aa101f4fb"
+    },
+    {
+      "file": "after-unconfigured-mobile.jpg",
+      "kind": "rendered isolated proposal; not installed",
+      "width": 390,
+      "height": 844,
+      "sha256": "9bd3e27102921222cf2ed999211e1e3478a0b1f05dea0ac04c8c6d53e6025b9a"
+    },
+    {
+      "file": "before-blocks-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "0a808f703258bd2be3f75d453fc12a14311b132d6bd0d95b15eb916b470de659"
+    },
+    {
+      "file": "before-blocks-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "c9fd021f91fa1bee45d040850eb546fd251b912d0b88bb5779473da6abd85ca1"
+    },
+    {
+      "file": "before-content-lower-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "380512743de1241c2b731f2d50d6cf63937fe3d9c28270c25587d340242f1039"
+    },
+    {
+      "file": "before-list-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "f15f62bc368b952fa91719408170ca2e234debfda7fd49e58db31b55cc5e65b0"
+    },
+    {
+      "file": "before-list-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "f9b591e46d3b16144f2e0f1d62f5853cb84a29bdeb8f83ebc7bc3a75c21c0a34"
+    },
+    {
+      "file": "before-main-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "5c4d26e087e10b8f2478178c7c193bea82f21c36380b48a0262f69e3a9f5cea4"
+    },
+    {
+      "file": "before-main-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "bc05c3a071aa8a0ebfaa3e5dd4abf3d2852f4fca8fbeb2b2e93885b49b3b30e0"
+    },
+    {
+      "file": "before-new-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d72cac36b28da98d967f6c6563a954ca2b42c776044e5ed4f633e78006208d95"
+    },
+    {
+      "file": "before-new-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "64b37ac74e6e6a2615700978f2ab12f14c8d1c0883435aa7f6d072eead3415cb"
+    },
+    {
+      "file": "before-no-results-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "bdc1a471cd3167bee5b636ce6dff8a378dde67324cc40887f49ce2aa408979d9"
+    },
+    {
+      "file": "before-no-results-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "65dd92750e87c96e04a6ff62afc58f08bfe593ee304a4becf0efdbba19cfdcf5"
+    },
+    {
+      "file": "before-publication-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "4d21f605eb042597237331b9c362169467e800bce7373e84f2cb863c34c02293"
+    },
+    {
+      "file": "before-publication-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "48201b92724f2609319d027e986964e6aaffd95483cb3f12d8c654fe2b017429"
+    },
+    {
+      "file": "before-search-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "77c1bd1fff787f35aed55724b8c29e7888812a028adf06fba38de6b8960f6b2c"
+    },
+    {
+      "file": "before-search-expanded-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "8c901a2b951b732ee9fe8d9b7f0ee1c2263d25ac975e34f239a64a77e175e494"
+    },
+    {
+      "file": "before-search-lower-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "7db24d26a3d4ff57894b155d1a2e8f9ea7e6988e06cd2b0a7fffa075b63fa312"
+    },
+    {
+      "file": "before-search-mobile.jpg",
+      "kind": "installed current CMS",
+      "width": 390,
+      "height": 844,
+      "sha256": "f6e172bd0d83c5f1dd2047466b10b7278e12b1b067d562e3c96c88e1d9b7f1af"
+    },
+    {
+      "file": "before-source-protected-desktop.jpg",
+      "kind": "installed current CMS",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ddf2e8e8fac022f0651f978a394ab205d83d33b01fa8c12ffd65d8645c59912d"
+    }
+  ]
+}

@@ -1,0 +1,241 @@
+{
+  "capturedAt": "2026-10-24T18:42:34.700Z",
+  "provenance": "installedcandidate",
+  "source": {
+    "sha": "22c2892e3ee632e0a08e0f9ba27bc47b7dc649bc",
+    "clean": false
+  },
+  "runtime": {
+    "target": "http://127.0.0.1:18056",
+    "directusVersion": "12.1.1",
+    "aggregateSha256": "d8a9f876785624c5d32b2805642c3240e5f8a1897c1f5341e93374b5a0f09d1c"
+  },
+  "artifacts": [
+    {
+      "relative": "commerce-api/src/index.js",
+      "sha256": "b44bc7cd82f6ef3d2211681f3a60724531770fb1d449338d8f7b1f2252180851"
+    },
+    {
+      "relative": "commerce-api/dist/index.js",
+      "sha256": "b44bc7cd82f6ef3d2211681f3a60724531770fb1d449338d8f7b1f2252180851"
+    },
+    {
+      "relative": "commerce-api/src/storefront-config.mjs",
+      "sha256": "1fe9fd89bc934177e1bfc575376ea4bb56e52818f9fe2a41bd784c13e1bebc11"
+    },
+    {
+      "relative": "commerce-api/dist/storefront-config.mjs",
+      "sha256": "1fe9fd89bc934177e1bfc575376ea4bb56e52818f9fe2a41bd784c13e1bebc11"
+    },
+    {
+      "relative": "deere-shop-product-editor/src/sections/pages.js",
+      "sha256": "71109cabff4a988bd349427a881b9cdd98594394d6b9be9b44840562b782fdce"
+    },
+    {
+      "relative": "deere-shop-product-editor/dist/sections/pages.js",
+      "sha256": "71109cabff4a988bd349427a881b9cdd98594394d6b9be9b44840562b782fdce"
+    }
+  ],
+  "contrastAudit": [
+    {
+      "label": "draft badge in list",
+      "available": true,
+      "passed": true,
+      "rows": [
+        {
+          "text": "Черновик",
+          "color": "rgb(79, 84, 100)",
+          "background": "color(srgb 1 0.964314 0.922353)",
+          "contrast": 7.05,
+          "disabled": false
+        }
+      ],
+      "failures": []
+    },
+    {
+      "label": "draft badge in editor header",
+      "available": true,
+      "passed": true,
+      "rows": [
+        {
+          "text": "Черновик",
+          "color": "rgb(79, 84, 100)",
+          "background": "color(srgb 1 0.964314 0.922353)",
+          "contrast": 7.05,
+          "disabled": false
+        }
+      ],
+      "failures": []
+    },
+    {
+      "label": "page context values",
+      "available": true,
+      "passed": true,
+      "rows": [
+        {
+          "text": "",
+          "skipped": true,
+          "reason": "container has no direct visible text node; descendants are measured separately"
+        },
+        {
+          "text": "Запрещена",
+          "color": "rgb(79, 84, 100)",
+          "background": "rgba(0, 0, 0, 0)",
+          "contrast": 7.54,
+          "disabled": false
+        }
+      ],
+      "failures": []
+    },
+    {
+      "label": "draft badge in page context",
+      "available": true,
+      "passed": true,
+      "rows": [
+        {
+          "text": "Черновик",
+          "color": "rgb(79, 84, 100)",
+          "background": "color(srgb 1 0.964314 0.922353)",
+          "contrast": 7.05,
+          "disabled": false
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "blockedNonAuthenticationRequests": [
+    {
+      "method": "PATCH",
+      "path": "/users/me/track/page"
+    }
+  ],
+  "contentWriteAttempts": [],
+  "screenshots": [
+    {
+      "file": "pages-list-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "7492c0dfde229846496f8d5947f1d8b6c0a3eede0c68adaa1dbd44ca4845d7ac"
+    },
+    {
+      "file": "pages-list-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "0ae0dc1d03d14e921a938376c80827d8e2f713b1fca3a15e6e04cae35d503368"
+    },
+    {
+      "file": "pages-search-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "3523b3497ccb5d0ee953659445babbbb2bdc7232a185edc36f2039bc1a820977"
+    },
+    {
+      "file": "pages-search-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "d12221a21d5ff4e66d556a25a3739109a390986650149b0ef42f878e01e4367d"
+    },
+    {
+      "file": "new-blank-draft-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "a5785bc536c4036ff602aa11889552040da8711eb33082f7bed0e5e948bccc8e"
+    },
+    {
+      "file": "new-blank-draft-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "58b497c434ee32a3608875978473762e3d2b235f4865fd15d1f019a0731a88bb"
+    },
+    {
+      "file": "existing-draft-main-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "e5cb45880e29173cf24f299b397edd74e35a72a7845f825dae4b9f186cb73f2b"
+    },
+    {
+      "file": "page-1-main-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "edd4d283d65474ca112bc347a51a83a4f3c6f685f9ff4a57a73c09c75fedee14"
+    },
+    {
+      "file": "page-1-main-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "b646ea14252035fe64ea49fd1eb69efc24caaad7d5c997b2763b6ec01847b0be"
+    },
+    {
+      "file": "page-1-main-lower-intro-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "f584ebba879fe146307580d30feb2b20c9f733a5f8b64d87864d7913b9c984d4"
+    },
+    {
+      "file": "page-1-main-lower-seo-text-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "fca8f85b12e4313cdabadab822df387257282f9a52e3212497771ecc8c2ec7ba"
+    },
+    {
+      "file": "page-1-blocks-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d7644a277cef9eb49fdea25c87ab97f2d1d6ac0fb2707d0357e3408d91b90331"
+    },
+    {
+      "file": "page-1-blocks-lower-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "a905ab31acd8c8c99b003a25dd8c69e53dbda065088a63817ecc7b3338206f5c"
+    },
+    {
+      "file": "page-1-additional-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "06cc8ad51bd08ab1db5738e67336c13a4c5701c026a659d34e22d8ac7c180ea9"
+    },
+    {
+      "file": "page-1-additional-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "77d0a98f45304b367f848560ae658f1035ab2f4cf513a1f1a51191033b3887ba"
+    },
+    {
+      "file": "page-1-seo-search-settings-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "02bd342a9a594835b6df1e8cb255e6f9c07748423e6f7e2c5012b15d711871ea"
+    },
+    {
+      "file": "page-1-seo-search-settings-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "670838c3bb4196945e90b20c8be17eef5dcbb00404e8c1041e6d25fdd6d28485"
+    },
+    {
+      "file": "page-1-seo-lower-content-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "670838c3bb4196945e90b20c8be17eef5dcbb00404e8c1041e6d25fdd6d28485"
+    },
+    {
+      "file": "page-1-existing-block-rendered-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "13b220972b8bc3aa4fa74258034d225fb67db269e97ee995059f45de29b17a50"
+    },
+    {
+      "file": "publication-dialog-desktop-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "377d0f5087feb06cebd7983675b48b5d0513895a06228beebee5677d43db9863"
+    },
+    {
+      "file": "publication-dialog-mobile-390x844.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "e1253f4aa688aba7828ff37e76076e2baf7ed13e508b6969b4716168ffef2b96"
+    }
+  ]
+}

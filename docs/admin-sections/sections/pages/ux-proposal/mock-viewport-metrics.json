@@ -1,0 +1,164 @@
+[
+  {
+    "file": "after-main-desktop.jpg",
+    "view": "main",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-search-desktop.jpg",
+    "view": "search",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-new-desktop.jpg",
+    "view": "new",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-list-desktop.jpg",
+    "view": "list",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-no-results-desktop.jpg",
+    "view": "list",
+    "state": "no-results",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-empty-desktop.jpg",
+    "view": "list",
+    "state": "empty",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-blocks-desktop.jpg",
+    "view": "blocks",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-publication-desktop.jpg",
+    "view": "status",
+    "state": "",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-unconfigured-desktop.jpg",
+    "view": "main",
+    "state": "unconfigured",
+    "clientWidth": 1536,
+    "documentWidth": 1536,
+    "height": 1024,
+    "width": 1536
+  },
+  {
+    "file": "after-main-mobile.jpg",
+    "view": "main",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-search-mobile.jpg",
+    "view": "search",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-new-mobile.jpg",
+    "view": "new",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-list-mobile.jpg",
+    "view": "list",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-no-results-mobile.jpg",
+    "view": "list",
+    "state": "no-results",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-empty-mobile.jpg",
+    "view": "list",
+    "state": "empty",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-blocks-mobile.jpg",
+    "view": "blocks",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-publication-mobile.jpg",
+    "view": "status",
+    "state": "",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  },
+  {
+    "file": "after-unconfigured-mobile.jpg",
+    "view": "main",
+    "state": "unconfigured",
+    "clientWidth": 390,
+    "documentWidth": 390,
+    "height": 844,
+    "width": 390
+  }
+]

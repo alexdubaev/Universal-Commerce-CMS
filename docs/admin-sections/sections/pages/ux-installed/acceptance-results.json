@@ -1,0 +1,558 @@
+{
+  "date": "2026-10-24",
+  "target": "http://127.0.0.1:18056",
+  "directus": "12.1.1",
+  "provenance": "installed Windows Directus; no extension-module response overrides",
+  "behaviorArtifactSha256": "757d47a13cd730e3033c762a42ce9f74937ab680a8332fc218942a9846fbe09f",
+  "finalVisualArtifactSha256": "71109cabff4a988bd349427a881b9cdd98594394d6b9be9b44840562b782fdce",
+  "distinction": "Functional coverage is from candidate 5; candidate 6 changes only local contrast, presentation and human copy. Its visual closure and the final-source local gate are recorded separately.",
+  "functionalOutcomeCount": 20,
+  "cases": [
+    {
+      "name": "installed bundle and live list query render",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce",
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "bc879eae-f39c-4c29-a000-8af21073eb67",
+        "c9fab260-24a5-454f-8c6d-7fdfc4be29ee",
+        "d2b535df-df6f-4897-a19d-3ea1251f63b6"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "native create journals its exact UUID before POST and reloads",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce",
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "bc879eae-f39c-4c29-a000-8af21073eb67",
+        "c9fab260-24a5-454f-8c6d-7fdfc4be29ee",
+        "d2b535df-df6f-4897-a19d-3ea1251f63b6"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "synthetic fixture creation and ownership relations",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce",
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "bc879eae-f39c-4c29-a000-8af21073eb67",
+        "c9fab260-24a5-454f-8c6d-7fdfc4be29ee",
+        "d2b535df-df6f-4897-a19d-3ea1251f63b6"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "committed save with lost acknowledgement stays locked and retains input",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "d2b535df-df6f-4897-a19d-3ea1251f63b6"
+      ],
+      "failedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ]
+    },
+    {
+      "name": "native child save checks page owner, advances parent and preserves staged parent edits",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": [
+        "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "d2b535df-df6f-4897-a19d-3ea1251f63b6"
+      ]
+    },
+    {
+      "name": "status is an explicit status-only CAS, with confirmation for published saves",
+      "passedRuns": [
+        "bc879eae-f39c-4c29-a000-8af21073eb67"
+      ],
+      "failedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "c9fab260-24a5-454f-8c6d-7fdfc4be29ee"
+      ]
+    },
+    {
+      "name": "controlled missing storefront config has no public link and retries",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "controlled update denial renders populated readonly native fields",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "native OG relation interface can select and unlink an owned file without deleting it",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "single SEO surface hydrates JSON fallback and preserves unknown keys",
+      "passedRuns": [
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8"
+      ],
+      "failedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ]
+    },
+    {
+      "name": "server pagination, modified-click navigation and all mobile panel widths are usable",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "dirty navigation cancel retains input and uncertain create never retries or adopts",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "final native card tabs and desktop panel evidence",
+      "passedRuns": [
+        "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "bc879eae-f39c-4c29-a000-8af21073eb67",
+        "c9fab260-24a5-454f-8c6d-7fdfc4be29ee"
+      ],
+      "failedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ]
+    },
+    {
+      "name": "existing commerce routes remain readable without writes",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "controlled list loading/error/retry use distinct states",
+      "passedRuns": [
+        "2a414519-acf8-4fa3-bd4a-cc8689346aa3"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "search/sort/pagination use the live Directus collection",
+      "passedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "filter modal supports cancel, apply, escape, focus return",
+      "passedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "source_page remains read-only",
+      "passedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "native page card main, sections and SEO use real fields",
+      "passedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ],
+      "failedRuns": []
+    },
+    {
+      "name": "native parent save is a delta and real 409 retains input until explicit reconciliation",
+      "passedRuns": [
+        "3fd98d79-3270-4810-b3cb-6cd8277225ce"
+      ],
+      "failedRuns": []
+    }
+  ],
+  "runs": [
+    {
+      "run": "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "committed save with lost acknowledgement stays locked and retains input",
+          "status": "PASS"
+        },
+        {
+          "name": "native child save checks page owner, advances parent and preserves staged parent edits",
+          "status": "PASS"
+        },
+        {
+          "name": "status is an explicit status-only CAS, with confirmation for published saves",
+          "status": "FAIL",
+          "error": "The input did not match the regular expression /a3-2a414519 public intro/. Input:\n\n'<!DOCTYPE html><html lang=\"ru\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"preload\" href=\"/images/sm-techno-logo-transparent.webp\" as=\"image\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/_026f31u6oqtn9._.css\" data-precedence=\"next_static/chunks/_026f31u6oqtn9._.css\"/><link rel=\"preload\" as=\"script\" fetchPriority=\"low\" href=\"/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0qva5cupmdgep._.js\"/><script src=\"/_next/static/chunks/1daa_next_dist_compiled_react-dom_cjs_react-dom-client_development_0mp0cp_t-ezj9.js\" async=\"\"></script><script src=\"/_next/static/chunks/1q96_modules_next_dist_compiled_react-dom_cjs_react-dom_development_1sqry0_53krp4.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_compiled_react-dom_0grqycjrj6mju._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_compiled_react-server-dom-turbopack_164kp-67asdr9._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_compiled_next-devtools_index_090k2jmam7qwg.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_compiled_1amofcmz--cdp._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_client_1wygxxh5rwq0t._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_05y3oi5z9mc_3._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_%40swc_helpers_cjs_1r9vbqwj2323d._.js\" async=\"\"></script><script src=\"/_next/static/chunks/_1anvha4rlo79g._.js\" async=\"\"></script><script src=\"/_next/static/chunks/turbopack-_06rkbud3pyrlm._.js\" async=\"\"></script><script src=\"/_next/static/chunks/_0ay5w4jo673hl._.js\" async=\"\"></script><script src=\"/_next/static/chunks/_02nt2wnvffhf1._.js\" async=\"\"></script><script src=\"/_next/static/chunks/app_error_tsx_01qd85jse_j4l._.js\" async=\"\"></script><script src=\"/_next/static/chunks/app_global-error_tsx_0cmn22jptv5pb._.js\" async=\"\"></script><script src=\"/_next/static/chunks/node_modules_next_dist_build_polyfills_polyfill-nomodule.js\" noModule=\"\"></script></head><body><div hidden=\"\"><!--$?--><template id=\"B:0\"></template><!--/$--></div><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Demo Commerce\",\"email\":\"demo@example.test\",\"telephone\":\"+7 000 000-00-00\",\"url\":\"http://127.0.0.1:3000/\"}</script><a class=\"skip-link\" href=\"#main-content\" tabindex=\"0\">К основному содержимому</a><header class=\"site-header\"><div class=\"shell header-inner\"><a class=\"brand\" aria-label=\"Demo Commerce — главная\" href=\"/\"><img class=\"brand-logo\" src=\"/images/sm-techno-logo-transparent.webp\" alt=\"\" width=\"220\" height=\"86\"/></a><details class=\"catalog-menu\"><summary>Каталог <span aria-hidden=\"true\">⌄</span></summary><div class=\"catalog-menu-panel\"><section><strong>Категории</strong><a href=\"/catalog\">Все товары</a><a href=\"/category/acceptance-83c74e34-fixture-components\">Synthetic Components</a><a href=\"/category/acceptance-83c74e34-neutral-materials\">Synthetic Materials</a><a href=\"/category/acceptance-83c74e34-sample-tools\">Synthetic Tools</a><a href=\"/category/gidravlika\">Гидравлика</a><a href=\"/category/dvigatel\">Двигатель</a><a href=\"/category/detali-uborochnoy-tehniki\">Детали уборочной техники</a><a href=\"/category/zapchasti-john-deere\">Запчасти John Deere</a><a href=\"/category/krepezh\">Крепёж</a><a href=\"/category/naveska-i-tyagi\">Навеска и тяги</a><a href=\"/category/nasosy-i-kompressory\">Насосы и компрессоры</a><a href=\"/category/podveska-i-stabilizatory\">Подвеска и стабилизаторы</a><a href=\"/category/podshipniki-i-vtulki\">Подшипники и втулки</a><a href=\"/category/prochie-detali-john-deere\">Прочие детали John Deere</a><a href=\"/category/rezhuschiy-apparat\">Режущий аппарат</a><a href=\"/category/remni-tsepi-i-shkivy\">Ремни, цепи и шкивы</a><a href=\"/category/rulevoe-upravlenie\">Рулевое управление</a><a href=\"/category/sistema-ohlazhdeniya-i-vpusk\">Система охлаждения и впуск</a><a href=\"/category/tormoznaya-sistema\">Тормозная система</a><a href=\"/category/transmissiya-i-mosty\">Трансмиссия и мосты</a><a href=\"/category/uplotneniya-i-prokladki\">Уплотнения и прокладки</a><a href=\"/category/elektrika\">Электрика</a></section><section><strong>Бренды</strong><a href=\"/brands\">Все бренды</a><a href=\"/brand/fixture-works\">Fixture Works</a><a href=\"/brand/john-deere\">John Deere</a><a href=\"/brand/neutral-parts-lab\">Neutral Parts Lab</a><a href=\"/brand/sample-mechanics\">Sample Mechanics</a></section></div></details><div id=\"article-search\" class=\"header-search\"><!--$--><div class=\"search-wrap compact\"><form class=\"search-box compact\" role=\"search\"><span class=\"search-icon\" aria-hidden=\"true\">⌕</span><input id=\"header-article-search\" disabled=\"\" placeholder=\"Enter a synthetic part number\" aria-label=\"Поиск запчастей\" aria-expanded=\"false\" autoComplete=\"off\" value=\"\"/><button type=\"submit\" disabled=\"\">Search</button></form></div><!--/$--></div><div class=\"header-actions\"><div class=\"header-contacts\"><a class=\"header-phone\" href=\"tel:+70000000000\"><strong>+7 000 000-00-00</strong></a><a class=\"header-email\" href=\"mailto:demo@example.test\">demo@example.test</a></div><a class=\"request-link\" aria-label=\"Ваша заявка\" href=\"/request\"><img class=\"request-icon\" src=\"/images/cart-icon-black.webp\" alt=\"\" width=\"20\" height=\"20\" aria-hidden=\"true\"/><span class=\"request-label\">Заявка</span></a></div><button class=\"menu-toggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"main-navigation\" aria-label=\"Открыть меню\"><span></span><span></span><span></span></button></div><nav id=\"main-navigation\" class=\"main-nav\" aria-label=\"Основная навигация\"><div class=\"shell main-nav-inner\"><a href=\"/acceptance-83c74e34-content-page\">Synthetic header link</a><a href=\"/articles\">Статьи</a></div></nav></header><main id=\"main-content\" tabindex=\"-1\"><div class=\"shell page-shell\"><div class=\"breadcrumbs\"><a href=\"/\">Главная</a><span>/</span><span>a3-2a414519 Другое название</span></div><div class=\"page-title\"><h1>a3-2a414519 public storefront heading</h1><p>a3-2a414519 lost acknowledgement</p></div><section class=\"panel prose cms-seo-text\"><p>a3-2a414519 public body text</p></section></div><!--$?--><template id=\"B:1\"></template><!--/$--></main><footer class=\"site-footer\"><div class=\"shell footer-grid\"><div><div class=\"brand footer-brand\"><img class=\"brand-logo\" src=\"/images/sm-techno-logo-transparent.webp\" alt=\"Demo Commerce\" width=\"240\" height=\"93\"/></div><p>Synthetic draft content for local CMS evaluation.</p></div><div><strong>Разделы</strong><a href=\"/acceptance-83c74e34-content-page\">Synthetic footer link</a><a href=\"/articles\">Статьи</a></div><div><strong>Контакты</strong><a href=\"mailto:demo@example.test\">demo@example.test</a><a href=\"tel:+70000000000\">+7 000 000-00-00</a></div><div class=\"footer-note\"><span>B2B</span><p>Условия поставки, оплаты и документы подтверждаются менеджером при оформлении заявки.</p></div></div><div class=\"shell footer-bottom\"><span>© <!-- -->2026<!-- --> <!-- -->Demo Commerce</span><div class=\"footer-legal\"><a href=\"/acceptance-83c74e34-content-page\">Synthetic legal link</a></div></div></footer><script>requestAnimationFrame(function(){$RT=performance.now()});</script><script id=\"_R_\">self.__next_r=\"hKK4Y49H5qPO4Z4AHav0Y\"</script><script src=\"/_next/static/chunks/%5Bturbopack%5D_browser_dev_hmr-client_hmr-client_ts_0qva5cupmdgep._.js\" async=\"\"></script><script>(self.__next_f=self.__next_f||[]).push([0])</script><script>self.__next_f.push([1,\"7:\\\\\"[project]/node_modules/next/dist/next-devtools/userspace/app/segment-explorer-node.js [app-client] (ecmascript)\\\\\"\\\\n8:\\\\\"/_next/static/chunks/_02nt2wnvffhf1._.js\\\\\"\\\\n9:I[\\\\\"$7\\\\\",[\\\\\"$8\\\\\"],\\\\\"SegmentViewNode\\\\\"]\\\\nb:\\\\\"$Sreact.fragment\\\\\"\\\\n1a:\\\\\"[project]/node_modules/next/dist/client/components/layout-router.js [app-client] (ecmascript)\\\\\"\\\\n1b:I[\\\\\"$1a\\\\\",[\\\\\"$8\\\\\"],\\\\\"default\\\\\"]\\\\n1d:\\\\\"[project]/node_modules/next/dist/client/components/render-from-template-context.js [app-client] (ecmascript)\\\\\"\\\\n1e:I[\\\\\"$1d\\\\\",[\\\\\"$8\\\\\"],\\\\\"default\\\\\"]\\\\n2e:\\\\\"[project]/node_modules/next/dist/lib/framework/boundary-components.js [app-client] (ecmascript)\\\\\"\\\\n2f:I[\\\\\"$2e\\\\\",[\\\\\"$8\\\\\"],\\\\\"OutletBoundary\\\\\"]\\\\n31:\\\\\"$Sreact.suspense\\\\\"\\\\n3e:\\\\\"ViewportBoundary\\\\\"\\\\n3f:I[\\\\\"$2e\\\\\",[\\\\\"$8\\\\\"],\\\\\"$3e\\\\\"]\\\\n48:\\\\\"MetadataBoundary\\\\\"\\\\n49:I[\\\\\"$2e\\\\\",[\\\\\"$8\\\\\"],\\\\\"$48\\\\\"]\\\\n54:\\\\\"[project]/app/global-error.tsx [app-client] (ecmascript)\\\\\"\\\\n55:\\\\\"/_next/static/chunks/app_global-error_tsx_0cmn22jptv5pb._.js\\\\\"\\\\n56:I[\\\\\"$54\\\\\",[\\\\\"$8\\\\\",\\\\\"$55\\\\\"],\\\\\"default\\\\\"]\\\\n:HL[\\\\\"/_next/static/chunks/_026f31u6oqtn9._.css\\\\\",\\\\\"style\\\\\"]\\\\n1:D\\\\\"$4\\\\\"\\\\n1:D\\\\\"$2\\\\\"\\\\n1:D\\\\\"$5\\\\\"\\\\n1:null\\\\ne:D\\\\\"$16\\\\\"\\\\ne:D\\\\\"$f\\\\\"\\\\n1f:X\\\\n23:D\\\\\"$27\\\\\"\\\\n23:D\\\\\"$24\\\\\"\\\\n28:D\\\\\"$2b\\\\\"\\\\n28:D\\\\\"$29\\\\\"\\\\n28:D\\\\\"$2d\\\\\"\\\\n28:[\\\\\"$\\\\\",\\\\\"$L2f\\\\\",null,{\\\\\"children\\\\\":[\\\\\"$\\\\\",\\\\\"$31\\\\\",null,{\\\\\"name\\\\\":\\\\\"Next.MetadataOutlet\\\\\",\\\\\"children\\\\\":\\\\\"$@32\\\\\"},\\\\\"$29\\\\\",\\\\\"$30\\\\\",1]},\\\\\"$29\\\\\",\\\\\"$2c\\\\\",1]\\\\n20:[[\\\\\"children\\\\\",{\\\\\"s\\\\\":\\\\\"__PAGE__\\\\\",\\\\\"d\\\\\":{\\\\\"r\\\\\":[\\\\\"$\\\\\",\\\\\"$b\\\\\",\\\\\"c\\\\\",{\\\\\"children\\\\\":[[\\\\\"$\\\\\",\\\\\"$L9\\\\\",\\\\\"c-page\\\\\",{\\\\\"type\\\\\":\\\\\"page\\\\\",\\\\\"pagePath\\\\\":\\\\\"[slug]/page.tsx\\\\\",\\\\\"children\\\\\":\\\\\"$L23\\\\\"},null,\\\\\"$22\\\\\",1],null,\\\\\"$28\\\\\"]},null,\\\\\"$21\\\\\",0],\\\\\"p\\\\\":false,\\\\\"v\\\\\":null}}]]\\\\n17:[[\\\\\"children\\\\\",{\\\\\"s\\\\\":{\\\\\"n\\\\\":\\\\\"slug\\\\\",\\\\\"t\\\\\":\\\\\"d\\\\\",\\\\\"k\\\\\":\\\\\"a3-2a414519-manual-address\\\\\",\\\\\"s\\\\\":[\\\\\"about\\\\\",\\\\\"api\\\\\",\\\\\"articles\\\\\",\\\\\"brand\\\\\",\\\\\"brands\\\\\",\\\\\"catalog\\\\\",\\\\\"category\\\\\",\\\\\"contacts\\\\\",\\\\\"delivery\\\\\",\\\\\"payment\\\\\",\\\\\"product\\\\\",\\\\\"request\\\\\",\\\\\"sitemap.xml\\\\\",\\\\\"sitemaps\\\\\"]},\\\\\"d\\\\\":{\\\\\"r\\\\\":[\\\\\"$\\\\\",\\\\\"$b\\\\\",\\\\\"c\\\\\",{\\\\\"children\\\\\":[null,[\\\\\"$\\\\\",\\\\\"$L1b\\\\\",null,{\\\\\"parallelRouterKey\\\\\":\\\\\"children\\\\\",\\\\\"error\\\\\":\\\\\"$undefined\\\\\",\\\\\"errorStyles\\\\\":\\\\\"$undefined\\\\\",\\\\\"errorScripts\\\\\":\\\\\"$undefined\\\\\",\\\\\"template\\\\\":[\\\\\"$\\\\\",\\\\\"$L1e\\\\\",null,{},null,\\\\\"$1c\\\\\",1],\\\\\"templateStyles\\\\\":\\\\\"$undefined\\\\\",\\\\\"templateScripts\\\\\":\\\\\"$undefined\\\\\",\\\\\"notFound\\\\\":\\\\\"$undefined\\\\\",\\\\\"forbidden\\\\\":\\\\\"$undefined\\\\\",\\\\\"unauthorized\\\\\":\\\\\"$undefined\\\\\",\\\\\"segmentViewBoundaries\\\\\":[\\\\\"$undefined\\\\\",\\\\\"$undefined\\\\\",\\\\\"$undefined\\\\\",\\\\\"$undefined\\\\\"]},null,\\\\\"$19\\\\\",1]]},null,\\\\\"$18\\\\\",0],\\\\\"p\\\\\":false,\\\\\"v\\\\\":\\\\\"$1f\\\\\"},\\\\\"c\\\\\":\\\\\"$Q20\\\\\"}]]\\\\n34:D\\\\\"$'... 17893 more characters\n"
+        },
+        {
+          "name": "controlled missing storefront config has no public link and retries",
+          "status": "PASS"
+        },
+        {
+          "name": "controlled update denial renders populated readonly native fields",
+          "status": "PASS"
+        },
+        {
+          "name": "native OG relation interface can select and unlink an owned file without deleting it",
+          "status": "PASS"
+        },
+        {
+          "name": "single SEO surface hydrates JSON fallback and preserves unknown keys",
+          "status": "FAIL",
+          "error": "locator.isChecked: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-field=\"is_indexable\"] input[type=\"checkbox\"]')\u001b[22m\n"
+        },
+        {
+          "name": "server pagination, modified-click navigation and all mobile panel widths are usable",
+          "status": "PASS"
+        },
+        {
+          "name": "dirty navigation cancel retains input and uncertain create never retries or adopts",
+          "status": "PASS"
+        },
+        {
+          "name": "final native card tabs and desktop panel evidence",
+          "status": "FAIL",
+          "error": "locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-field=\"translations\"]') to be visible\u001b[22m\n"
+        },
+        {
+          "name": "existing commerce routes remain readable without writes",
+          "status": "PASS"
+        },
+        {
+          "name": "controlled list loading/error/retry use distinct states",
+          "status": "PASS"
+        }
+      ],
+      "pass": 45,
+      "fail": 3
+    },
+    {
+      "run": "3fd98d79-3270-4810-b3cb-6cd8277225ce",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "search/sort/pagination use the live Directus collection",
+          "status": "PASS"
+        },
+        {
+          "name": "filter modal supports cancel, apply, escape, focus return",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "source_page remains read-only",
+          "status": "PASS"
+        },
+        {
+          "name": "native page card main, sections and SEO use real fields",
+          "status": "PASS"
+        },
+        {
+          "name": "native parent save is a delta and real 409 retains input until explicit reconciliation",
+          "status": "PASS"
+        },
+        {
+          "name": "committed save with lost acknowledgement stays locked and retains input",
+          "status": "FAIL",
+          "error": "locator.waitFor: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.a3pages-conflict') to be hidden\u001b[22m\n\u001b[2m    19 × locator resolved to visible <section role=\"region\" aria-label=\"Сверка страницы\" class=\"a3pages-note a3pages-conflict\">…</section>\u001b[22m\n"
+        },
+        {
+          "name": "probe setup/execution",
+          "status": "FAIL",
+          "error": "Required prerequisite failed: committed save with lost acknowledgement stays locked and retains input"
+        }
+      ],
+      "pass": 14,
+      "fail": 2
+    },
+    {
+      "run": "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "status is an explicit status-only CAS, with confirmation for published saves",
+          "status": "FAIL",
+          "error": "locator.click: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ac-shell__header').getByRole('button', { name: 'Сохранить страницу', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\">Сохранить страницу</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    15 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+        },
+        {
+          "name": "single SEO surface hydrates JSON fallback and preserves unknown keys",
+          "status": "PASS"
+        },
+        {
+          "name": "final native card tabs and desktop panel evidence",
+          "status": "PASS"
+        }
+      ],
+      "pass": 11,
+      "fail": 1
+    },
+    {
+      "run": "8cc4181c-9676-4801-802d-649956ceaaf2",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "committed save with lost acknowledgement stays locked and retains input",
+          "status": "PASS"
+        },
+        {
+          "name": "native child save checks page owner, advances parent and preserves staged parent edits",
+          "status": "FAIL",
+          "error": "locator.click: Error: strict mode violation: getByRole('tab', { name: 'Содержимое' }) resolved to 2 elements:\n    1) <button role=\"tab\" type=\"button\" tabindex=\"-1\" aria-selected=\"false\" id=\"admin-tab-1-tab-main\" aria-controls=\"admin-tab-1-panel-main\">Содержимое</button> aka locator('#admin-tab-1-tab-main')\n    2) <button role=\"tab\" tabindex=\"0\" type=\"button\" aria-selected=\"true\" id=\"admin-tab-2-tab-group_content\" aria-controls=\"admin-tab-2-panel-group_content\">Содержимое</button> aka getByRole('region', { name: 'Блоки страницы' }).getByRole('tab', { name: 'Содержимое' })\n\nCall log:\n\u001b[2m  - waiting for getByRole('tab', { name: 'Содержимое' })\u001b[22m\n"
+        },
+        {
+          "name": "probe setup/execution",
+          "status": "FAIL",
+          "error": "Required prerequisite failed: native child save checks page owner, advances parent and preserves staged parent edits"
+        }
+      ],
+      "pass": 10,
+      "fail": 2
+    },
+    {
+      "run": "bc879eae-f39c-4c29-a000-8af21073eb67",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "status is an explicit status-only CAS, with confirmation for published saves",
+          "status": "PASS"
+        },
+        {
+          "name": "final native card tabs and desktop panel evidence",
+          "status": "PASS"
+        }
+      ],
+      "pass": 11,
+      "fail": 0
+    },
+    {
+      "run": "c9fab260-24a5-454f-8c6d-7fdfc4be29ee",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "status is an explicit status-only CAS, with confirmation for published saves",
+          "status": "FAIL",
+          "error": "locator.click: Timeout 8000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ac-shell__header').getByRole('button', { name: 'Сохранить страницу', exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\">Сохранить страницу</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    15 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n"
+        },
+        {
+          "name": "final native card tabs and desktop panel evidence",
+          "status": "PASS"
+        }
+      ],
+      "pass": 10,
+      "fail": 1
+    },
+    {
+      "run": "d2b535df-df6f-4897-a19d-3ea1251f63b6",
+      "results": [
+        {
+          "name": "installed bundle and live list query render",
+          "status": "PASS"
+        },
+        {
+          "name": "native create journals its exact UUID before POST and reloads",
+          "status": "PASS"
+        },
+        {
+          "name": "synthetic fixture creation and ownership relations",
+          "status": "PASS"
+        },
+        {
+          "name": "committed save with lost acknowledgement stays locked and retains input",
+          "status": "PASS"
+        },
+        {
+          "name": "native child save checks page owner, advances parent and preserves staged parent edits",
+          "status": "FAIL",
+          "error": "Changed first child must have an enabled save action\n\nfalse !== true\n"
+        },
+        {
+          "name": "probe setup/execution",
+          "status": "FAIL",
+          "error": "Required prerequisite failed: native child save checks page owner, advances parent and preserves staged parent edits"
+        }
+      ],
+      "pass": 10,
+      "fail": 2
+    }
+  ],
+  "cleanup": {
+    "since": "2026-10-24T18:00:00Z",
+    "checked": 81,
+    "failures": [],
+    "runs": [
+      {
+        "run": "1a4728d9-0459-403e-bef2-5bfcb6552a17",
+        "phase": "initialized",
+        "created": 0,
+        "ledgerUnclean": 0,
+        "absentVerified": 0
+      },
+      {
+        "run": "28bc60ec-332b-48ae-8a8d-bc5f246b6006",
+        "phase": "initialized",
+        "created": 0,
+        "ledgerUnclean": 0,
+        "absentVerified": 0
+      },
+      {
+        "run": "2a414519-acf8-4fa3-bd4a-cc8689346aa3",
+        "phase": "cleanup-progress",
+        "created": 33,
+        "ledgerUnclean": 0,
+        "absentVerified": 33
+      },
+      {
+        "run": "2a732b86-657a-43e3-8aa8-fbf6c8a9d053",
+        "phase": "manual-cleanup-verified-exact-id",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "3fd98d79-3270-4810-b3cb-6cd8277225ce",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "5a7a656d-adb8-48b8-b2f8-ab2ab44fe4e8",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "8cc4181c-9676-4801-802d-649956ceaaf2",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "a7e6af8f-ade3-425f-90b6-61ad1e9bdf7c",
+        "phase": "initialized",
+        "created": 0,
+        "ledgerUnclean": 0,
+        "absentVerified": 0
+      },
+      {
+        "run": "bc879eae-f39c-4c29-a000-8af21073eb67",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "c9fab260-24a5-454f-8c6d-7fdfc4be29ee",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "d2b535df-df6f-4897-a19d-3ea1251f63b6",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      },
+      {
+        "run": "f523e4de-1cab-4dc0-89c0-9cdfb755e0ca",
+        "phase": "cleanup-progress",
+        "created": 6,
+        "ledgerUnclean": 0,
+        "absentVerified": 6
+      }
+    ]
+  },
+  "limitations": [
+    "Administrator UI plus controlled permission-response denial; no new manager account or role was created.",
+    "Empty-collection, unavailable-config and transport-error states use documented controlled responses; ordinary create/CAS/readback/publication/file lifecycle use the real API.",
+    "Legacy JSON-only fallback is covered by the controller/production-hook test; live fixture creation already runs the server projection.",
+    "Observer setup/selector failures are retained privately; individual passing closures do not mean every historical observer run passed."
+  ]
+}
