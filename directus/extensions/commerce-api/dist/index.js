@@ -4,6 +4,7 @@ import { createGuardedVersionSaveHandler, createGuardedVersionPromoteHandler } f
 import { createGuardedMutationHandler } from './mutations.mjs';
 import { createHmac } from "node:crypto";
 import { registerStorefrontGateway } from './storefront.mjs';
+import { registerStorefrontConfig } from './storefront-config.mjs';
 
 // commerce-search — Directus endpoint extension (zero dependencies).
 //
@@ -475,6 +476,7 @@ export function createSearchHandler(context) {
  * the bundle is dependency-free by design).
  */
 export default function registerSearchEndpoint(router, context) {
+  registerStorefrontConfig(router, context);
   registerStorefrontGateway(router, context);
   router.post("/mutations/:collection/:id", createGuardedMutationHandler(context));
   router.post("/orders", createAtomicOrderHandler(context));

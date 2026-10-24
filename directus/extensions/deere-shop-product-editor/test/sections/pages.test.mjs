@@ -4,13 +4,13 @@ import { readFile } from 'node:fs/promises';
 
 // Exercise production controllers and the real A0 state without a second Vue runtime.
 const uri = source => `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
-const vue = uri('export const defineComponent=x=>x; export const h=(type,props,children)=>({type,props:props&&typeof props==="object"&&!Array.isArray(props)?props:{},children:children??props}); export const ref=x=>({value:x}); export const computed=x=>({get value(){return x();}}); export const watch=(getter,callback,options)=>{if(options?.immediate)callback(getter());}; export const onMounted=()=>{}; export const onUnmounted=()=>{}; export const onBeforeUnmount=()=>{}; export const resolveComponent=x=>x;');
+const vue = uri('export const defineComponent=x=>x; export const h=(type,props,children)=>({type,props:props&&typeof props==="object"&&!Array.isArray(props)?props:{},children:children??props}); export const ref=x=>({value:x}); export const computed=x=>({get value(){return x();}}); export const watch=(getter,callback,options)=>{if(options?.immediate)callback(getter());}; export const nextTick=fn=>Promise.resolve().then(fn); export const onMounted=()=>{}; export const onUnmounted=()=>{}; export const onBeforeUnmount=()=>{}; export const resolveComponent=x=>x;');
 const router = uri('export const onBeforeRouteLeave=()=>{}; export const onBeforeRouteUpdate=()=>{}; export const useRouter=()=>({});');
 const sdk = uri('export const useApi=()=>globalThis.__a3Api;');
 const rewrite = source => source.replaceAll('"vue"',JSON.stringify(vue)).replaceAll('"vue-router"',JSON.stringify(router)).replaceAll('"@directus/extensions-sdk"',JSON.stringify(sdk));
 const shell = uri(rewrite(await readFile(new URL('../../src/admin-shell.js',import.meta.url),'utf8')));
 const source = await readFile(new URL('../../src/sections/pages.js',import.meta.url),'utf8');
-const { PagesSection, PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, createPageListController, createPageController, pageSeoInterfaceInitialValues } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={name:"PageSectionEditor"};')))));
+const { PagesSection, PAGE_FIELDS, buildPagesQuery, pagePermissions, validatePage, pageRouteContext, pagePublicUrl, transliteratePageSlug, createPageListController, createPageController, pageSeoInterfaceInitialValues, pageSeoScalarValues } = await import(uri(rewrite(source).replaceAll('"../admin-shell.js"',JSON.stringify(shell)).replaceAll('"../admin-state.mjs"',JSON.stringify(new URL('../../src/admin-state.mjs',import.meta.url).href)).replaceAll('"../page-sections.js"',JSON.stringify(uri('export const PageSectionEditor={name:"PageSectionEditor"};')))));
 const response = data => ({data:{data}});
 const permit = (fields=['*'],access='full') => ({access,fields});
 const permissions = { pages:{read:permit(),update:permit(),create:permit()},home_page:{read:permit(['id','source_page'])},page_sections:{read:permit(),update:permit()},directus_files:{read:permit()} };
@@ -44,6 +44,19 @@ test('server query uses bounded filtered count, three search fields, all filters
  for(const field of ['title','slug','page_type','status','updated_at'])for(const prefix of ['','-'])assert.equal(buildPagesQuery({sort:prefix+field}).sort,prefix+field+',id');
  assert.throws(()=>buildPagesQuery({page:0}));assert.throws(()=>buildPagesQuery({sort:'secret'}));assert.throws(()=>buildPagesQuery({filters:{status:'secret'}}));
 });
+test('Russian title slug suggestion and public link use safe configured base plus saved published route',()=>{
+ assert.equal(transliteratePageSlug('Доставка и оплата'),'dostavka-i-oplata');
+ assert.equal(transliteratePageSlug('Ёжик, ABC!'),'ezhik-abc');
+ const saved={status:'published',slug:'saved-route'};
+ assert.equal(pagePublicUrl('https://shop.example/prefix/',saved),'https://shop.example/prefix/saved-route');
+ assert.equal(pagePublicUrl('https://user:pass@shop.example',saved),null);
+ assert.equal(pagePublicUrl('https://shop.example/?token=x',saved),null);
+ assert.equal(pagePublicUrl(' https://shop.example ',saved),null);
+ assert.equal(pagePublicUrl('https://shop.example\\@evil.example',saved),null);
+ assert.equal(pagePublicUrl('javascript:alert(1)',saved),null);
+ assert.equal(pagePublicUrl('https://shop.example',{...saved,status:'draft'}),null);
+ assert.equal(pagePublicUrl('https://shop.example',{...saved,slug:'admin'}),null);
+});
 test('permission parsing fails closed on missing/malformed/partial-create and requires item update',()=>{
  assert.deepEqual(pagePermissions({}),{read:[],update:[],create:[]});
  const p=pagePermissions({pages:{read:permit(['id','title'],'partial'),update:permit(),create:permit(['title'],'partial')}},{update:{access:false}});
@@ -59,6 +72,12 @@ test('list ignores delayed responses and resets to page one for search and filte
  waits[0].resolve({data:{data:[{...initial,title:'stale'}],meta:{filter_count:50}}});await first;
  assert.equal(c.snapshot().rows[0].title,'Before');assert.equal(c.snapshot().total,1);
  const filtered=c.query({filters:{status:'draft'},page:2});while(waits.length<3)await new Promise(r=>setImmediate(r));assert.equal(waits[2].config.params.offset,0);waits[2].resolve({data:{data:[],meta:{filter_count:0}}});await filtered;assert.equal(c.snapshot().total,0);
+});
+test('list search, sort, filters and page survive a page editor round trip',async()=>{
+ const first=createPageListController(fixture());await first.open();await first.query({search:'shipping'});await first.query({sort:'title'});await first.query({filters:{status:'published'}});await first.query({page:3});first.dispose();
+ let restored;const next=createPageListController(fixture({get:(path,config)=>{if(path==='/items/pages')restored=config.params;}}));await next.open();
+ assert.equal(restored.offset,50);assert.equal(restored.sort,'title,id');assert.deepEqual(restored.filter._and,[{_or:[{title:{_icontains:'shipping'}},{slug:{_icontains:'shipping'}},{h1:{_icontains:'shipping'}}]},{status:{_eq:'published'}}]);
+ await next.query({search:'',filters:{}});next.dispose();
 });
 test('list has separate denied, error and empty states; failed permissions never enable create',async()=>{
  for(const effective of [{}, {pages:{read:permit([],'none')}}]){const c=createPageListController(fixture({permissions:effective}));await c.open();assert.equal(c.snapshot().denied,true);assert.equal(c.snapshot().canCreate,false);}
@@ -81,7 +100,7 @@ test('CAS keeps all tabs, only changed allowed fields, and refetches hook projec
  c.change('title','Local');c.change('seo_title','SEO');c.change('translations',{en:'Keep'});
  assert.equal(c.change('sections',[1]),false);assert.equal(c.change('id','bad'),false);assert.equal(c.change('status','published'),false);
  assert.equal((await c.save()).ok,true);
- assert.deepEqual(posts(api)[0].body,{expected:{id:'own-page',updated_at:null,title:'Before',seo_title:null,translations:null},changes:{title:'Local',seo_title:'SEO',translations:{en:'Keep'}}});
+ assert.deepEqual(posts(api)[0].body,{expected:{id:'own-page',updated_at:null,title:'Before',seo_title:null,translations:null,seo:initial.seo},changes:{title:'Local',seo_title:'SEO',translations:{en:'Keep'}}});
  assert.equal(posts(api)[0].path,'/commerce/mutations/pages/own-page');assert.deepEqual(c.snapshot().values.seo,{projected:true});assert.equal(c.snapshot().parentDirty,false);
 });
 test('published save requires explicit UI intent, leaves status unchanged and announces saving immediately',async()=>{
@@ -136,7 +155,7 @@ test('creation fails closed without full create fields or native draft/standard 
 test('source/dist pages remain identical',async()=>assert.deepEqual(await readFile(new URL('../../src/sections/pages.js',import.meta.url)),await readFile(new URL('../../dist/sections/pages.js',import.meta.url))));
 
 test('native title delta suggests slug without treating omitted slug as a manual edit',async()=>{
- const c=createPageController(fixture());await c.open('+');c.changeTab(['title','slug','page_type'],{title:'New Page'});assert.equal(c.snapshot().values.slug,'new-page');c.changeTab(['title','slug','page_type'],{title:'Second Page',slug:'new-page'});assert.equal(c.snapshot().values.slug,'second-page');c.changeTab(['title','slug','page_type'],{title:'Second Page',slug:'manual'});c.changeTab(['title','slug','page_type'],{title:'Third Page',slug:'manual'});assert.equal(c.snapshot().values.slug,'manual');
+ const c=createPageController(fixture());await c.open('+');c.changeTab(['title','slug','page_type'],{title:'Доставка и оплата'});assert.equal(c.snapshot().values.slug,'dostavka-i-oplata');c.changeTab(['title','slug','page_type'],{title:'Second Page',slug:'dostavka-i-oplata'});assert.equal(c.snapshot().values.slug,'second-page');c.changeTab(['title','slug','page_type'],{title:'Second Page',slug:'manual'});c.changeTab(['title','slug','page_type'],{title:'Third Page',slug:'manual'});assert.equal(c.snapshot().values.slug,'manual');
 });
 test('an uncertain status action remains guarded even when parent content has no dirty fields',async()=>{
  const c=await open(fixture({post:async()=>{throw Error('timeout');}}));await c.setStatus('published',{confirmed:true});assert.equal(c.snapshot().dirty,true);
@@ -160,6 +179,19 @@ test('view reports unsaved child edits through the actual shared toolbar',async(
  const renderedToolbar=toolbar.type.setup(toolbar.props,{emit(){},slots:{}})();
  assert.ok(JSON.stringify(renderedToolbar).includes('Есть несохранённые изменения.'));
  assert.equal(JSON.stringify(renderedToolbar).includes('Все изменения сохранены.'),false);
+});
+test('page form hydrates JSON-only SEO projections without dirtying, localizes type choices and passes approved section props',async()=>{
+ globalThis.__a3Api=fixture({record:{seo:{title:'JSON title',meta_description:'JSON description',og_image:'json-file',no_index:true,additional_fields:{canonical_url:'/json'}}}});const editor=PagesSection.setup({id:'own-page'})().type,render=editor.setup({id:'own-page'});await new Promise(r=>setImmediate(r));
+ let shell=render(),tabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs');tabs.props['onUpdate:modelValue']('main');shell=render();
+ const group=findNode(findNode(shell.children.main(),n=>n.type?.name==='SectionTabs').children.default(),n=>Array.isArray(n.props?.fieldSubset)&&n.props.fieldSubset.includes('page_type'));
+ const type=group.props.metadata.find(field=>field.field==='page_type');assert.equal(type.meta.interface,'select-dropdown');assert.equal(type.meta.options.choices.find(choice=>choice.value==='delivery').text,'Доставка');
+ shell=render();tabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs');tabs.props['onUpdate:modelValue']('seo');shell=render();
+ const seoTabs=findNode(shell.children.main(),n=>n.type?.name==='SectionTabs'),seoGroup=findNode(seoTabs.children.default(),n=>Array.isArray(n.props?.fieldSubset)&&n.props.fieldSubset.includes('seo_title'));
+ assert.equal(seoGroup.props.initialValues.seo_title,'JSON title');assert.equal(seoGroup.props.initialValues.seo_description,'JSON description');assert.equal(seoGroup.props.initialValues.is_indexable,false);assert.equal(findNode(seoTabs.children.default(),n=>n.type?.name==='MediaPicker').props.modelValue,'json-file');
+ tabs=seoTabs;tabs.props['onUpdate:modelValue']('sections');shell=render();
+ const child=findNode(findNode(shell.children.main(),n=>n.type?.name==='SectionTabs').children.default(),n=>n.type?.name==='PageSectionEditor');
+ assert.deepEqual(child.props.editableFields,['title','is_visible','text','subtitle','image','image_alt','button_text','button_url']);assert.ok(child.props.readonlyFields.some(item=>item.field==='items'));assert.equal(child.props.labels.typeValues.text,'Текст');
+ delete globalThis.__a3Api;
 });
 test('parent cancel keeps the child section editor mounted during its parent-only reload',async()=>{
  const api=fixture();globalThis.__a3Api=api;
@@ -198,6 +230,21 @@ test('compatible native JSON and scalar edits survive the existing production SE
  const api=fixture({record:{seo_title:'Old title',seo:{title:'Old title',no_follow:false}},post:async(_path,body)=>{api.record={...api.record,...synchronizeSeoPayload(body.changes,api.record,'pages'),updated_at:'v2'};return response(api.record);}}),c=await open(api);
  c.change('seo_title','New title');c.change('seo',{title:'New title',no_follow:true});assert.equal((await c.save()).ok,true);assert.equal(c.snapshot().values.seo_title,'New title');assert.equal(c.snapshot().values.seo.no_follow,true);assert.equal(c.snapshot().parentDirty,false);
  c.change('seo_title','Newer title');assert.equal((await c.save()).ok,true);assert.equal(api.record.seo_title,'Newer title');assert.equal(api.record.seo.title,'Newer title');
+});
+test('a JSON-first legacy projection can be shown without dirtying, then scalar-only edits round-trip unknown JSON and inversion',async()=>{
+ const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');
+ const originalSeo={title:'JSON title',meta_description:'JSON description',og_image:'json-file',no_index:true,no_follow:true,additional_fields:{canonical_url:'/json',custom:'keep'},custom:{token:'retain'}};
+ const api=fixture({record:{seo_title:'Legacy title',seo_description:'Legacy description',og_image:'legacy-file',canonical_url:'/legacy',is_indexable:true,seo:originalSeo},post:async(_path,body)=>{api.record={...api.record,...synchronizeSeoPayload(body.changes,api.record,'pages'),updated_at:'v2'};return response(api.record);}}),c=await open(api);
+ const displayed=pageSeoScalarValues(c.snapshot().baseline);assert.equal(displayed.seo_title,'JSON title');assert.equal(displayed.seo_description,'JSON description');assert.equal(displayed.og_image,'json-file');assert.equal(displayed.is_indexable,false);assert.equal(displayed.canonical_url,'/json');
+ assert.equal(c.snapshot().parentDirty,false,'JSON hydration must not be treated as edits');
+ // Returning to the scalar value needs an intent even though it equals that column baseline.
+ c.change('seo_title','Legacy title');assert.equal(c.snapshot().parentDirty,true);assert.equal(c.snapshot().values.seo_title,'Legacy title');
+ c.change('is_indexable',true);c.change('seo_description','');c.change('og_image',null);c.change('canonical_url','');
+ const saved=await c.save();assert.equal(saved.ok,true,JSON.stringify({saved,validation:c.snapshot().validation}));
+ assert.equal(posts(api).length,1);assert.deepEqual(posts(api)[0].body.expected.seo,originalSeo);
+ assert.equal(api.record.seo.title,'Legacy title');assert.equal(api.record.seo.meta_description,null);assert.equal(api.record.seo.og_image,null);assert.equal(api.record.seo.no_index,false);assert.equal(api.record.seo.additional_fields.canonical_url,null);
+ assert.deepEqual(api.record.seo.custom,{token:'retain'});assert.equal(api.record.seo.no_follow,true);assert.equal(api.record.seo.additional_fields.custom,'keep');
+ assert.equal(c.snapshot().parentDirty,false);assert.equal(c.snapshot().values.seo_title,'Legacy title');assert.equal(c.snapshot().values.is_indexable,true);
 });
 test('native SEO hydration defaults do not block scalar edits or overwrite them through the JSON-first hook',async()=>{
  const {synchronizeSeoPayload}=await import('../../../commerce-integrity/src/index.js');

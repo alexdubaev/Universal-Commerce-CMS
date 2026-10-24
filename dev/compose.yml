@@ -41,6 +41,7 @@ services:
       COMMERCE_STOREFRONT_ENABLED: ${COMMERCE_STOREFRONT_ENABLED:-false}
       COMMERCE_STOREFRONT_USER_ID: ${COMMERCE_STOREFRONT_USER_ID:-}
       COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID: ${COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID:-}
+      COMMERCE_STOREFRONT_URL: ${COMMERCE_STOREFRONT_URL:-}
     volumes:
       - directus-uploads:/directus/uploads
       - ../directus/extensions:/directus/extensions
