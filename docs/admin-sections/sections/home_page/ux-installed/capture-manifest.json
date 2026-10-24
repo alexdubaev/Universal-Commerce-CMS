@@ -1,0 +1,170 @@
+{
+  "date": "2026-10-24",
+  "target": "http://127.0.0.1:18056",
+  "version": "Directus 12.1.1",
+  "homeSourceSha256": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+  "childSourceSha256": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+  "images": [
+    {
+      "file": "actual-clean-additional-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c4bd59c3ced71ff121b5dd4cc28467222320be70fcfc0934bb03d7002fce3e90",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-additional-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "5c6bd9cadcec360f412d39faef2c304d0d4d32f44af3579ad32d882d2ea73601",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-additional-expanded-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c3f5c629b8f1a96a47b86525d06dc37a187f6a6f6fddc2f76c59a2b2b5feaa7d",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-additional-expanded-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "a5f2b3709c8142be143dff46f014fc9ccad2b153cb8234854173b33095b98473",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-blocks-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "c1c58488da361b55e040f7a9dd3f63735e6ef5527ec589cae950167843a4d0e3",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-blocks-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "1d7ca6c4305e1ba747321a1393b7fdbb81a741bdc5da43083bf99982c0f330d1",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-hero-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d1735d61c6e0a41402d4549a87c31430805bb34caf2a522b9c2a63ee584920c7",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-hero-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6b34eb38ad467fd4bbf48b6cc6c997187dfcc5448e0463ce7a344a3d1dc63be6",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-search-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d792486b97e722dff45754e0c6dc5f0bea00867a12186dffdfa000c815352909",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "actual-clean-search-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6e124531e87c78da1b9b2d14e204c3709290815aab2234960fb4f6df8586abc5",
+      "kind": "installed UI after verified restoration"
+    },
+    {
+      "file": "synthetic-blocks-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "52a1aa03aa50b4a04635ed7673e7e95d187359ad9237f45f8db6106e1577245c",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-blocks-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "31e0bfaeda97874b26af2c56388e791b613699081ebb68ed65e2ba0546c8cec1",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-conflict-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d88039dfc7a4866cf8f740325ae1f68c3cc2d8f47a1a61ab0a83e78e98da38d1",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-final-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "47b3f738f6fa63744c6ff73e4dbff12aeb58cabbaccf237c5cfc99c4cb55139c",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-final-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "c9b51d463a7183e6e04acaeb7e621fe4e3e1251365dc355b56e2edfe40b4ed79",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-hero-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "6fc261889b270e36d0117996bfc491ce38a8c2bfb9c7a28160a9733fd04a33d9",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-hero-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6b34eb38ad467fd4bbf48b6cc6c997187dfcc5448e0463ce7a344a3d1dc63be6",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-lost-ack-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "3a21ba05d9391baa6a97b51a7f8d0ee80dc74542f9f3b020fa168b565821b11d",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-media-library-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "dd42cfbe74b9ec33222f4613b9a5588963951da079ecd31800396a5f5b66c2a1",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-parent-stale-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "990fef2d6c45ec4427056b293997b3497a171b0dd0dd610fe7dcddeb2630ea1a",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-readback-fault-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "47b3f738f6fa63744c6ff73e4dbff12aeb58cabbaccf237c5cfc99c4cb55139c",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-search-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "ff16a06513c6dd4a4c0fa44ec834882dd6899d1216b776235f23ed5761423256",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    },
+    {
+      "file": "synthetic-search-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "c200174d61119e2b9098c14d7d03f976a843f73ee383448d5b3b525b50c8da56",
+      "kind": "installed UI with temporary synthetic fixtures or controlled transport faults"
+    }
+  ]
+}

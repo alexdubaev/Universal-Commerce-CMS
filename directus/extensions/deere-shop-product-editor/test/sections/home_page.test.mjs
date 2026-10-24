@@ -11,12 +11,12 @@ const testSource = source
   .replace('import { useApi } from "@directus/extensions-sdk";', "const useApi = () => globalThis.__a2Api;")
   .replace('import { defineComponent, h, ref } from "vue";', `const ref = (value) => ({ value }); const defineComponent = (value) => value; const onMounted = (callback) => { globalThis.__a2OnMounted = callback; }; const h = (...args) => ({ type: args[0], props: args[1] && typeof args[1] === "object" && !Array.isArray(args[1]) ? args[1] : {}, children: args.length >= 3 ? args[2] : (Array.isArray(args[1]) || typeof args[1] === "string" ? args[1] : undefined) });`)
   .replace('import { useRouter } from "vue-router";', "const useRouter = () => ({ push: () => {} });")
-  .replace('import { AdminShell, SectionTabs, EditorToolbar, NativeFieldGroup, MediaPicker, ReadonlyDetails } from "../admin-shell.js";', `const AdminShell = {}; const SectionTabs = {}; const EditorToolbar = {}; const NativeFieldGroup = {}; const MediaPicker = {}; const ReadonlyDetails = {};`)
+  .replace('import { AdminShell, SectionTabs, EditorToolbar, NativeFieldGroup, MediaPicker, ReadonlyDetails } from "../admin-shell.js";', `const AdminShell = {}; export const SectionTabs = {}; export const EditorToolbar = {}; export const NativeFieldGroup = {}; const MediaPicker = {}; const ReadonlyDetails = {};`)
   .replace('import { PageSectionEditor } from "../page-sections.js";', "const PageSectionEditor = {};")
   .replace('import { createEditorState } from "../admin-state.mjs";', `import { createEditorState } from ${JSON.stringify(stateUrl)};`);
 const module = await import(`data:text/javascript;base64,${Buffer.from(testSource).toString("base64")}`);
 
-const { HOME_PAGE_FIELDS, HomePageSection, createHomePageController, validateHomePage } = module;
+const { HOME_PAGE_FIELDS, HomePageSection, SectionTabs, EditorToolbar, NativeFieldGroup, createHomePageController, projectHomeReadonlyValues, validateHomePage } = module;
 const response = (data) => ({ data: { data } });
 const metadata = HOME_PAGE_FIELDS.map((field) => ({ field, type: field === "sections" ? "alias" : field === "is_indexable" ? "boolean" : ["hero_text", "seo_description", "canonical_url", "og_description"].includes(field) ? "text" : field === "hero_image" || field === "og_image" || field === "source_page" ? "uuid" : "string", schema: { is_nullable: !["h1", "hero_title", "hero_text", "hero_image", "hero_image_alt", "hero_search_label", "hero_search_placeholder", "hero_search_button_text", "hero_bulk_prompt", "hero_bulk_link_text", "hero_bulk_link_url", "hero_excel_link_text", "hero_excel_link_url", "hero_photo_link_text", "hero_photo_link_url"].includes(field) }, meta: { required: ["h1", "hero_title", "hero_text", "hero_image", "hero_image_alt", "hero_search_label", "hero_search_placeholder", "hero_search_button_text", "hero_bulk_prompt", "hero_bulk_link_text", "hero_bulk_link_url", "hero_excel_link_text", "hero_excel_link_url", "hero_photo_link_text", "hero_photo_link_url"].includes(field), interface: field === "hero_image" ? "file-image" : field === "og_image" ? "select-dropdown-m2o" : "input", readonly: field === "source_page" } }));
 const homeRecord = (overrides = {}) => ({ ...Object.fromEntries(HOME_PAGE_FIELDS.filter((field) => field !== "sections").map((field) => [field, field === "id" ? "home-singleton" : field === "updated_at" ? null : field === "status" ? "published" : field === "source_page" ? "source-id" : field === "is_indexable" ? true : field === "seo" || field === "translations" ? {} : ""])),
@@ -60,8 +60,8 @@ test("opens the hero tab by default and retains edits when switching tabs", asyn
   assert.equal(opened.ok, true, opened.error?.message ?? controller.snapshot().blockedReason?.message);
   assert.equal(controller.snapshot().tab, "hero");
   assert.equal(controller.changeTab("hero", { hero_title: "Changed hero" }), true);
-  assert.equal(controller.changeTab("seo", { seo_title: "Changed SEO" }), true);
-  assert.equal(controller.selectTab("main"), true);
+  assert.equal(controller.changeTab("search", { seo_title: "Changed SEO" }), true);
+  assert.equal(controller.selectTab("search"), true);
   assert.equal(controller.snapshot().values.hero_title, "Changed hero");
   assert.equal(controller.snapshot().values.seo_title, "Changed SEO");
 });
@@ -290,4 +290,129 @@ test("required content and unsafe destinations are rejected before mutation", as
   assert.ok(validateHomePage({ ...homeRecord(), hero_title: "  " }, metadata).some(({ field }) => field === "hero_title"));
   assert.ok(validateHomePage({ ...homeRecord(), hero_primary_button_url: "javascript:alert(1)" }, metadata).some(({ field }) => field === "hero_primary_button_url"));
   assert.deepEqual(validateHomePage(homeRecord({ hero_primary_button_url: "/catalog" }), metadata), []);
+});
+
+test("A2 parent contract accepts only live-consumer fields and preserves SEO projection data on readback", async () => {
+  const unknownSeo = { title: "Before", meta_description: "Old", custom: { keep: true }, additional_fields: { canonical_url: "/old", untouched: 7 } };
+  let current = homeRecord({ seo: unknownSeo, seo_title: "Before", seo_description: "Old", canonical_url: "/old" });
+  let sent;
+  const { api } = apiFor({ getRecord: () => current, onMutation: async (_url, body) => {
+    sent = body.changes;
+    current = { ...current, ...body.changes, updated_at: "v2", seo: { ...unknownSeo, title: body.changes.seo_title, meta_description: body.changes.seo_description, additional_fields: { ...unknownSeo.additional_fields, canonical_url: body.changes.canonical_url } } };
+    return response({ id: current.id, updated_at: current.updated_at, ...body.changes });
+  } });
+  const controller = createHomePageController(api);
+  assert.equal((await controller.open()).ok, true);
+  for (const field of ["hero_search_label", "hero_bulk_prompt", "hero_bulk_link_text", "hero_bulk_link_url", "hero_excel_link_text", "hero_photo_link_url", "og_title", "og_description", "og_image", "seo", "translations"]) {
+    assert.equal(controller.change(field, "Should stay readonly"), false, `${field} must not become editable`);
+  }
+  assert.equal(controller.change("seo_title", "New title"), true);
+  assert.equal(controller.change("canonical_url", "/new"), true);
+  assert.equal((await controller.save()).ok, true);
+  assert.deepEqual(Object.keys(sent).sort(), ["canonical_url", "seo_title"]);
+  assert.deepEqual(controller.snapshot().values.seo.custom, { keep: true });
+  assert.equal(controller.snapshot().values.seo.additional_fields.untouched, 7);
+  assert.equal(controller.snapshot().values.seo.additional_fields.canonical_url, "/new");
+});
+
+test("configured Open Graph image is shown as file state and remains outside the save payload", async () => {
+  const fileId = "private-og-image-file-uuid";
+  const record = homeRecord({ og_image: fileId });
+  const displayValues = projectHomeReadonlyValues(record, ["og_image"]);
+  assert.deepEqual(displayValues, { og_image: "Файл выбран" });
+  assert.equal(record.og_image, fileId);
+  assert.equal(projectHomeReadonlyValues({ og_image: null }, ["og_image"]).og_image, null);
+  assert.equal(projectHomeReadonlyValues({ og_image: "" }, ["og_image"]).og_image, "");
+
+  let sent;
+  const { api } = apiFor({ record, onMutation: async (_url, body) => { sent = body.changes; return response({ id: record.id, updated_at: "v2", ...body.changes }); } });
+  const controller = createHomePageController(api);
+  assert.equal((await controller.open()).ok, true);
+  assert.equal(controller.snapshot().baseline.og_image, fileId);
+  assert.equal(controller.change("hero_title", "Updated title"), true);
+  assert.equal((await controller.save()).ok, true);
+  assert.deepEqual(sent, { hero_title: "Updated title" });
+  assert.equal(controller.snapshot().baseline.og_image, fileId);
+  assert.equal(projectHomeReadonlyValues(controller.snapshot().baseline, ["og_image"]).og_image, "Файл выбран");
+});
+
+test("parent reconciliation retains parent edits and reports independent child dirty state", async () => {
+  const { api } = apiFor();
+  const controller = createHomePageController(api);
+  await controller.open();
+  controller.change("hero_title", "Keep parent draft");
+  controller.childState({ dirty: true, saving: false });
+  assert.equal((await controller.reconcile({ keepEdits: true })).ok, true);
+  assert.equal(controller.snapshot().values.hero_title, "Keep parent draft");
+  assert.equal(controller.snapshot().parentDirty, true);
+  assert.equal(controller.snapshot().childDirty, true);
+  assert.equal(controller.snapshot().dirty, true);
+});
+
+test("native validation failure points to its owning tab without clearing another tab's draft", async () => {
+  let writes = 0;
+  const { api } = apiFor({ onMutation: async () => { writes++; throw new Error("unexpected write"); } });
+  const controller = createHomePageController(api);
+  await controller.open();
+  controller.change("hero_title", "Draft heading");
+  controller.change("canonical_url", "javascript:bad");
+  const result = await controller.save();
+  assert.equal(result.reason, "validation");
+  assert.deepEqual(result.errors.map(({ field }) => field), ["canonical_url"]);
+  assert.equal(controller.snapshot().values.hero_title, "Draft heading");
+  assert.equal(controller.snapshot().values.canonical_url, "javascript:bad");
+  assert.equal(writes, 0);
+});
+
+test("required but readonly legacy fields do not block a permitted parent change", async () => {
+  const staleLegacy = homeRecord({ hero_search_label: "", hero_bulk_prompt: "", hero_bulk_link_text: "", hero_bulk_link_url: "", hero_excel_link_text: "", hero_excel_link_url: "", hero_photo_link_text: "", hero_photo_link_url: "", hero_primary_button_url: "javascript:legacy" });
+  let written;
+  const { api } = apiFor({ record: staleLegacy, read: ["*"], update: ["hero_title"], onMutation: async (_url, body) => { written = body.changes; return response({ id: "home-singleton", updated_at: "v2", ...body.changes }); } });
+  const controller = createHomePageController(api, { metadata });
+  assert.equal((await controller.open()).ok, true);
+  assert.equal(controller.change("hero_title", "A permitted update"), true);
+  assert.equal((await controller.save()).ok, true);
+  assert.deepEqual(written, { hero_title: "A permitted update" });
+  assert.equal(controller.snapshot().values.hero_bulk_prompt, "");
+  assert.equal(controller.snapshot().values.hero_search_label, "");
+  assert.equal(controller.snapshot().values.hero_primary_button_url, "javascript:legacy");
+});
+
+test("home view routes validation to its owning tab and retains the invalid value", async () => {
+  globalThis.__a2Api = apiFor().api;
+  const render = HomePageSection.setup();
+  globalThis.__a2OnMounted?.();
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  let tree;
+  let tabs;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    await new Promise((resolveTick) => setImmediate(resolveTick));
+    tree = render().children.main();
+    tabs = walk(tree, (node) => node.type === SectionTabs)[0];
+    if (tabs) break;
+  }
+  assert.ok(tabs);
+  assert.equal(tabs.props.modelValue, "hero");
+  assert.equal(walk(tree, (node) => node.type === NativeFieldGroup).some((node) => node.props.fieldSubset.includes("source_page")), false);
+  tabs.props["onUpdate:modelValue"]("search");
+  tree = render().children.main();
+  tabs = walk(tree, (node) => node.type === SectionTabs)[0];
+  let panels = tabs.children.default();
+  const seoNative = walk(panels, (node) => node.type === NativeFieldGroup && node.props.fieldSubset.includes("canonical_url"))[0];
+  assert.ok(seoNative);
+  seoNative.props["onUpdate:modelValue"]({ canonical_url: "javascript:bad" });
+  await walk(render().children.toolbar(), (node) => node.type === EditorToolbar)[0].props.onSave();
+  tree = render().children.main();
+  tabs = walk(tree, (node) => node.type === SectionTabs)[0];
+  assert.equal(tabs.props.modelValue, "search");
+  panels = tabs.children.default();
+  const searchPanel = walk(panels, (node) => node.props?.class === "home-page-tab home-page-tab--search")[0];
+  assert.ok(walk(searchPanel, (node) => node.type === NativeFieldGroup && node.props.validationErrors.some(({ field }) => field === "canonical_url")).length);
+  delete globalThis.__a2Api;
+  delete globalThis.__a2OnMounted;
 });

@@ -1,0 +1,122 @@
+{
+  "probe": "A2 installed Windows runtime acceptance",
+  "mode": "real installed candidate; synthetic owned fixtures; no module substitution",
+  "result": "PASS",
+  "hashes": {
+    "sections/home_page.js": {
+      "source": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+      "dist": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+      "mountedSource": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+      "mountedDist": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21"
+    },
+    "page-sections.js": {
+      "source": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "dist": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "mountedSource": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "mountedDist": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d"
+    },
+    "installReceipt:src/sections/home_page.js": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+    "installReceipt:dist/sections/home_page.js": "d90f5b99b697be6e15b0071f4c1681e241ff4f2bc7c44251071ab858f0408f21",
+    "installReceipt:src/page-sections.js": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+    "installReceipt:dist/page-sections.js": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+    "servedRegistry": "28eedfd568f3d9228bef6b70ee1bd6fdaaac5a2049c0673d99e77e4b41eb9349"
+  },
+  "checks": [
+    {
+      "name": "read-only role inventory",
+      "status": "PASS",
+      "rolesObserved": 2,
+      "restrictedRoleFound": false,
+      "gatewayNonAdmin": true
+    },
+    {
+      "name": "pre-existing restricted manager role",
+      "status": "NOT RUN",
+      "detail": "No matching role was found; no role was created."
+    },
+    {
+      "name": "live Next storefront effect",
+      "status": "NOT RUN",
+      "detail": "Use --site-effects only while the approved Next server is already running."
+    },
+    {
+      "name": "published, draft, hidden section visibility through non-admin gateway",
+      "status": "PASS"
+    },
+    {
+      "name": "routine Directus onboarding prompt handling",
+      "status": "PASS",
+      "licensePlanPromptDismissed": true,
+      "ownerReminderDismissed": true
+    },
+    {
+      "name": "controlled synthetic missing media 404 keeps editor available without writes",
+      "status": "PASS"
+    },
+    {
+      "name": "native hero form edits only its selected fields and preserves input across tabs",
+      "status": "PASS"
+    },
+    {
+      "name": "two own child drafts survive selection and tabs; each save writes only its selected record",
+      "status": "PASS"
+    },
+    {
+      "name": "native media selection and unlink retain the exact owned file",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled parent conflict comparison foreground contrast",
+      "status": "PASS",
+      "items": 2,
+      "foregrounds": [
+        "rgb(79, 84, 100)"
+      ],
+      "minimumContrast": 7.25
+    },
+    {
+      "name": "controlled synthetic 409 retains parent input and reconciles explicitly",
+      "status": "PASS"
+    },
+    {
+      "name": "real stale-parent comparison foreground contrast",
+      "status": "PASS",
+      "items": 2,
+      "foregrounds": [
+        "rgb(79, 84, 100)"
+      ],
+      "minimumContrast": 7.25
+    },
+    {
+      "name": "real parent CAS conflict retains parent and child buffers through compare and reconcile",
+      "status": "PASS"
+    },
+    {
+      "name": "lost acknowledgement and failed readback retain input and block blind retry",
+      "status": "PASS"
+    },
+    {
+      "name": "real anonymous access is denied",
+      "status": "PASS"
+    },
+    {
+      "name": "configured readonly OG image is masked",
+      "status": "NOT RUN",
+      "detail": "The owned baseline has no OG image; none was written for this capture."
+    },
+    {
+      "name": "clean installed desktop and mobile screenshots after restoration",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": "verified",
+  "artifacts": {
+    "privateLedger": "%TEMP%\\universal-cms-a2-ux-runtime\\<run-id>\\private-recovery-ledger.json"
+  },
+  "limitations": {
+    "managerRole": "NOT RUN if no applicable pre-existing role or insufficient read access; none is created",
+    "siteEffects": "NOT RUN",
+    "unknownSectionType": "checked when accepted by schema",
+    "screenshots": "synthetic fixture captures are labelled synthetic; actual-clean captures follow verified restoration"
+  }
+}

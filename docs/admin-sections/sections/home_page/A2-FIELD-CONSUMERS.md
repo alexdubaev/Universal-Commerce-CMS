@@ -1,5 +1,7 @@
 # A2 field consumers — verified baseline
 
+> Historical baseline only. The current A2-UX-FIX matrix for `5b7879b` (2026-10-23), including working header search, SEO projections and installed child interfaces, is [FIELD-CONSUMERS-CURRENT.md](ux-proposal/FIELD-CONSUMERS-CURRENT.md). This older report is retained for provenance, not current runtime evidence.
+
 Baseline: `c594fd9ac874cd38cfb71abeedf932cfd785de55`, inspected 2026-10-18.
 Sources: `storefront/lib/content.ts` (`getCmsHome`, separate sections read),
 `storefront/app/page.tsx`, `storefront/components/CmsPageRenderer.tsx`.

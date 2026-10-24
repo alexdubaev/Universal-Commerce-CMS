@@ -1,5 +1,7 @@
 # A2 — предварительный аудит полей home_page и публичного Next.js
 
+> Исторический срез, не доказательство текущего поведения. Актуальная матрица A2-UX-FIX от 23.10.2026 для main `5b7879b` находится в [FIELD-CONSUMERS-CURRENT.md](../ux-proposal/FIELD-CONSUMERS-CURRENT.md). Она учитывает подключённый поиск в шапке, SEO hook-проекции и live metadata блоков. Выводы ниже о поиске и отсутствии эффекта всего SEO JSON устарели.
+
 Срез `main = 9b810ff63e363c17c288f409cff6a25d9cc3de7d` на момент проектирования. Это **статическая сверка кода** `storefront/lib/content.ts`, `storefront/app/page.tsx`, `storefront/components/Header.tsx`, `CmsPageRenderer.tsx`, не runtime/production-проверка. Агент обязан обновить матрицу по актуальному main и реальному сайту.
 
 | Поля | Из CMS читается? | Что делает текущая витрина | Вывод для A2 |
