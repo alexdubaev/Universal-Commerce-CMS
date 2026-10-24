@@ -602,7 +602,7 @@ test("opt-in section list shows only authorized display fields and localizes its
   assert.equal(toolbar.props.saveLabel, "Сохранить секцию");
 });
 
-test("supported custom section choices use a Russian label while unlisted values remain unknown", async () => {
+test("default type labels stay compatible while opt-in labels safely describe A2 unknown types", async () => {
   const current = { ...record(1), page: null, home_page: "home-1", title: "Custom block", section_type: "custom" };
   const props = { parentCollection: "home_page", parentId: "home-1", metadata: {
     section_type: { meta: { options: { choices: [{ value: "custom", text: "Custom block" }] } } },
@@ -619,10 +619,19 @@ test("supported custom section choices use a Russian label while unlisted values
   };
   const label = walk(tree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0].children[1].children[1].children;
   assert.match(label, /Тип блока: Произвольный блок/);
-  props.metadata.section_type.meta.options.choices = [];
-  const unknownTree = render();
+  const unknownCurrent = { ...current, section_type: "unknown_widget" };
+  const unknownProps = { ...props, metadata: { section_type: { meta: { options: { choices: [] } } } }, api: { get: async (url) => url === "/items/page_sections" ? listResponse([unknownCurrent]) : response(unknownCurrent) } };
+  const unknownRender = PageSectionEditor.setup(unknownProps, { emit: () => {} });
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  const unknownTree = unknownRender();
   const unknownLabel = walk(unknownTree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0].children[1].children[1].children;
   assert.match(unknownLabel, /Тип блока: Тип блока не распознан/);
+  const a2Props = { ...unknownProps, labels: { typeUnknown: "Другой тип", typeValues: { unknown_widget: "Дополнительный блок", seo_text: "Дополнительный текст" } } };
+  const a2Render = PageSectionEditor.setup(a2Props, { emit: () => {} });
+  await new Promise((resolveTick) => setTimeout(resolveTick, 0));
+  const a2Tree = a2Render();
+  const a2Label = walk(a2Tree, (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0].children[1].children[1].children;
+  assert.match(a2Label, /Тип блока: Дополнительный блок/);
 });
 
 test("parent readonly changes lock child save controls without changing default page labels", async () => {
@@ -647,4 +656,37 @@ test("parent readonly changes lock child save controls without changing default 
   assert.equal(toolbar.props.readonly, true);
   assert.equal(native.props.disabled, true);
   assert.ok(walk(tree, (node) => node.type === "h3").some((node) => node.children === "Блоки страницы"));
+});
+
+test("opt-in readonly child items show known text and safe link text without exposing unknown values", async () => {
+  const current = { ...record(1), page: null, home_page: "home-1", items: JSON.stringify([{ title: "Known title", answer: "Known answer", href: "https://example.test/path", secret: "Never render" }, { title: "Unsafe link", link: "javascript:alert(1)" }]), settings: { secret: "Never render settings" }, subtitle: "No consumer" };
+  const props = { parentCollection: "home_page", parentId: "home-1", metadata: {}, editableFields: ["title"], displayFields: ["status"],
+    readonlyFields: [{ field: "items", reason: "JSON items have no native editor; known content is shown safely." }, { field: "settings", reason: "No storefront consumer." }, { field: "subtitle", reason: "No storefront consumer." }],
+    permissions, guardedContract: true, readonly: false,
+    api: { get: async (url) => url === "/items/page_sections" ? listResponse([current]) : response(current) } };
+  const render = PageSectionEditor.setup(props, { emit: () => {} });
+  const walk = (node, predicate, result = []) => {
+    if (!node) return result;
+    if (Array.isArray(node)) node.forEach((child) => walk(child, predicate, result));
+    else if (typeof node === "object") { if (predicate(node)) result.push(node); walk(node.children, predicate, result); }
+    return result;
+  };
+  await new Promise((resolveTick) => setImmediate(resolveTick));
+  const row = walk(render(), (node) => node.type === "button" && node.props.class === "page-sections-list__item")[0];
+  await row.props.onClick();
+  const tree = render();
+  const native = walk(tree, (node) => node.type === NativeFieldGroup)[0];
+  assert.deepEqual(native.props.fieldSubset, ["title"]);
+  const strings = [];
+  const collect = (node) => { if (typeof node === "string") strings.push(node); else if (Array.isArray(node)) node.forEach(collect); else if (node && typeof node === "object") collect(node.children); };
+  collect(tree);
+  assert.ok(strings.includes("Known title"));
+  assert.ok(strings.includes("Known answer"));
+  assert.ok(strings.some((value) => value.includes("JSON items have no native editor")));
+  assert.ok(strings.includes("Ссылка: "));
+  assert.ok(strings.includes("https://example.test/path"));
+  assert.ok(strings.some((value) => value.includes("Некоторые сохранённые данные здесь не отображаются.")));
+  assert.equal(walk(tree, (node) => node.type === "a" && node.props?.href === "https://example.test/path").length, 0);
+  assert.equal(strings.some((value) => value.includes("Never render")), false);
+  assert.equal(strings.some((value) => value === "No consumer"), false);
 });

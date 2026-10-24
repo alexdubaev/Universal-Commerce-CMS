@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-23",
+  "stage": "read-only proposal before owner approval",
+  "baseSha": "5b7879b6bec22e4585940151d23cd5821a2ea6a8",
+  "directusVersion": "12.1.1 (container image)",
+  "target": "http://127.0.0.1:18056",
+  "compose": "universal-commerce-cms-dev",
+  "platform": "win32",
+  "served": {
+    "index.js": {
+      "status": 200,
+      "sha256": "1ab7f3af5e8618528981dbb8db05350de521dec808f9ed41166d562b2d863afa"
+    },
+    "sections/home_page.js": {
+      "status": 404,
+      "note": "Module is part of aggregate, no individual served source route"
+    },
+    "sections/categories.js": {
+      "status": 404,
+      "note": "Module is part of aggregate, no individual served source route"
+    }
+  },
+  "artifacts": {
+    "index.js": {
+      "main": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6",
+      "installed": "db4e030e00be2cd8eb84c70900c68cb8ff5602967bf0e6e10f72aa8b4e1af9f6",
+      "equal": true
+    },
+    "admin-shell.js": {
+      "main": "3ca29d8bd54b7f05a9158a95ada193782a29c8a349e4dcd0516d0b2a7cc07904",
+      "installed": "3ca29d8bd54b7f05a9158a95ada193782a29c8a349e4dcd0516d0b2a7cc07904",
+      "equal": true
+    },
+    "admin-state.mjs": {
+      "main": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+      "installed": "b366a1823250a3c43debab1093bb83b381744ca0157b4500a41672b45ce84e64",
+      "equal": true
+    },
+    "page-sections.js": {
+      "main": "e8010ddf049dccf0b5c921618f5b4edd2c4c65b66f7fae263c666e707cd26cbc",
+      "installed": "e8010ddf049dccf0b5c921618f5b4edd2c4c65b66f7fae263c666e707cd26cbc",
+      "equal": true
+    },
+    "sections/home_page.js": {
+      "main": "1f6de58d206ecfd0f2844d8a3bdfe3e2937fccd8b13b3586854b73a019b23027",
+      "installed": "1f6de58d206ecfd0f2844d8a3bdfe3e2937fccd8b13b3586854b73a019b23027",
+      "equal": true
+    },
+    "sections/categories.js": {
+      "main": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75",
+      "installed": "3b5813fa18212865c6e950c2c457e84c81635575e867971a0acab408fb23ac75",
+      "equal": true
+    }
+  },
+  "predecessors": {
+    "a0": {
+      "pr": 23,
+      "merge": "97c3339178f1febee5ed3c23f3b2e6dd2417f5c8"
+    },
+    "products": {
+      "pr": 24,
+      "merge": "ca03a0bb619b55e24b0084e4c84950c587b9ee61"
+    },
+    "categories": {
+      "pr": 25,
+      "merged": true,
+      "release": "5b7879b6bec22e4585940151d23cd5821a2ea6a8",
+      "handoff": "D:/codex/ucms-release-backups/a1-ux-a237a557-60c0-4348-b985-9b5b827b21d9/HANDOFF.md"
+    }
+  },
+  "writes": "No app, runtime artifact or content writes. Isolated proposal/evidence only.",
+  "anonymousHealthStatus": 403,
+  "authenticatedHealthStatus": "ok",
+  "homeIndexable": true
+}

@@ -1,0 +1,121 @@
+{
+  "probe": "A2 installed Windows runtime acceptance",
+  "mode": "real installed candidate; synthetic owned fixtures; no module substitution",
+  "result": "FAIL",
+  "hashes": {
+    "sections/home_page.js": {
+      "source": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07",
+      "dist": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07",
+      "mountedSource": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07",
+      "mountedDist": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07"
+    },
+    "page-sections.js": {
+      "source": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "dist": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "mountedSource": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+      "mountedDist": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d"
+    },
+    "installReceipt:src/sections/home_page.js": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07",
+    "installReceipt:dist/sections/home_page.js": "a23d88f1721d755b5038b686ef65f2a1dfb6edf86d82a8a57b486d1a2a05aa07",
+    "installReceipt:src/page-sections.js": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+    "installReceipt:dist/page-sections.js": "7160ac109fc29bd134bde7b2ed167cdf781fd7b71839ea3f236d85df0013be8d",
+    "servedRegistry": "aa0b18499812541d002c5318fa9cd0014d54a8826e12d68c5a1a76c2a8c3caaf"
+  },
+  "checks": [
+    {
+      "name": "read-only role inventory",
+      "status": "PASS",
+      "rolesObserved": 2,
+      "restrictedRoleFound": false,
+      "gatewayNonAdmin": true
+    },
+    {
+      "name": "pre-existing restricted manager role",
+      "status": "NOT RUN",
+      "detail": "No matching role was found; no role was created."
+    },
+    {
+      "name": "live published homepage heading and search from existing Next server",
+      "status": "PASS",
+      "httpStatus": 200,
+      "heading": true,
+      "search": true
+    },
+    {
+      "name": "published, draft, hidden section visibility through non-admin gateway",
+      "status": "PASS"
+    },
+    {
+      "name": "routine Directus onboarding prompt handling",
+      "status": "PASS",
+      "licensePlanPromptDismissed": true,
+      "ownerReminderDismissed": true
+    },
+    {
+      "name": "controlled synthetic missing media 404 keeps editor available without writes",
+      "status": "PASS"
+    },
+    {
+      "name": "native hero form edits only its selected fields and preserves input across tabs",
+      "status": "PASS"
+    },
+    {
+      "name": "two own child drafts survive selection and tabs; each save writes only its selected record",
+      "status": "PASS"
+    },
+    {
+      "name": "live native hero title effect",
+      "status": "PASS",
+      "changedHeading": true
+    },
+    {
+      "name": "live changed hero, search, image, CTA, and SEO effects",
+      "status": "PASS",
+      "changedHeroText": true,
+      "primaryButtonText": true,
+      "searchPlaceholder": true,
+      "searchButtonText": true,
+      "seoTitle": true,
+      "heroImage": true,
+      "heroImageAlt": true,
+      "cacheWaitSeconds": 30
+    },
+    {
+      "name": "native media selection and unlink retain the exact owned file",
+      "status": "PASS"
+    },
+    {
+      "name": "controlled synthetic 409 retains parent input and reconciles explicitly",
+      "status": "PASS"
+    },
+    {
+      "name": "real parent CAS conflict retains parent and child buffers through compare and reconcile",
+      "status": "FAIL",
+      "detail": "Acceptance check failed; inspect the private run ledger and local console."
+    },
+    {
+      "name": "probe execution",
+      "status": "FAIL",
+      "detail": "Acceptance check failed; inspect the private run ledger and local console."
+    },
+    {
+      "name": "clean installed desktop and mobile screenshots after restoration",
+      "status": "PASS"
+    },
+    {
+      "name": "live storefront returns to the restored owned homepage baseline",
+      "status": "PASS",
+      "cacheWaitSecondsObserved": "up to 150"
+    }
+  ],
+  "cleanup": "verified",
+  "artifacts": {
+    "privateLedger": "%TEMP%\\universal-cms-a2-ux-runtime\\<run-id>\\private-recovery-ledger.json"
+  },
+  "limitations": {
+    "managerRole": "NOT RUN if no applicable pre-existing role or insufficient read access; none is created",
+    "siteEffects": "live Next homepage and public gateway checked; cache delay remains",
+    "unknownSectionType": "checked when accepted by schema",
+    "screenshots": "synthetic fixture captures are labelled synthetic; actual-clean captures follow verified restoration"
+  }
+}

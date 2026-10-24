@@ -8,6 +8,31 @@ const REQUIRED = ["id", "updated_at", "page", "home_page"];
 const SYSTEM_FIELDS = new Set(["id", "status", "page", "home_page", "sort_order", "created_at", "updated_at", "user_created", "user_updated"]);
 const MEDIA_FIELDS = new Set(["image", "icon", "og_image", "cover_image", "hero_image"]);
 const copy = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+const safeKnownItems = (value) => {
+  let parsed = value;
+  try { if (typeof parsed === "string") parsed = JSON.parse(parsed); } catch { return { error: "Список нельзя безопасно показать в текущем формате; исходные данные сохранены без изменений." }; }
+  if (parsed == null) return { rows: [] };
+  if (!Array.isArray(parsed)) return { error: "Формат списка не распознан; исходные данные сохранены без изменений." };
+  let omitted = false;
+  const safeHref = (raw) => {
+    if (typeof raw !== "string") return null;
+    const value = raw.trim();
+    if (value.startsWith("/") && !value.startsWith("//")) return value;
+    try { const url = new URL(value); if (!(["http:", "https:"].includes(url.protocol))) return null; url.username = ""; url.password = ""; return url.toString(); } catch { return null; }
+  };
+  const rows = parsed.flatMap((item) => {
+    if (typeof item === "string") return [{ title: item }];
+    if (!item || typeof item !== "object" || Array.isArray(item)) { omitted = true; return []; }
+    if (Object.keys(item).some((key) => !["title", "name", "label", "question", "text", "description", "answer", "value", "url", "href", "link"].includes(key))) omitted = true;
+    const title = [item.title, item.name, item.label, item.question].find((part) => typeof part === "string" && part.trim());
+    const text = [item.text, item.description, item.answer, item.value].find((part) => typeof part === "string" && part.trim());
+    const url = safeHref(item.url ?? item.href ?? item.link);
+    if (url && (item.url ?? item.href ?? item.link) !== url) omitted = true;
+    if (!title && !text && !url) { omitted = true; return []; }
+    return [{ title: title?.trim() || "Элемент", text: text?.trim() || "", url }];
+  });
+  return { rows, omitted };
+};
 const allowed = (permissions, action, field) => permissions?.[action] === true ||
   (Array.isArray(permissions?.[action]) && (permissions[action].includes("*") || permissions[action].includes(field)));
 const ownerField = (collection) => collection === "home_page" ? "home_page" : collection === "pages" ? "page" : null;
@@ -17,12 +42,13 @@ const metadataWritable = (metadata, field) => {
     !["group-detail", "presentation", "note"].includes(meta.meta?.interface));
 };
 const DEFAULT_GROUPS = Object.freeze({ content: "Содержимое", group_content: "Содержимое", main: "Основное", group_main: "Основное", button: "Кнопка", group_button: "Кнопка", items: "Элементы", group_items: "Элементы", system: "Дополнительно", group_system: "Дополнительно", details: "Дополнительно", advanced: "Дополнительно", settings: "Настройки", other: "Дополнительно" });
-const sectionTypeLabel = (value, metadata) => {
+const DEFAULT_SECTION_TYPES = Object.freeze({ text: "Текст", hero: "Первый экран", products: "Товары", categories: "Категории", features: "Преимущества", testimonials: "Отзывы", faq: "Вопросы и ответы", cta: "Призыв к действию", custom: "Произвольный блок", company_trust: "Доверие компании", featured_products: "Рекомендуемые товары", advantages: "Преимущества", steps: "Этапы", catalog_preview: "Обзор каталога", seo_text: "SEO-текст", lead_form: "Форма заявки", parts_request: "Запрос запчастей", recent_supplies: "Последние поступления", contacts: "Контакты", articles: "Статьи" });
+const sectionTypeLabel = (value, metadata, labels = {}) => {
+  if (typeof labels.typeValues?.[value] === "string") return labels.typeValues[value];
   const choices = metadata?.section_type?.meta?.options?.choices;
   const choice = Array.isArray(choices) ? choices.find((item) => (typeof item === "object" ? item.value : item) === value) : null;
-  if (!choice) return "Тип блока не распознан";
-  const knownLabels = { text: "Текст", hero: "Первый экран", products: "Товары", categories: "Категории", features: "Преимущества", testimonials: "Отзывы", faq: "Вопросы и ответы", cta: "Призыв к действию", custom: "Произвольный блок", company_trust: "Доверие компании", featured_products: "Рекомендуемые товары", advantages: "Преимущества", steps: "Этапы", catalog_preview: "Обзор каталога", seo_text: "SEO-текст", lead_form: "Форма заявки", parts_request: "Запрос запчастей", recent_supplies: "Последние поступления", contacts: "Контакты", articles: "Статьи" };
-  if (knownLabels[value]) return knownLabels[value];
+  if (!choice) return labels.typeUnknown ?? "Тип блока не распознан";
+  if (DEFAULT_SECTION_TYPES[value]) return DEFAULT_SECTION_TYPES[value];
   const label = choice && typeof choice === "object" && (choice.text ?? choice.label ?? choice.name);
   return typeof label === "string" && /[А-Яа-яЁё]/.test(label) ? label : "Тип блока не распознан";
 };
@@ -89,7 +115,8 @@ export function createPageSectionController(config = {}) {
     (record[opposite] == null || record[opposite] === "") && (expectedId == null || String(record.id) === String(expectedId));
   const fieldsForRead = () => [...new Set([...REQUIRED,
     ...editableFields.filter((field) => allowed(config.permissions, "read", field)),
-    ...displayFields.filter((field) => allowed(config.permissions, "read", field))])];
+    ...displayFields.filter((field) => allowed(config.permissions, "read", field)),
+    ...(config.readonlyFields ?? []).map(({ field }) => field).filter((field) => allowed(config.permissions, "read", field))])];
   const canWrite = () => {
     const requestedParent = config.getParent?.();
     return !disposed && listValid && config.guardedContract === true && config.readonly !== true &&
@@ -148,7 +175,7 @@ export function createPageSectionController(config = {}) {
     const requestOwner = owner;
     const requestOpposite = opposite;
     const loader = async (recordId, fields) => {
-      const safeFields = [...new Set([...REQUIRED, ...fields, ...displayFields.filter((field) => allowed(config.permissions, "read", field))])];
+      const safeFields = [...new Set([...REQUIRED, ...fields, ...displayFields.filter((field) => allowed(config.permissions, "read", field)), ...(config.readonlyFields ?? []).map(({ field }) => field).filter((field) => allowed(config.permissions, "read", field))])];
       const record = unwrapRecord(await api.get(`/items/${COLLECTION}/${recordId}`, { params: { fields: safeFields } }));
       if (ownerGeneration !== requestOwnerGeneration) throw new Error("Stale page section request");
       if (String(record.id) !== String(id) || String(record[requestOwner] ?? "") !== String(requestParentId) || record[requestOpposite] !== null) throw new Error("Page section response did not match its parent");
@@ -204,7 +231,7 @@ export function createPageSectionController(config = {}) {
     if (requestedParent && (requestedParent.collection !== parentCollection || String(requestedParent.id) !== String(parentId))) {
       return { ok: false, stale: true };
     }
-    if (result.ok) config.onSaved?.({ id: entry.id, record: result.record });
+    if (result.ok) { entry.preview = { ...entry.preview, ...copy(result.record) }; config.onSaved?.({ id: entry.id, record: result.record }); }
     else config.onError?.(result.error);
     return result;
   }
@@ -312,6 +339,7 @@ export const PageSectionEditor = defineComponent({
     parentCollection: { type: String, required: true }, parentId: { type: [String, Number], required: true },
     metadata: { type: Object, default: () => ({}) }, editableFields: { type: Array, default: () => [] },
     displayFields: { type: Array, default: () => [] },
+    readonlyFields: { type: Array, default: () => [] },
     labels: { type: Object, default: () => ({}) },
     permissions: { type: Object, default: () => ({ read: false, update: false }) },
     guardedContract: { type: Boolean, default: false }, readonly: { type: Boolean, default: true }, api: { type: Object, required: true }, confirmDiscard: { type: Function, default: null },
@@ -323,6 +351,7 @@ export const PageSectionEditor = defineComponent({
     const controllerConfig = {
       parentCollection: props.parentCollection, parentId: props.parentId, editableFields: props.editableFields,
       get displayFields() { return props.displayFields; },
+      get readonlyFields() { return props.readonlyFields; },
       getParent: () => ({ collection: props.parentCollection, id: props.parentId }),
       get metadata() { return props.metadata; }, get permissions() { return props.permissions; },
       get guardedContract() { return props.guardedContract; }, get readonly() { return props.readonly; }, get api() { return props.api; },
@@ -349,6 +378,14 @@ export const PageSectionEditor = defineComponent({
     const confirmDiscard = () => props.confirmDiscard ? props.confirmDiscard() : Promise.resolve(false);
     const fieldLabel = (field) => props.labels?.fields?.[field] ?? FIELD_LABELS[field] ?? "Значение";
     const renderDetails = (values, fields) => h(ReadonlyDetails, { values: Object.fromEntries(fields.map((field) => [field, MEDIA_FIELDS.has(field) ? values[field] == null || values[field] === "" ? null : "Файл выбран" : values[field]])), fields: fields.map((field) => ({ field, label: fieldLabel(field) })) });
+      const renderReadonlyFields = (record) => (props.readonlyFields ?? []).map(({ field, reason }) => {
+        if (!record || !Object.hasOwn(record.values ?? {}, field)) return null;
+        if (field === "items") {
+          const parsed = safeKnownItems(record.values[field]);
+          return h("section", { class: "page-section-readonly-field" }, [h("h4", "Элементы блока — просмотр"), h("p", reason), parsed.error ? h("p", { role: "note" }, parsed.error) : parsed.rows.length ? h("ul", parsed.rows.map((item, index) => h("li", { key: index }, [h("strong", item.title), item.text ? h("p", item.text) : null, item.url ? h("p", [h("span", "Ссылка: "), h("span", item.url)]) : null]))) : h("p", parsed.omitted ? "Некоторые сохранённые данные не удалось показать." : "Известных элементов для просмотра нет."), parsed.omitted && parsed.rows.length ? h("p", { role: "note" }, "Некоторые сохранённые данные здесь не отображаются.") : null]);
+        }
+        return h("section", { class: "page-section-readonly-field" }, [h("h4", fieldLabel(field)), h("p", reason)]);
+      }).filter(Boolean);
     return () => {
       revision.value;
       const current = selected.value;
@@ -365,7 +402,7 @@ export const PageSectionEditor = defineComponent({
         state.value.listError ? h("div", { role: "alert" }, [h("p", text("listError", "Не удалось загрузить блоки. Изменение отключено.")), h("button", { type: "button", onClick: retry }, text("retry", "Повторить загрузку"))]) : null,
         !state.value.listLoading && !state.value.listError && !state.value.rows.length ? h("p", text("emptyList", "Блоков пока нет.")) : null,
         ...state.value.rows.map((row, index) => {
-          const type = row.preview?.section_type == null ? null : sectionTypeLabel(row.preview.section_type, props.metadata);
+          const type = row.preview?.section_type == null ? null : sectionTypeLabel(row.preview.section_type, props.metadata, props.labels);
           const title = row.preview?.title || text("unknownSection", "Блок без названия");
           if (!displayFields.length) return h("button", { key: row.id, type: "button", disabled: !state.value.listValid,
             "aria-pressed": String(row.id) === String(state.value.selectedId), onClick: () => selectRow(row.id) },
@@ -407,6 +444,7 @@ export const PageSectionEditor = defineComponent({
             if (String(controller.snapshot.selectedId) !== String(renderedRowId) || activeTab.value.id !== renderedTabId) return;
             controllerChangeTab(renderedRowId, renderedFields, next);
           } }));
+        controls.push(...renderReadonlyFields(row));
         if (state.value.comparison) {
           const comparable = props.editableFields.filter((field) => Object.hasOwn(state.value.comparison.own ?? {}, field) && Object.hasOwn(state.value.comparison.remote ?? {}, field) && JSON.stringify(state.value.comparison.own[field]) !== JSON.stringify(state.value.comparison.remote[field]));
           controls.push(h("section", { class: "page-section-compare", "aria-label": "Сравнение изменений" }, [

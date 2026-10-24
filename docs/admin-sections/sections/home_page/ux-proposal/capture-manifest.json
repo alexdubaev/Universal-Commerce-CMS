@@ -1,0 +1,280 @@
+{
+  "base": "5b7879b6bec22e4585940151d23cd5821a2ea6a8",
+  "date": "2026-10-23",
+  "status": "approved by owner with Утверждаю on 2026-10-23; proposal screenshots remain mock, not installed",
+  "prototypeSha256": "7579c36ec18f6dd662f731d398114435aa211b4e56117e756c48b41fe298fe65",
+  "files": [
+    {
+      "file": "after-block-draft-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "173437438957ea4f197eb1bff23a345e003abfc659c55c20ead55d62e62b1ec6",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-draft-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "8072ff80b59fefc1a76790b011c232b81b6b1b2f16183b00cf84bbdcfdc3286c",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-hidden-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "13ba7bf568a526569e06d91fd12ab5d68aade13ec6389afda705e5b656ca3aea",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-hidden-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "da7cb457e1d020d454f0ded3814b617f8af74b8cd56fbc607b1ee03a5f1ae0b2",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-published-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "1066be8aeb6a810f3d44abeb18a53e9b2a849847cb8a7fa71201944ae0bc24fc",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-published-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "8973fb252521c94bd21c35249753d09ac718f99898e4315800c0e4d2c1a67bb2",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-unknown-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "7d20061885a8d09244b263bd995290afdc60c4d8c124586cd59e6b155eb3819a",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-block-unknown-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "b16c5423698dcc57bb49a51e34209f91c75b20647af2fb28c9061a1d0f1a6206",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-blocks-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "4d4d2a4a34ca531e28a3d0f199f42479742a33f7daa2f53c69342b4207688003",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-blocks-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "a27780885748d82ab3a6f0e27db803ebca575f42a7fd23c9aab304ffed7abf55",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-conflict-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "953712fb57bde4ce231e2d68e11faf03d32587a58d289d733acaa6becdb9e0b0",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-conflict-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "baf023f1a669bc6b7f2b13cec1325979a99e6357ca8688b961e4808e3acfd542",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-hero-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "7cce8c4b85cf012373f7cf6bc4bef2c5c6afb01990944000f9d518d46ff526a6",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-hero-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "fbe8b97aef53c31147f843289885c32973bc249b6baa3c2d5b6aced8be7ccdc8",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-other-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "e381b2e017961858a7a078d758a0c1ab7271a52880f23c7d7c1687ce77c97e6e",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-other-expanded-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "20f5ba57da2cc948dee0163e56eae99e39a58afe85c62f78fb3974dbbd9e687a",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-other-expanded-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "95878e996c5e078a081e10c6189b21181aa37be372b58731c13024e1a9dc5009",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-other-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "f4947503bb70071bc2064e7bf29751fee57379496442c3b8c26ce6bba24486ec",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-search-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "3acf546c6ecca58d07b880bfcaf7859a93a5c02f95593b82a389a1266f0a0f0f",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-search-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "f83a22b9c66efa37804c9d64e8911e035e5b7020dbcb4cfd31c570377affc9e7",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "after-search-settings-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "4d7557fc8cea7b5bb75a5ec4bfeb88118ffc76191d24b812fe966bcb1eb92ba9",
+      "kind": "isolated mock screenshot; not installed"
+    },
+    {
+      "file": "before-blocks-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "c2ab7f626a6a723bf73aeece3ce836d7008a2bf75453e07a98e3eb0f9d61ba1d",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-blocks-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "2c9423b97e0400aee7a3a7f8461aebbe261a87229b2675dcb840c63b45170cb9",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-hero-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "f722bdb5b4eb40bb8250b0651321ac250e6900f64e46e36e218b14f284c6b8dc",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-hero-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "2fb5dc0daa17ad212e306b16248587f14c860fe7d3fd477e034c71a1259d4d7e",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-main-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "2ef9c7cc3b2a0adb2fa91266c2160d0b869c5c23baf7eca1453fa9b2985dc9fe",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-main-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "7dbb1d90cba22bdb26d5fb5fd1b8c434b1fca0933b470f7a792f92d1d49259fa",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-other-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "a99a51f95499ce636c688ef75404a89a45a6874dc85ed532e83ec0b01fd25679",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-other-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "b276540a37f8aa0515bc76dc57edaf263b1ee82b8fa3219fb8c2d1fe9f1a8638",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-search-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "a223cf945eeb304379a4e2dab33749653117c9a4758d1371f27529d3c67095ab",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-search-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "9250d42d1d3cc36d0a8b661ba3902a3ddc852c805610f7587f636726e9892df7",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-seo-desktop.png",
+      "width": 1536,
+      "height": 1024,
+      "format": "JPEG",
+      "sha256": "d48446bbf9dfc839a313a8f9513b3687e957a606c86f80177326e6bfaf06074e",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-seo-duplicate-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "9474f53ee24c27be312795b543d844a355df5039435071ca5f21987e94d70d49",
+      "kind": "current installed screenshot"
+    },
+    {
+      "file": "before-seo-mobile.png",
+      "width": 390,
+      "height": 844,
+      "format": "JPEG",
+      "sha256": "85ac8db7a8be7b6bdd1e9d9d9454d85d4bccf39f624080d8c0f7d62885033477",
+      "kind": "current installed screenshot"
+    }
+  ]
+}
