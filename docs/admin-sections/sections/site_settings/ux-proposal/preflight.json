@@ -1,0 +1,533 @@
+{
+  "checkedAt": "2026-10-25T08:14:20.661Z",
+  "target": "http://127.0.0.1:18056",
+  "version": "12.1.1",
+  "health": "ok",
+  "singleton": true,
+  "globalCardinality": "1",
+  "shape": "object",
+  "fields": [
+    {
+      "field": "id",
+      "type": "uuid",
+      "special": [
+        "uuid"
+      ],
+      "interface": "input",
+      "required": true,
+      "readonly": true,
+      "hidden": true,
+      "isNullable": false,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "company_name",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": true,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": false,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "phone",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": true,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": false,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "email",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": true,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": false,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "messengers",
+      "type": "json",
+      "special": [
+        "cast-json"
+      ],
+      "interface": "input-code",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": {
+        "language": "json"
+      },
+      "validation": null
+    },
+    {
+      "field": "social_links",
+      "type": "json",
+      "special": [
+        "cast-json"
+      ],
+      "interface": "input-code",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": {
+        "language": "json"
+      },
+      "validation": null
+    },
+    {
+      "field": "commerce_profile",
+      "type": "json",
+      "special": [
+        "cast-json"
+      ],
+      "interface": "input-code",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": {
+        "language": "json"
+      },
+      "validation": null
+    },
+    {
+      "field": "address",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "city",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "working_hours",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "delivery_region",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "logo",
+      "type": "uuid",
+      "special": [
+        "m2o"
+      ],
+      "interface": "file-image",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "favicon",
+      "type": "uuid",
+      "special": [
+        "m2o"
+      ],
+      "interface": "file-image",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "default_og_image",
+      "type": "uuid",
+      "special": [
+        "m2o"
+      ],
+      "interface": "select-dropdown-m2o",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "seo_title",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "seo_description",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "og_title",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "og_description",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "primary_color",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "accent_color",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "primary_cta_text",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "primary_cta_url",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "footer_text",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "footer_disclaimer",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "inn",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "kpp",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "ogrn",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "legal_address",
+      "type": "text",
+      "special": null,
+      "interface": "input-multiline",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "legal_name",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "vat_info",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "requisites_url",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "documents_url",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "company_image",
+      "type": "uuid",
+      "special": [
+        "m2o"
+      ],
+      "interface": "select-dropdown-m2o",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "yandex_metrica_id",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "gtm_id",
+      "type": "string",
+      "special": null,
+      "interface": "input",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "translations",
+      "type": "json",
+      "special": [
+        "cast-json"
+      ],
+      "interface": "input-code",
+      "required": false,
+      "readonly": false,
+      "hidden": false,
+      "isNullable": true,
+      "options": {
+        "language": "json"
+      },
+      "validation": null
+    },
+    {
+      "field": "created_at",
+      "type": "timestamp",
+      "special": [
+        "date-created"
+      ],
+      "interface": "datetime",
+      "required": false,
+      "readonly": true,
+      "hidden": true,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    },
+    {
+      "field": "updated_at",
+      "type": "timestamp",
+      "special": [
+        "date-updated"
+      ],
+      "interface": "datetime",
+      "required": false,
+      "readonly": true,
+      "hidden": true,
+      "isNullable": true,
+      "options": null,
+      "validation": null
+    }
+  ],
+  "permissions": {
+    "create": {
+      "access": "full",
+      "fields": [
+        "*"
+      ]
+    },
+    "read": {
+      "access": "full",
+      "fields": [
+        "*"
+      ]
+    },
+    "update": {
+      "access": "full",
+      "fields": [
+        "*"
+      ]
+    },
+    "delete": {
+      "access": "full",
+      "fields": [
+        "*"
+      ]
+    },
+    "share": {
+      "access": "full",
+      "fields": [
+        "*"
+      ]
+    }
+  },
+  "dbConstraints": "site_settings_pkey|PRIMARY KEY (id)\nsite_settings_logo_foreign|FOREIGN KEY (logo) REFERENCES directus_files(id) ON DELETE SET NULL\nsite_settings_favicon_foreign|FOREIGN KEY (favicon) REFERENCES directus_files(id) ON DELETE SET NULL\nsite_settings_default_og_image_foreign|FOREIGN KEY (default_og_image) REFERENCES directus_files(id) ON DELETE SET NULL\nsite_settings_company_image_foreign|FOREIGN KEY (company_image) REFERENCES directus_files(id) ON DELETE SET NULL",
+  "servedAggregateSha256": "cdd4710fcc538fab326ae3a501a3d6612a3d0af9b2ed8bcc27add135b29e3fa7",
+  "customA5Present": false,
+  "privacy": "Instance record, role/account identifiers and private runtime paths omitted; full evidence kept outside the repository."
+}

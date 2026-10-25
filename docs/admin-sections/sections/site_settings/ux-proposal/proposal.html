@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Настройки сайта — A5</title><style>:root{--primary:#6644ff;--primary-hover:#5333dd;--primary-soft:#f0edff;--text:#202a36;--muted:#586575;--border:#d9dfe7;--input-border:#8190a0;--canvas:#f5f6f8;--surface:#fff;--danger:#ac273e;--danger-bg:#fff3f4;--warning:#785314;--warning-bg:#fff8e8;--success:#166445;--radius:6px;--rail:48px;--sidebar:208px;--header:72px;font-family:Arial,Helvetica,system-ui,sans-serif;font-size:14px;line-height:1.45;color:var(--text);color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas)}[hidden]{display:none!important}button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;color:#5d6774;background:#eef0f3;border-color:#d3d9e1}button,a,input,textarea,select,summary{touch-action:manipulation}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #6644ff;outline-offset:3px}button{transition:background .12s,color .12s}a{color:var(--primary)}svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.skip-link{position:fixed;top:-90px;left:16px;z-index:100;background:#fff;padding:12px;border:2px solid var(--primary);border-radius:6px}.skip-link:focus{top:10px}
+.rail{position:fixed;inset:0 auto 0 0;width:var(--rail);background:#202b39;display:flex;flex-direction:column;align-items:center;gap:12px;padding:20px 6px;color:#d4dce7;z-index:30}.rail>span{display:grid;place-items:center;width:36px;height:40px}.rail>span:first-child{margin-bottom:28px}.rail .selected{background:#443575;border-radius:6px;color:#fff}.rail .last{margin-top:auto}
+.sidebar{position:fixed;inset:0 auto 0 var(--rail);width:var(--sidebar);padding:24px 12px;border-right:1px solid var(--border);background:var(--surface);z-index:25;display:flex;flex-direction:column}.sidebar-title{font-weight:700;font-size:15px;margin:0 10px 28px}.nav-section{font-size:12px;font-weight:600;color:var(--muted);margin:18px 10px 6px}.nav-items{display:grid;gap:3px}.nav-item{display:flex;gap:10px;align-items:center;min-height:40px;padding:9px 10px;border-radius:6px;color:var(--muted);border:0;background:transparent;text-align:left;width:100%;font-size:14px}.nav-item.active{background:var(--primary-soft);color:#5333d5;font-weight:700}.nav-item svg{width:17px;height:17px}.sidebar-note{margin:26px 10px 0;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);line-height:1.5}.sidebar .close-nav{display:none}
+.app{margin-left:calc(var(--rail) + var(--sidebar));min-height:100vh;min-width:0}.topbar{position:sticky;top:32px;z-index:15;height:var(--header);padding:0 32px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px}.topbar-left{display:flex;align-items:center;gap:12px;min-width:0}.topbar h1{font-size:22px;letter-spacing:-.025em;margin:0;line-height:1.25}.topbar .mobile-menu{display:none}.demo-button{display:flex;align-items:center;gap:7px;min-height:40px;background:transparent;border:0;padding:8px;color:var(--muted);font-size:13px;border-radius:6px}.demo-button:hover{background:var(--canvas)}.demo-button svg{width:16px;height:16px}.savebar{display:flex;align-items:center;gap:10px}.save-status{font-size:13px;color:var(--muted);margin-right:4px}.save-status b{display:block;color:var(--text);font-size:14px}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;min-width:40px;padding:8px 14px;border:1px solid var(--input-border);border-radius:var(--radius);color:var(--text);background:#fff;font-size:14px;font-weight:600;text-decoration:none}.button:hover:not(:disabled){background:#f1f3f6}.button.primary{background:var(--primary);border-color:var(--primary);color:#fff}.button.primary:hover:not(:disabled){background:var(--primary-hover)}.button.primary:disabled{background:#e7e8ec;border-color:#d5dae2;color:#657080}.button.danger{background:var(--danger);border-color:var(--danger);color:white}.button.quiet{background:transparent;border-color:transparent;color:var(--primary)}.button.quiet:hover:not(:disabled){background:var(--primary-soft)}.icon-button{padding:8px}.button-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.section-nav{border-bottom:1px solid var(--border);background:#fff;position:relative;z-index:5}.nav-inner{max-width:1136px;margin:auto;padding:0 32px;display:flex;gap:25px;overflow-x:auto;scrollbar-width:thin}.section-nav button{background:none;border:0;border-bottom:3px solid transparent;padding:15px 2px 12px;white-space:nowrap;color:var(--muted);font-size:14px;font-weight:600;min-height:49px;position:relative}.section-nav button[aria-current="page"]{color:#5536d9;border-bottom-color:var(--primary)}.section-nav button:hover{color:#5333d5}.dirty-dot{width:6px;height:6px;background:#8d6417;border-radius:50%;display:inline-block;vertical-align:middle;margin-left:6px}.content{max-width:1136px;padding:26px 32px 38px;margin:auto;container-type:inline-size}.page-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin:0 0 20px}.page-heading h2{font-size:20px;letter-spacing:-.02em;line-height:1.3;margin:0 0 6px}.page-heading p{margin:0;color:var(--muted);max-width:750px;font-size:14px}.subtitle{margin:0;color:var(--muted);font-size:14px}.section-caption{font-size:15px;margin:23px 0 11px;line-height:1.3}.settings-list{background:white;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}.setting-row{display:grid;grid-template-columns:190px minmax(0,1fr) auto;gap:12px 22px;padding:19px 22px;align-items:center}.setting-row+.setting-row{border-top:1px solid var(--border)}.row-heading{align-self:start;padding-top:2px;font-weight:600;font-size:14px}.row-summary{min-width:0;line-height:1.5;overflow-wrap:anywhere;font-size:14px}.row-summary strong{font-weight:600}.row-summary .secondary{color:var(--muted);display:block;font-size:13px;margin-top:3px}.row-summary.empty{color:var(--muted)}.row-action{justify-self:end;align-self:center}.text-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;background:transparent;color:#5333d5;font-weight:600;border:0;border-radius:6px;padding:8px 10px;font-size:14px;text-align:center}.text-button:hover:not(:disabled){background:var(--primary-soft)}.text-button:disabled{color:var(--muted);background:transparent}.text-button svg{width:15px;height:15px}.inline-form{grid-column:2 /4;padding:3px 0 4px}.setting-row.editing .row-summary{display:none}.setting-row.editing .inline-form{grid-column:2;grid-row:1}.setting-row.editing .row-action{grid-column:3;grid-row:1;align-self:start}.inline-form>.help{margin:11px 0 0}.inline-title{font-size:14px;font-weight:600}.value-chip{border:1px solid var(--border);background:#f9fafb;color:var(--muted);border-radius:4px;font-size:12px;padding:3px 6px;margin-left:8px;display:inline-block;vertical-align:middle}.form-section{display:grid;grid-template-columns:1fr;gap:12px;margin:0 0 24px}.form-section-intro h3{font-size:16px;margin:0 0 6px;line-height:1.4}.form-section-intro p{font-size:13px;line-height:1.55;margin:0;color:var(--muted);max-width:620px}.form-section-body{padding:22px 24px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);min-width:0}.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}.form-grid>.full{grid-column:1/-1}.field{display:flex;flex-direction:column;min-width:0;gap:6px}.field label{font-size:14px;font-weight:600;line-height:1.4}.field .required{color:var(--danger);margin-left:3px}.field input:not([type=file]):not([type=radio]):not([type=color]),.field textarea,.field select{width:100%;min-height:40px;border:1px solid var(--input-border);border-radius:var(--radius);padding:9px 11px;background:#fff;color:var(--text);font-size:14px;line-height:1.45}.field textarea{resize:vertical;min-height:76px}.field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:1}.field input:disabled,.field textarea:disabled,.field select:disabled{background:#f1f3f6;color:#566170}.field input[aria-invalid=true],.field textarea[aria-invalid=true]{border-color:var(--danger);border-width:2px;padding:8px 10px}.field-help,.help{font-size:13px;color:var(--muted);line-height:1.5;margin:0}.field-error{color:var(--danger);font-size:13px;line-height:1.45;min-height:0}.field-error:empty{display:none}.tax-grid{display:grid;grid-template-columns:1fr .86fr 1.4fr;gap:18px;max-width:640px}.short input{max-width:200px}.field + .help{margin-top:12px}.form-section-body .form-grid+.form-grid,.form-section-body .tax-grid+.form-grid{margin-top:18px}.input-width-medium{max-width:430px}.subdetails{margin-top:20px;border-top:1px solid var(--border);padding-top:16px}.subdetails summary{color:var(--text);font-size:14px;font-weight:600;cursor:pointer;min-height:36px;display:list-item}.subdetails[open] summary{margin-bottom:14px}.info-note{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:#f1f3f7;border-radius:6px;color:#465364;font-size:13px;line-height:1.5;margin:0 0 18px;border:1px solid #dae0e8}.info-note svg{width:17px;height:17px;margin-top:1px}.info-note p{margin:0}.info-note.warning{color:#704d12;background:var(--warning-bg);border-color:#e5d4ad}.info-note.compact{margin:14px 0 0;padding:10px 12px}.form-section-body h4{font-size:14px;margin:0 0 12px}.file-field{margin-bottom:18px}.file-field:last-child{margin-bottom:0}.file-label{font-size:14px;font-weight:600;display:block;margin-bottom:9px}.file-picker{display:flex;align-items:center;gap:16px;min-width:0}.asset-thumb{width:74px;height:62px;border:1px dashed var(--input-border);border-radius:5px;background:#fafbfc;display:grid;place-items:center;color:var(--muted);flex:none;overflow:hidden}.asset-thumb svg{width:23px;height:23px}.asset-thumb img{display:block;max-width:100%;max-height:100%;object-fit:contain}.asset-thumb.favicon{width:44px;height:44px}.asset-description{min-width:0;flex:1}.asset-name{margin:0 0 4px;font-size:13px;color:var(--muted);overflow-wrap:anywhere}.asset-actions{display:flex;gap:10px;flex-wrap:wrap}.asset-actions .text-button{padding-left:0;min-height:36px;font-size:13px}.color-control{display:flex;gap:10px;align-items:center;max-width:280px}.color-control input[type=color]{padding:4px;width:40px;height:40px;border:1px solid var(--input-border);border-radius:5px;background:white;flex:none;cursor:pointer}.color-control input[type=text]{font-family:Arial,sans-serif;text-transform:uppercase}.messenger-row{display:grid;grid-template-columns:minmax(120px,.75fr) minmax(160px,1.5fr) auto;gap:12px;align-items:end;margin-bottom:14px}.messenger-row input{min-height:40px;width:100%;border:1px solid var(--input-border);border-radius:6px;padding:9px 10px}.messenger-row label{display:block;font-weight:600;margin-bottom:6px}.messenger-row .button{margin-bottom:1px}.preview{margin-top:14px;padding:20px;border:1px solid var(--border);border-radius:6px;max-width:650px;background:#fff;overflow-wrap:anywhere}.preview h4{font-size:17px;color:#27358d;margin:9px 0 5px;font-weight:500}.preview p{margin:0;color:#435166}.preview small{color:var(--muted);font-size:13px}.preview img{max-width:100%;height:150px;object-fit:contain;display:block}.preview-caption{margin-top:12px;font-size:13px;color:var(--muted)}.technical{margin-top:21px}.technical summary{display:flex;align-items:center;gap:8px;cursor:pointer;min-height:40px;color:var(--muted);font-size:14px;list-style:none}.technical summary::-webkit-details-marker{display:none}.technical summary svg{width:15px;height:15px}.technical[open] summary svg{transform:rotate(90deg)}.technical-content{padding:16px 20px;background:#fff;border:1px solid var(--border);border-radius:6px;margin-top:7px}.technical dl{display:grid;grid-template-columns:210px 1fr;gap:10px 16px;font-size:13px}.technical dt{color:var(--muted)}.technical dd{margin:0;overflow-wrap:anywhere}.footnote{font-size:13px;color:var(--muted);line-height:1.5;margin:18px 0 0}.back-row{margin:0 0 14px}.back-row .text-button{padding-left:0;font-size:13px;min-height:32px}
+.alert-box{border:1px solid #d8a5ae;border-radius:6px;background:var(--danger-bg);padding:17px 19px;color:#762134;margin:0 0 20px;scroll-margin-top:88px}.alert-box h3{margin:0 0 6px;font-size:16px}.alert-box p{margin:0 0 12px;font-size:14px}.alert-box ul{padding-left:20px;font-size:14px}.alert-box a,.alert-box .text-button{color:#85253b}.alert-box .button{color:var(--text)}.compare-list{display:grid;gap:12px;margin:14px 0 16px}.compare-item{background:white;border:1px solid #dcc9cd;border-radius:5px;padding:12px}.compare-item strong{display:block;margin-bottom:9px;color:var(--text);font-size:14px}.compare-options{display:grid;grid-template-columns:1fr 1fr;gap:12px}.compare-options label{display:flex;gap:8px;padding:9px;border:1px solid var(--border);border-radius:5px;font-size:13px;color:var(--text);line-height:1.5;overflow-wrap:anywhere;min-width:0}.compare-options input{width:18px;height:18px;flex:none;accent-color:var(--primary)}.compare-options span{min-width:0}.compare-options small{color:var(--muted);display:block;font-size:12px}.readonly-note{margin-bottom:18px}.empty-state{background:#fff;border:1px solid var(--border);border-radius:6px;padding:32px;max-width:750px}.empty-state h2{font-size:20px;margin:0 0 10px}.empty-state p{color:var(--muted);margin:0 0 18px;max-width:650px}.skeleton{height:70px;background:#e7ebf0;border-radius:6px;margin-bottom:16px}
+.toast{position:fixed;bottom:24px;left:calc(50% + 90px);transform:translateX(-50%);background:#243447;color:white;padding:13px 18px;border-radius:6px;z-index:80;max-width:min(90vw,560px);font-size:14px;box-shadow:0 5px 18px #1b263422;pointer-events:none}.modal{border:1px solid var(--border);border-radius:8px;padding:0;max-width:calc(100% - 32px);width:500px;color:var(--text);background:white;box-shadow:0 16px 56px #14203044;max-height:calc(100dvh - 32px);overflow:auto}.modal::backdrop{background:#19253366}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 12px;gap:16px}.modal-head h2{font-size:20px;margin:0;line-height:1.3}.modal-body{padding:0 22px 22px}.modal-body p{color:var(--muted);font-size:14px;line-height:1.55;margin:10px 0 16px}.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid var(--border)}.modal-body .field{margin-top:15px}.modal-body details{margin-top:20px;border-top:1px solid var(--border);padding-top:14px}.modal-body summary{cursor:pointer;font-weight:600;min-height:36px}.menu-backdrop{display:none}.demo-caption-mobile{display:none}.spinner{display:inline-block;animation:spin 1s linear infinite;width:15px;height:15px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%}@keyframes spin{to{transform:rotate(360deg)}}
+@container (min-width:920px){.form-section{grid-template-columns:206px minmax(0,1fr);gap:28px}.form-section-intro{padding-top:3px}.form-section-intro p{font-size:13px}}
+@media(min-width:1650px){:root{--sidebar:220px}.content{padding-top:32px}}
+@media(max-width:1199px){:root{--sidebar:188px}.topbar{padding:0 24px}.content{padding:24px}.nav-inner{padding:0 24px;gap:21px}.setting-row{grid-template-columns:155px minmax(0,1fr) auto;gap:10px 15px;padding:18px}.sidebar-title{font-size:14px}.save-status{display:none}.demo-button .demo-caption{display:none}.demo-caption-mobile{display:inline}}
+@media(max-width:899px){:root{--header:66px}.rail,.sidebar{display:none}.app{margin-left:0}.topbar .mobile-menu{display:inline-flex}.topbar h1{font-size:21px}.topbar{padding:0 20px}.content{max-width:820px}.form-section{grid-template-columns:1fr}.setting-row{grid-template-columns:170px minmax(0,1fr) auto}.sidebar.open{display:flex;left:0;width:min(280px,86vw);z-index:70;padding-top:18px}.sidebar .close-nav{display:flex;margin:0 0 8px auto}.menu-backdrop.open{display:block;position:fixed;inset:0;background:#1e293b70;z-index:60;border:0}.toast{left:50%}.savebar{position:fixed;inset:auto 0 0;z-index:40;background:#fff;border-top:1px solid var(--border);padding:10px 20px calc(10px + env(safe-area-inset-bottom));justify-content:flex-end;gap:10px}.save-status{display:block;margin-right:auto;font-size:12px}.save-status b{font-size:13px}.has-dirty .app{padding-bottom:94px}.has-dirty .toast{bottom:95px}.savebar .button{min-height:44px}.field input:not([type=file]):not([type=radio]):not([type=color]),.field textarea,.field select{font-size:16px;min-height:44px}.text-button{min-height:44px}.button{min-height:44px}.section-nav button{min-height:48px}.demo-button{min-height:44px}.messenger-row input{font-size:16px;min-height:44px}}
+@media(max-width:599px){:root{font-size:14px;--header:64px}.topbar{padding:0 13px;gap:4px}.topbar-left{gap:5px}.topbar h1{font-size:20px}.topbar .icon-button{border:0;padding:6px;min-width:36px}.demo-button{font-size:12px;gap:5px;padding:5px}.demo-button svg{width:15px}.nav-inner{padding:0 16px;gap:22px}.section-nav button{font-size:14px;padding:13px 0 10px}.content{padding:22px 16px 28px}.page-heading{margin-bottom:17px}.page-heading h2{font-size:19px}.page-heading p{font-size:14px;line-height:1.5}.setting-row{grid-template-columns:1fr auto;padding:15px 16px;gap:7px 12px;align-items:start}.row-heading{grid-column:1;grid-row:1;padding-top:0;font-size:14px}.row-summary{grid-column:1;grid-row:2;line-height:1.45}.row-summary .secondary{font-size:13px;margin-top:4px}.row-action{grid-column:2;grid-row:1/3;align-self:center}.row-action .text-button{font-size:13px;padding:8px 0 8px 8px}.row-action .text-button svg{display:none}.inline-form{grid-column:1/-1;grid-row:3;padding-top:8px}.setting-row.editing .row-action{grid-column:2;grid-row:1}.setting-row.editing .inline-form{grid-column:1/-1;grid-row:2}.setting-row.editing .row-summary{display:none}.form-grid{grid-template-columns:1fr;gap:17px}.tax-grid{grid-template-columns:1fr 1fr;gap:17px}.tax-grid .field:last-child{grid-column:1/-1;max-width:240px}.form-section{gap:10px;margin-bottom:22px}.form-section-body{padding:18px 16px}.form-section-intro h3{font-size:16px}.form-section-intro p{font-size:13px}.form-section-intro{padding:0 1px}.short input{max-width:100%}.info-note{padding:11px 12px}.technical dl{grid-template-columns:1fr;gap:5px}.technical dd{margin:0 0 10px}.technical-content{padding:15px}.footnote{font-size:13px}.compare-options{grid-template-columns:1fr}.savebar{padding-left:13px;padding-right:13px;gap:7px}.save-status .all-sections{display:none}.savebar .button{font-size:14px;padding:9px 12px}.file-picker{gap:12px}.asset-thumb{width:60px;height:56px}.asset-actions{gap:0 12px}.asset-actions .text-button{font-size:13px;min-height:44px}.messenger-row{grid-template-columns:1fr auto;gap:10px}.messenger-row>div:nth-child(1){grid-column:1/3}.messenger-row>div:nth-child(2){grid-column:1}.modal-head{padding:17px 17px 10px}.modal-head h2{font-size:19px}.modal-body{padding:0 17px 18px}.modal-foot{padding:14px 17px;flex-wrap:wrap}.modal-foot .button{flex:1;font-size:14px}.toast{font-size:13px;width:calc(100% - 32px);bottom:16px}.empty-state{padding:23px 19px}.alert-box{padding:15px}.alert-box h3{font-size:16px}.section-caption{margin-top:21px}.button-row{gap:7px}}
+@media(max-width:359px){.topbar h1{font-size:18px}.demo-button svg{display:none}.save-status b{font-size:12px}.savebar .button{padding:9px 10px;font-size:13px}.savebar{gap:6px}.content{padding-left:12px;padding-right:12px}.setting-row{padding:14px 13px}.row-summary{font-size:13px}.row-heading{font-size:14px}.nav-inner{padding:0 12px}}
+@media(max-height:500px) and (max-width:899px){.savebar{position:static;margin:0}.has-dirty .app{padding-bottom:0}.topbar{position:static}.modal{max-height:calc(100dvh - 12px)}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+html{scrollbar-width:none}html::-webkit-scrollbar{display:none}.proposal-badge{position:sticky;top:0;z-index:20;display:flex;align-items:center;min-height:32px;padding:5px 16px;border-bottom:1px solid #d4cbff;background:#f0edff;color:#3f2e9a;font-size:12px;font-weight:700}.proposal-banner{margin:0 0 18px;padding:11px 14px;border:1px solid #d9dfe8;border-radius:6px;background:#fff;color:#4d5968;font-size:13px;line-height:1.5}.library-empty{padding:24px;border:1px dashed #aeb8c5;border-radius:6px;text-align:center;background:#f8fafc}.library-empty strong{display:block;margin-bottom:6px}.library-empty p{margin:0;color:#66788a}@media(max-width:599px){.proposal-badge{font-size:12px;padding:5px 13px}.nav-inner{flex-wrap:wrap;gap:0 14px;overflow:visible}.section-nav button{min-height:44px}.has-dirty .toast{bottom:95px}}</style></head>
+<body>
+<a href="#main-content" class="skip-link">Перейти к настройкам</a>
+<div class="rail" aria-hidden="true"><span data-icon="grid"></span><span data-icon="home"></span><span data-icon="box"></span><span data-icon="file"></span><span class="selected" data-icon="settings"></span><span class="last" data-icon="help"></span></div>
+<button class="menu-backdrop" id="menu-backdrop" aria-label="Закрыть меню" tabindex="-1"></button>
+<aside class="sidebar" id="sidebar" aria-label="Разделы управления">
+<button class="button icon-button close-nav" id="close-menu" aria-label="Закрыть меню"><span data-icon="close"></span></button>
+<p class="sidebar-title">Universal Commerce CMS</p>
+<button class="nav-item active" data-route="overview" aria-current="page"><span data-icon="settings"></span>Настройки сайта</button>
+<p class="sidebar-note">Раздел внутри Directus.</p>
+</aside>
+<div class="app" id="app">
+<div class="proposal-badge">Предложение A5 · макет, не установлен</div>
+<header class="topbar"><div class="topbar-left"><button class="button icon-button mobile-menu" id="open-menu" aria-label="Открыть меню" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button><h1>Настройки сайта</h1></div>
+<div class="demo-button" aria-label="Режим макета"><span data-icon="info"></span><span class="demo-caption">Макет · без записи в CMS</span><span class="demo-caption-mobile">Макет</span></div>
+<div class="savebar" id="savebar" hidden aria-label="Сохранение настроек"><div class="save-status"><b id="dirty-status">Есть изменения</b><span class="all-sections">Во всех вкладках настроек</span></div><button class="button" id="discard-button">Отменить</button><button class="button primary" id="save-button">Сохранить</button></div></header>
+<nav class="section-nav" aria-label="Группы настроек"><div class="nav-inner" id="section-nav"></div></nav>
+<main id="main-content" class="content" tabindex="-1"><div class="proposal-banner">Изменения во всех вкладках настроек сайта. Товары, страницы и блоки не затрагиваются.</div><div id="global-alert" aria-live="polite"></div><div id="view"></div></main>
+</div>
+<div class="toast" id="toast" role="status" hidden></div><dialog class="modal" id="confirm-dialog" aria-labelledby="confirm-title"><div class="modal-head"><h2 id="confirm-title">Отменить изменения?</h2></div><div class="modal-body"><p id="confirm-message">Все несохранённые правки будут отменены. Сохранённые значения останутся без изменений.</p></div><div class="modal-foot"><button class="button" id="confirm-no">Продолжить редактирование</button><button class="button danger" id="confirm-yes">Отменить изменения</button></div></dialog>
+<dialog class="modal" id="library-dialog" aria-labelledby="library-title"><div class="modal-head"><h2 id="library-title">Пример выбора файла</h2><button class="button icon-button" data-close-library aria-label="Закрыть окно">×</button></div><div class="modal-body"><div class="library-empty"><strong>Библиотека файлов Directus</strong><p>Это пример интерфейса выбора. В макете нет подключения к библиотеке, загрузки или записи файла.</p></div></div><div class="modal-foot"><button class="button" data-close-library>Закрыть</button></div></dialog><dialog class="modal" id="about-dialog" aria-labelledby="about-title"><div class="modal-head"><h2 id="about-title">Об этом макете</h2><button class="button icon-button" id="about-close" aria-label="Закрыть окно"><span data-icon="close"></span></button></div><div class="modal-body"><p>Это интерактивный вариант A5 для проверки интерфейса. Данные синтетические. Кнопка «Сохранить» меняет только состояние этой страницы и не записывает данные в CMS.</p><p>Выбранные изображения остаются в браузере. После закрытия страницы демонстрационные изменения сбрасываются.</p><details><summary>Проверка поведения</summary><div class="field"><label for="demo-mode">Состояние редактора</label><select id="demo-mode"><option value="normal">Обычная работа</option><option value="readonly">Только просмотр</option><option value="partial">Можно менять только телефон</option><option value="denied">Нет доступа</option><option value="loadError">Ошибка загрузки</option><option value="missing">Запись не найдена</option><option value="multiple">Найдено несколько записей</option></select></div><div class="field"><label for="demo-outcome">Следующее сохранение</label><select id="demo-outcome"><option value="success">Успешное сохранение</option><option value="conflict">Конфликт с другим сотрудником</option><option value="network">Запрос не отправлен</option><option value="uncertain">Ответ потерян после сохранения</option></select></div><div class="button-row" style="margin-top:18px"><button class="button primary" id="apply-demo">Применить сценарий</button><button class="button" id="reset-demo">Сбросить макет</button></div></details></div></dialog>
+<script>'use strict';
+(()=>{
+/** State for the offline design prototype only. Native A5 must reuse A0 createEditorState. */
+const clone = value => structuredClone(value);
+const equal = (a, b) => {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object') return false;
+  if (Array.isArray(a) !== Array.isArray(b)) return false;
+  const aa=Object.keys(a).sort(), bb=Object.keys(b).sort();
+  return aa.length===bb.length && aa.every((key,i)=>key===bb[i] && equal(a[key],b[key]));
+};
+function createEditor(initial, allowedFields) {
+  const allowed=new Set(allowedFields);
+  let baseline=clone(initial), draft=clone(initial), phase='idle', readonly=false;
+  const dirtyFields=()=>[...allowed].filter(key=>!equal(baseline[key],draft[key]));
+  const canSave=()=>!readonly && ['idle','error'].includes(phase) && dirtyFields().length>0;
+  const validRecord=record=>record && typeof record==='object' && !Array.isArray(record)
+    && record.id===baseline.id && Object.hasOwn(record,'updated_at');
+  function adopt(record) { baseline=clone({...baseline,...record});draft=clone(baseline);phase='idle'; }
+  return {
+    values:()=>clone(draft), baseline:()=>clone(baseline), dirtyFields,
+    status:()=>phase, isReadonly:()=>readonly, canSave,
+    setReadonly(value){readonly=Boolean(value);},
+    change(key,value){
+      if(readonly || !['idle','error'].includes(phase) || !allowed.has(key)) return false;
+      draft[key]=clone(value);phase='idle';return true;
+    },
+    payload(){
+      const changed=dirtyFields();
+      return {expected:{id:baseline.id,updated_at:baseline.updated_at,...Object.fromEntries(changed.map(key=>[key,clone(baseline[key])]))},
+        changes:Object.fromEntries(changed.map(key=>[key,clone(draft[key])]))};
+    },
+    beginSave(){if(!canSave())return false;phase='saving';return true;},
+    acknowledge(record){
+      if(phase!=='saving' || !validRecord(record) || dirtyFields().some(key=>!Object.hasOwn(record,key)||!equal(record[key],draft[key]))){phase='uncertain';return false;}
+      adopt(record);return true;
+    },
+    discard(){if(!['idle','error'].includes(phase))return false;draft=clone(baseline);phase='idle';return true;},
+    conflict(){phase='conflict';},
+    uncertain(){phase='uncertain';},
+    fail(){phase='error';},
+    rebase(record,choices){
+      const dirty=dirtyFields();
+      if(!validRecord(record) || dirty.some(key=>!Object.hasOwn(record,key)||!['local','remote'].includes(choices[key])))return false;
+      const own=clone(draft);adopt(record);
+      for(const key of dirty)if(choices[key]==='local')draft[key]=own[key];
+      return true;
+    },
+    checkRemote(record){
+      if(!validRecord(record))return false;
+      if(dirtyFields().every(key=>Object.hasOwn(record,key)&&equal(record[key],draft[key]))){adopt(record);return true;}
+      phase='conflict';return false;
+    }
+  };
+}
+
+/** Physical field names follow the verified site_settings blueprint. Values are synthetic. */
+const FIELD = {
+ company_name:{label:'Название компании',group:'company',required:true,help:'В подвале и подписях сайта. Изменение названия не заменяет логотип.'},
+ legal_name:{label:'Юридическое наименование',group:'company',help:'Полное название организации. Используется в сведениях для поисковых систем.'},
+ inn:{label:'ИНН',group:'company',width:'short',numeric:true},
+ kpp:{label:'КПП',group:'company',width:'short',numeric:true},
+ ogrn:{label:'ОГРН',group:'company',width:'medium',numeric:true},
+ legal_address:{label:'Юридический адрес',group:'company',type:'textarea',rows:2},
+ vat_info:{label:'Информация о НДС',group:'company',help:'Используется на странице «Оплата».'},
+ requisites_url:{label:'Ссылка на реквизиты',group:'company',type:'url',notConnected:true},
+ documents_url:{label:'Ссылка на документы',group:'company',type:'url',notConnected:true},
+ phone:{label:'Телефон для покупателей',group:'contacts',type:'tel',required:true,help:'В шапке, подвале и на странице «Контакты».'},
+ email:{label:'Электронная почта',group:'contacts',type:'email',required:true,help:'Публичный адрес для обращений покупателей.'},
+ city:{label:'Город',group:'contacts'},
+ address:{label:'Адрес офиса или склада',group:'contacts',type:'textarea',rows:2},
+ working_hours:{label:'Время работы',group:'contacts'},
+ delivery_region:{label:'Регион доставки',group:'contacts',help:'Используется на странице «Доставка».'},
+ messengers:{label:'Мессенджеры',group:'contacts',type:'list',notConnected:true},
+ social_links:{label:'Социальные сети',group:'contacts',readonly:true,notConnected:true},
+ logo:{label:'Логотип',group:'appearance',type:'file',notConnected:true,help:'Выберите свой файл. Образец логотипа не подставляется.'},
+ favicon:{label:'Значок вкладки браузера',group:'appearance',type:'file',notConnected:true,help:'Небольшой квадратный значок рядом с названием сайта.'},
+ company_image:{label:'Изображение компании',group:'appearance',type:'file',notConnected:true},
+ primary_color:{label:'Основной цвет',group:'appearance',type:'color',notConnected:true},
+ accent_color:{label:'Акцентный цвет',group:'appearance',type:'color',notConnected:true},
+ primary_cta_text:{label:'Текст основной кнопки',group:'appearance',notConnected:true},
+ primary_cta_url:{label:'Ссылка основной кнопки',group:'appearance',type:'url',notConnected:true},
+ footer_text:{label:'Описание компании в подвале',group:'appearance',type:'textarea',rows:2},
+ footer_disclaimer:{label:'Примечание в подвале',group:'appearance',type:'textarea',rows:2},
+ seo_title:{label:'Заголовок в поиске',group:'search'},
+ seo_description:{label:'Описание в поиске',group:'search',type:'textarea',rows:3},
+ og_title:{label:'Заголовок карточки ссылки',group:'search'},
+ og_description:{label:'Описание карточки ссылки',group:'search',type:'textarea',rows:3},
+ default_og_image:{label:'Изображение для ссылки',group:'search',type:'file'},
+};
+const TABS=[['overview','Обзор'],['company','Компания'],['contacts','Контакты'],['appearance','Оформление'],['search','Поиск и соцсети']];
+const EDITABLE=Object.keys(FIELD).filter(key=>!FIELD[key].readonly);
+const INITIAL={
+ id:'local-proposal-record',created_at:'2026-10-19T12:00:00.000Z',updated_at:'demo-1',
+ company_name:'Demo Commerce',legal_name:null,
+ phone:'+7 000 000-00-00',email:'demo@example.test',city:null,address:null,
+ working_hours:null,delivery_region:null,
+ inn:null,kpp:null,ogrn:null,legal_address:null,vat_info:null,
+ requisites_url:null,documents_url:null,messengers:[],social_links:null,
+ logo:null,favicon:null,company_image:null,primary_color:'#2563eb',accent_color:'#f59e0b',
+ primary_cta_text:null,primary_cta_url:null,
+ footer_text:'Synthetic draft content for local CMS evaluation.',
+ footer_disclaimer:null,
+ seo_title:null,seo_description:null,og_title:null,og_description:null,default_og_image:null,
+ commerce_profile:{managed:'outside-a5'},yandex_metrica_id:null,gtm_id:null,translations:{},
+};
+function validateValues(values, baseline, dirty) {
+ const errors={};
+ for(const key of dirty){
+  const field=FIELD[key];if(!field||field.readonly)continue;
+  const value=values[key], text=typeof value==='string'?value.trim():'';
+  if(field.required&&!text){errors[key]='Заполните это поле.';continue;}
+  if(field.type==='email'&&text&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text))errors[key]='Укажите адрес вида name@example.ru.';
+  if(field.type==='url'&&text&&!safeHref(text))errors[key]='Укажите адрес страницы, например /contacts, или полную ссылку с https://.';
+  if(field.type==='color'&&text&&!/^#[0-9a-f]{6}$/i.test(text))errors[key]='Укажите цвет в формате #2563EB.';
+  if(key==='messengers'&&(!Array.isArray(value)||value.some(item=>!item?.label?.trim()||!safeHref(item.url))))errors[key]='У каждой строки должны быть название и безопасная ссылка.';
+ }
+ return errors;
+}
+function safeHref(value){
+ if(typeof value!=='string'||!value.trim())return false;
+ const text=value.trim();if(/[\u0000-\u0020\u007f\\]/.test(text))return false;
+ if(text.startsWith('/')&&!text.startsWith('//'))return true;
+ try {const url=new URL(text);return ['https:','http:'].includes(url.protocol)&&Boolean(url.hostname)&&!url.username&&!url.password;}catch{return false;}
+}
+
+
+// This entry point has no network transport. All writes are local demonstrations.
+const $=(selector,root=document)=>root.querySelector(selector);
+const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
+const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const copy=value=>structuredClone(value);
+const PATHS={
+ grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+ home:'<path d="m3 10 9-7 9 7v10H15v-6H9v6H3z"/>',
+ box:'<path d="m3 7 9-4 9 4v11l-9 4-9-4zM3 7l9 4 9-4M12 11v11M7.5 5l9 4"/>',
+ file:'<path d="M6 3h8l4 4v14H6zM14 3v5h4M9 12h6M9 16h6"/>',
+ article:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+ settings:'<path d="M4 7h16M4 17h16"/><rect x="8" y="4" width="4" height="6" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="14" width="4" height="6" rx="1" fill="currentColor" stroke="none"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7v.2"/>',
+ help:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4M12 17v.1"/>',
+ menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',
+ close:'<path d="m6 6 12 12M18 6 6 18"/>',
+ chevron:'<path d="m9 5 7 7-7 7"/>',
+ back:'<path d="m10 5-7 7 7 7M3 12h18"/>',
+ picture:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 20"/>',
+ plus:'<path d="M12 4v16M4 12h16"/>',
+ check:'<path d="m4 12 5 5L20 6"/>',
+ trash:'<path d="M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',
+};
+const icon=name=>`<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">${PATHS[name]||PATHS.info}</svg>`;
+const mountIcons=()=>$$('[data-icon]').forEach(el=>{el.innerHTML=icon(el.dataset.icon);});
+let remoteRecord=copy(INITIAL), editor=createEditor(remoteRecord,EDITABLE), route='overview', inlineGroup=null;
+let mode='normal',outcome='success',version=1,errors={},problem=null,comparedRecord=null,toastTimer=null;
+let previewSearch=false,previewShare=false,confirmAction=null,confirmFocus=null,aboutFocus=null;
+let selectedAsset=0;
+const assets=new Map();
+const fieldsInGroup=group=>Object.keys(FIELD).filter(key=>FIELD[key].group===group);
+const isWritable=key=>!['readonly','denied','missing','multiple','loadError'].includes(mode)
+  && (mode!=='partial'||key==='phone') && EDITABLE.includes(key) && ['idle','error'].includes(editor.status());
+const dis=key=>isWritable(key)?'':'disabled';
+const val=key=>editor.values()[key];
+const stringValue=value=>typeof value==='string'?value:'';
+const formatValue=(key,value)=>{
+ if(value===null||value===undefined||value==='')return 'Не указано';
+ if(FIELD[key]?.type==='file')return assets.get(value)?.name||'Файл выбран';
+ if(Array.isArray(value))return value.length?`${value.length} записей`:'Не добавлены';
+ return typeof value==='object'?'Существующие данные':String(value);
+};
+function note(text,warning=false,compact=false){return `<div class="info-note${warning?' warning':''}${compact?' compact':''}">${icon('info')}<p>${text}</p></div>`;}
+function field(key,options={}){
+ const d=FIELD[key],value=val(key),id=`input-${key}`,hint=d.help||'',error=errors[key]||'';
+ if(d.type==='file')return assetField(key);
+ if(d.type==='list')return messengerField();
+ const attributes=`id="${id}" data-field="${key}" ${d.required?'required':''} ${dis(key)} aria-invalid="${error?'true':'false'}" aria-describedby="help-${key} error-${key}" ${d.numeric?'inputmode="numeric"':''}`;
+ let control;
+ if(d.type==='textarea')control=`<textarea ${attributes} rows="${d.rows||2}">${esc(value)}</textarea>`;
+ else if(d.type==='color')control=`<div class="color-control"><input type="color" aria-label="Выбрать: ${esc(d.label.toLowerCase())}" data-color="${key}" value="${/^#[0-9a-f]{6}$/i.test(stringValue(value))?esc(value):'#2563eb'}" ${dis(key)}><input type="text" ${attributes} value="${esc(value)}" spellcheck="false"></div>`;
+ else control=`<input type="${['email','tel'].includes(d.type)?d.type:'text'}" ${attributes} value="${esc(value)}" autocomplete="off" ${['url','email'].includes(d.type)?'spellcheck="false" autocapitalize="none"':''}>`;
+ return `<div class="field ${options.full?'full':''} ${d.width==='short'?'short':''}" data-field-wrap="${key}"><label for="${id}">${esc(d.label)}${d.required?'<span class="required" aria-hidden="true">*</span>':''}</label>${control}<p class="field-help" id="help-${key}">${esc(hint)}</p><p class="field-error" id="error-${key}">${esc(error)}</p></div>`;
+}
+function assetField(key){
+ const d=FIELD[key],id=val(key),asset=assets.get(id),preview=asset?`<img src="${esc(asset.url)}" alt="">`:icon('picture');
+ return `<div class="file-field" data-field-wrap="${key}"><span class="file-label">${esc(d.label)}</span><div class="file-picker"><div class="asset-thumb ${key==='favicon'?'favicon':''}">${preview}</div><div class="asset-description"><p class="asset-name">${esc(asset?.name||(id?'Файл выбран':'Файл не выбран'))}</p><div class="asset-actions"><button type="button" class="text-button" data-pick="${key}" ${dis(key)}>${id?'Заменить файл':'Пример выбора файла'}</button>${id?`<button type="button" class="text-button" data-detach="${key}" ${dis(key)}>Убрать из настроек</button>`:''}</div><p class="field-help">${esc(d.help||'Изображение из файловой библиотеки.')}</p></div></div><p class="field-error" id="error-${key}">${esc(errors[key]||'')}</p></div>`;
+}
+function messengerField(){
+ return note('Список мессенджеров хранится в формате, который пока не подтверждён. Здесь он доступен только для чтения и сохранится без изменений.');
+ const values=val('messengers');
+ if(!Array.isArray(values)||values.some(item=>!item||typeof item!=='object'||Array.isArray(item)||typeof item.label!=='string'||typeof item.url!=='string'))return note('В записи используется другой формат мессенджеров. Он сохранится без изменений. Редактирование доступно после проверки структуры.');
+ const rows=values.map((item,index)=>`<div class="messenger-row"><div><label for="messenger-name-${index}">Название</label><input id="messenger-name-${index}" data-messenger="${index}" data-property="label" value="${esc(item.label)}" ${dis('messengers')}></div><div><label for="messenger-url-${index}">Ссылка</label><input id="messenger-url-${index}" data-messenger="${index}" data-property="url" value="${esc(item.url)}" spellcheck="false" ${dis('messengers')}></div><button class="button icon-button" data-remove-messenger="${index}" aria-label="Удалить мессенджер ${index+1}" ${dis('messengers')}>${icon('trash')}</button></div>`).join('');
+ return `<div data-field-wrap="messengers">${rows||'<p class="help" style="margin-bottom:12px">Мессенджеры не добавлены.</p>'}<button type="button" class="button" data-add-messenger ${dis('messengers')}>${icon('plus')}Добавить мессенджер</button><p class="field-error" id="error-messengers">${esc(errors.messengers||'')}</p></div>`;
+}
+function section(title,description,body,id=''){return `<section class="form-section" ${id?`id="${id}"`:''}><div class="form-section-intro"><h3>${esc(title)}</h3><p>${esc(description)}</p></div><div class="form-section-body">${body}</div></section>`;}
+function grid(keys){return `<div class="form-grid">${keys.map(entry=>typeof entry==='string'?field(entry):field(entry[0],entry[1])).join('')}</div>`;}
+const quickGroups={company:['company_name','legal_name'],contacts:['phone','email'],footer:['footer_text','footer_disclaimer']};
+function overviewRow(title,summary,action,group){
+ const open=inlineGroup===group,allowed=quickGroups[group]?.some(isWritable);
+ const body=open?`<div class="inline-form">${grid(quickGroups[group].map(key=>[key,{full:group==='footer'}]))}<p class="help">${group==='footer'?'Тексты в нижней части сайта.':'Здесь меняются только показанные поля.'} Кнопка «Сохранить» сохраняет правки во всех пяти вкладках настроек.</p></div>`:'';
+ const button=group?`<button class="text-button" data-inline="${group}" ${!allowed&&!open?'disabled':''} aria-label="${open?'Свернуть':`Изменить: ${title.toLowerCase()}`}" aria-expanded="${open}">${open?'Свернуть':'Изменить'}</button>`:action;
+ return `<div class="setting-row ${open?'editing':''}" ${group?`id="row-${group}"`:''}><div class="row-heading">${title}</div><div class="row-summary">${summary}</div><div class="row-action">${button}</div>${body}</div>`;
+}
+function technical(){return `<details class="technical"><summary>${icon('chevron')}Служебная информация</summary><div class="technical-content"><p class="help">Скрытые системные и дополнительные данные сохраняются без изменений и не показываются в этом макете.</p></div></details>`;}
+function overview(){
+ const v=editor.values(),requisites=[v.inn&&`ИНН ${v.inn}`,v.kpp&&`КПП ${v.kpp}`,v.ogrn&&`ОГРН ${v.ogrn}`].filter(Boolean).join(' · ');
+ return `<div class="page-heading"><div><h2>Общие настройки</h2><p>Основные сведения о магазине и быстрый переход к нужным настройкам.</p></div></div>
+ <div class="settings-list">
+ ${overviewRow('Компания',`<strong>${esc(v.company_name||'Название не указано')}</strong><span class="secondary">${esc(v.legal_name||'Юридическое наименование не указано')}</span>`,'','company')}
+ ${overviewRow('Связь с покупателями',`${esc(v.phone)}<span class="secondary">${esc(v.email)}</span>`,'','contacts')}
+ ${overviewRow('Реквизиты',`${esc(requisites||'ИНН, КПП и ОГРН не указаны')}<span class="secondary">${esc(v.vat_info||'Информация о НДС не указана')}</span>`,`<button class="text-button" data-route="company" data-focus="input-inn">Настроить ${icon('chevron')}</button>`)}
+ ${overviewRow('Подвал сайта',`${esc(v.footer_text||'Описание не указано')}<span class="secondary">${esc(v.footer_disclaimer||'Примечание не указано')}</span>`,'','footer')}
+ </div>
+ <h3 class="section-caption">Оформление и представление сайта</h3><div class="settings-list">
+ ${overviewRow('Оформление',`${v.logo?'Логотип выбран':'Логотип не выбран'}<span class="secondary">Логотип, изображения, цвета и основная кнопка</span>`,`<button class="text-button" data-route="appearance">Настроить ${icon('chevron')}</button>`)}
+ ${overviewRow('Поиск и соцсети',`Заголовки, описания и обложка ссылки<span class="secondary">Применение на сайте пока не подключено</span>`,`<button class="text-button" data-route="search">Настроить ${icon('chevron')}</button>`)}
+ </div>${technical()}<p class="footnote">Логотип, изображения, цвета, текст основной кнопки и общие поля поиска сохраняются в настройках, но сейчас не применяются к витрине. Описание и примечание в подвале используются на сайте.</p>`;
+}
+function companyPage(){return `<div class="page-heading"><div><h2>Компания</h2><p>Название магазина и юридические сведения — без смешения с контактами покупателей.</p></div></div>
+ ${section('Название и организация','Эти сведения используются в разных частях сайта.',grid([['company_name',{full:true}],['legal_name',{full:true}]]))}
+ ${section('Реквизиты','ИНН, КПП и ОГРН отображаются на странице «Контакты». Юридический адрес не заменяет адрес офиса.',`<div class="tax-grid">${['inn','kpp','ogrn'].map(key=>field(key)).join('')}</div>${grid([['legal_address',{full:true}],['vat_info',{full:true}]])}<details class="subdetails"><summary>Ссылки на документы</summary>${note('Эти ссылки сохраняются в настройках, но пока не выводятся на сайт.',true)}${grid([['requisites_url',{full:true}],['documents_url',{full:true}]])}</details>`,'requisites')}`;}
+function contactsPage(){return `<div class="page-heading"><div><h2>Контакты</h2><p>Сведения, по которым покупатели могут связаться с вашей компанией.</p></div></div>
+ ${section('Связь с покупателями','Проверьте телефон и почту перед сохранением.',grid(['phone','email']))}
+ ${section('Адрес и доставка','Адрес офиса не обязательно совпадает с юридическим адресом.',grid([['address',{full:true}],'city','working_hours',['delivery_region',{full:true}]]))}
+ ${section('Мессенджеры и социальные сети','Дополнительные способы связи.',`${note('В этом блоке можно посмотреть области мессенджеров и соцсетей. Подтверждённого редактируемого повтора сейчас нет.',false)}${messengerField()}<details class="subdetails"><summary>Социальные сети</summary><p class="help">Текущие данные сохраняются без изменений. Редактирование этого поля будет доступно после подтверждения его структуры — техническая форма здесь не показывается.</p></details>`)}`;}
+function appearancePage(){return `<div class="page-heading"><div><h2>Оформление</h2><p>Собственные изображения, цвета и тексты магазина.</p></div></div>
+ ${section('Логотип и изображения','Здесь выбираются файлы, а не создаётся новый фирменный стиль.',`${note('Изображения сохраняются в настройках, но сейчас не применяются к витрине.',true)}${['logo','favicon','company_image'].map(assetField).join('')}<p class="help" style="margin-top:16px">Кнопка открывает только пример штатной библиотеки Directus. Выбор и загрузка файла в этом макете не выполняются.</p>`)}
+ ${section('Цвета и основная кнопка','Не меняют оформление административной панели.',`${note('Цвета и основная кнопка ещё не подключены к этим настройкам. Изменения можно подготовить, но сейчас они не появятся на сайте.',true)}${grid(['primary_color','accent_color'])}${grid(['primary_cta_text','primary_cta_url'])}`)}
+ ${section('Подвал сайта','Эти тексты уже используются в нижней части страниц.',grid([['footer_text',{full:true}],['footer_disclaimer',{full:true}]]))}`;}
+function searchPreview(){const v=editor.values();return `<div class="preview"><h4>${esc(v.seo_title||v.company_name||'Название магазина')}</h4><p>${esc(v.seo_description||'Описание появится здесь после заполнения поля.')}</p><p class="preview-caption">Пример по введённому тексту. Это не фактическая поисковая выдача.</p></div>`;}
+function sharePreview(){const v=editor.values(),asset=assets.get(v.default_og_image);return `<div class="preview">${asset?`<img src="${esc(asset.url)}" alt="">`:''}<h4>${esc(v.og_title||v.company_name||'Название магазина')}</h4><p>${esc(v.og_description||'Описание появится здесь после заполнения поля.')}</p><p class="preview-caption">Локальный пример карточки ссылки, не проверка публикации в социальной сети.</p></div>`;}
+function searchPage(){return `<div class="page-heading"><div><h2>Поиск и соцсети</h2><p>Общие заголовки, описания и оформление ссылки на магазин.</p></div></div>
+ ${note('Настройки этого раздела ещё не подключены к публичному сайту. Сейчас заголовки и описания берутся из отдельных страниц или кода витрины.',true)}
+ ${section('Поисковая выдача','Значения по умолчанию для сайта. Индивидуальные настройки страниц редактируются отдельно.',`${grid([['seo_title',{full:true}],['seo_description',{full:true}]])}<div class="button-row" style="margin-top:16px"><button class="button" data-preview="search" aria-expanded="${previewSearch}">${previewSearch?'Скрыть пример':'Показать пример'}</button></div><div id="search-preview">${previewSearch?searchPreview():''}</div>`)}
+ ${section('Карточка ссылки','Текст и изображение при отправке ссылки в мессенджере или социальной сети.',`${grid([['og_title',{full:true}],['og_description',{full:true}]])}<div style="margin-top:20px">${assetField('default_og_image')}</div><button class="button" data-preview="share" style="margin-top:18px" aria-expanded="${previewShare}">${previewShare?'Скрыть пример':'Показать пример'}</button><div id="share-preview">${previewShare?sharePreview():''}</div>`)}`;}
+function blockedView(){
+ const states={denied:['Нет доступа к редактированию','Обратитесь к администратору, чтобы запросить права на настройки сайта.'],loadError:['Не удалось загрузить настройки','Данные не получены. Проверьте подключение и повторите загрузку.'],missing:['Запись настроек не найдена','Раздел работает с одной существующей записью. Автоматическое создание запрещено. Обратитесь к администратору.'],multiple:['Найдено несколько записей настроек','Редактирование заблокировано: невозможно безопасно выбрать единственную запись. Обратитесь к администратору.']};
+ const [title,text]=states[mode];return `<section class="empty-state"><h2>${title}</h2><p>${text}</p>${mode==='loadError'?'<button class="button primary" data-retry-load>Повторить загрузку</button>':''}</section>`;
+}
+function renderNav(){
+ const dirty=editor.dirtyFields(),blocked=['denied','loadError','missing','multiple'].includes(mode);
+ $('#section-nav').innerHTML=TABS.map(([key,label])=>{const has=key!=='overview'&&dirty.some(field=>FIELD[field].group===key);return `<button data-route="${key}" ${route===key?'aria-current="page"':''} ${blocked?'disabled':''}>${label}${has?'<span class="dirty-dot" aria-hidden="true"></span><span class="sr-only">, есть несохранённые изменения</span>':''}</button>`;}).join('');
+}
+function syncControls(){
+ const count=editor.dirtyFields().length,phase=editor.status(),active=count>0||['saving','conflict','uncertain'].includes(phase);
+ $('#savebar').hidden=!active;document.body.classList.toggle('has-dirty',active);
+ 
+ $('#dirty-status').textContent=phase==='saving'?'Сохраняем…':phase==='conflict'?'Нужна сверка':phase==='uncertain'?'Ответ не подтверждён':`${count} ${count===1?'изменение':count<5?'изменения':'изменений'}`;
+ $('#save-button').disabled=!editor.canSave();$('#discard-button').disabled=['saving','conflict','uncertain'].includes(phase);
+ $('#save-button').innerHTML=phase==='saving'?'<span class="spinner" aria-hidden="true"></span>Сохраняем…':'Сохранить';
+ // Do not rebuild focused tabs during input: update their markers in place.
+ $$('#section-nav [data-route]').forEach(button=>{const key=button.dataset.route,has=key!=='overview'&&editor.dirtyFields().some(field=>FIELD[field].group===key);const marker=$('.dirty-dot',button);if(has&&!marker)button.insertAdjacentHTML('beforeend','<span class="dirty-dot" aria-hidden="true"></span><span class="sr-only">, есть несохранённые изменения</span>');if(!has&&marker){marker.remove();$('.sr-only',button)?.remove();}});
+}
+function renderView(){
+ const blocked=['denied','loadError','missing','multiple'].includes(mode);
+ $('#view').innerHTML=blocked?blockedView():({overview,company:companyPage,contacts:contactsPage,appearance:appearancePage,search:searchPage}[route]||overview)();
+ if(!blocked&&mode==='readonly')$('#view').insertAdjacentHTML('afterbegin',note('Нет доступа к редактированию. Доступен только просмотр.'));
+ if(!blocked&&mode==='partial')$('#view').insertAdjacentHTML('afterbegin',note('В этом сценарии разрешено менять только телефон. Остальные поля доступны для просмотра.'));
+ mountIcons();syncControls();
+}
+function render(){renderNav();renderView();renderProblem();}
+function renderProblem(){
+ const holder=$('#global-alert');
+ if(Object.keys(errors).length){holder.innerHTML=`<section class="alert-box" tabindex="-1" id="validation-summary"><h3>Проверьте заполнение полей</h3><ul>${Object.entries(errors).map(([key,error])=>`<li><a href="#input-${key}" data-error-link="${key}">${esc(FIELD[key]?.label||'Поле')}: ${esc(error)}</a></li>`).join('')}</ul></section>`;return;}
+ if(!problem){holder.innerHTML='';return;}
+ if(problem==='network'){holder.innerHTML=`<section class="alert-box"><h3>Не удалось отправить изменения</h3><p>В этом сценарии запрос не ушёл. Ваши правки остаются в форме.</p><button class="button" data-retry-save>Повторить сохранение</button></section>`;return;}
+ if(problem==='uncertain'){holder.innerHTML=`<section class="alert-box"><h3>Результат сохранения не подтверждён</h3><p>Ответ потерян. Данные могли сохраниться. Проверьте результат чтением; повторная отправка не выполняется.</p><button class="button" data-check-result>Проверить результат</button></section>`;return;}
+ const compare=comparedRecord?`<div class="compare-list">${editor.dirtyFields().map(key=>`<div class="compare-item"><strong>${esc(FIELD[key].label)}</strong><div class="compare-options"><label><input type="radio" name="choice-${key}" value="local" checked><span><small>Мой вариант</small>${esc(formatValue(key,val(key)))}</span></label><label><input type="radio" name="choice-${key}" value="remote"><span><small>Сохранённый вариант</small>${esc(formatValue(key,comparedRecord[key]))}</span></label></div></div>`).join('')}</div><button class="button" data-apply-compare>Применить выбранные варианты</button><p class="help" style="margin:12px 0 0">Это только сверка и обновление основы для ваших правок. CMS не изменяется; для записи нужен отдельный «Сохранить».</p>`:`<button class="button" data-open-compare>Сравнить изменения</button>`;
+ holder.innerHTML=`<section class="alert-box"><h3>Настройки изменились</h3><p>Ваши правки не потеряны. Сверьте их с сохранёнными данными перед повторным сохранением.</p>${compare}</section>`;
+}
+function navigate(next,focusKey=null){
+ if(!TABS.some(([key])=>key===next))return;
+ if(editor.status()==='saving'){toast('Дождитесь завершения сохранения.');return;}
+ route=next;inlineGroup=null;render();closeMenu(false);
+ if(focusKey){const input=$(`#${CSS.escape(focusKey)}`);input?.closest('details')?.setAttribute('open','');input?.focus();input?.scrollIntoView({block:'center',behavior:'instant'});}
+ else {window.scrollTo({top:0,behavior:'instant'});const active=$(`#section-nav [data-route="${next}"]`);active?.focus({preventScroll:true});active?.scrollIntoView({inline:'nearest',block:'nearest',behavior:'instant'});}
+}
+function showFieldError(key){
+ if(!$(`#input-${CSS.escape(key)}`)){route=FIELD[key]?.group||'overview';inlineGroup=null;render();}
+ const input=$(`#input-${CSS.escape(key)}`)||$(`[data-field-wrap="${CSS.escape(key)}"] button`);
+ input?.closest('details')?.setAttribute('open','');input?.focus();input?.scrollIntoView({block:'center',behavior:'instant'});
+}
+function toast(text){clearTimeout(toastTimer);$('#toast').textContent=text;$('#toast').hidden=false;toastTimer=setTimeout(()=>{$('#toast').hidden=true;},5200);}
+async function save(){
+ if(!editor.canSave())return;
+ errors=validateValues(editor.values(),editor.baseline(),editor.dirtyFields());
+ if(Object.keys(errors).length){renderView();renderProblem();$('#validation-summary')?.focus();return;}
+ const inlineOrigin=inlineGroup,focusOrigin=editor.dirtyFields().find(key=>$(`[data-field="${key}"]`));
+ const payload=editor.payload(),action=outcome;outcome='success';$('#demo-outcome').value='success';
+ if(!editor.beginSave())return;problem=null;comparedRecord=null;renderView();renderProblem();
+ await new Promise(resolve=>setTimeout(resolve,360));
+ if(action==='network'){editor.fail();problem='network';render();return;}
+ if(action==='conflict'){
+  remoteRecord.updated_at=`demo-${++version}`;
+  editor.conflict();problem='conflict';render();return;
+ }
+ if(payload.expected.updated_at!==remoteRecord.updated_at){editor.conflict();problem='conflict';render();return;}
+ remoteRecord={...remoteRecord,...copy(payload.changes),updated_at:`demo-${++version}`};
+ if(action==='uncertain'){editor.uncertain();problem='uncertain';render();return;}
+ const ok=editor.acknowledge(remoteRecord);problem=ok?null:'uncertain';
+ if(ok){inlineGroup=null;errors={};render();
+  const focusTarget=inlineOrigin?$(`[data-inline="${inlineOrigin}"]`):focusOrigin?$(`[data-field="${focusOrigin}"]`):null;
+  focusTarget?.focus({preventScroll:true});toast('Сохранено только в этом макете. CMS не изменена.');}
+ else render();
+}
+function confirmChanges(action,message='Все несохранённые правки будут отменены. Сохранённые значения останутся без изменений.'){
+ confirmAction=action;confirmFocus=document.activeElement;$('#confirm-message').textContent=message;$('#confirm-dialog').showModal();$('#confirm-no').focus();
+}
+function discard(){
+ if(!editor.dirtyFields().length||['saving','conflict','uncertain'].includes(editor.status()))return;
+ confirmChanges(()=>{editor.discard();errors={};problem=null;inlineGroup=null;render();toast('Несохранённые изменения отменены.');});
+}
+function closeAbout(){if($('#about-dialog').open)$('#about-dialog').close();aboutFocus?.focus();}
+function openAbout(){aboutFocus=document.activeElement;$('#demo-mode').value=mode;$('#demo-outcome').value=outcome;$('#about-dialog').showModal();$('#about-close').focus();}
+function resetModel(nextMode='normal',nextOutcome='success'){
+ remoteRecord=copy(INITIAL);version=1;mode=nextMode;outcome=nextOutcome;
+ editor=createEditor(remoteRecord,nextMode==='partial'?['phone']:EDITABLE);editor.setReadonly(nextMode==='readonly');
+ route='overview';inlineGroup=null;errors={};problem=null;comparedRecord=null;render();window.scrollTo(0,0);
+}
+function applyDemo(){
+ const nextMode=$('#demo-mode').value,nextOutcome=$('#demo-outcome').value;closeAbout();
+ if(nextMode===mode){outcome=nextOutcome;toast('Сценарий для следующего сохранения выбран.');return;}
+ const apply=()=>resetModel(nextMode,nextOutcome);
+ if(editor.dirtyFields().length)confirmChanges(apply,'Смена демонстрационного сценария сбросит все несохранённые правки.');else apply();
+}
+function openMenu(){
+ $('#sidebar').classList.add('open');$('#menu-backdrop').classList.add('open');$('#sidebar').setAttribute('role','dialog');$('#sidebar').setAttribute('aria-modal','true');$('#app').inert=true;$('#open-menu').setAttribute('aria-expanded','true');document.body.style.overflow='hidden';$('#close-menu').focus();
+}
+function closeMenu(returnFocus=true){
+ if(!$('#sidebar').classList.contains('open'))return;
+ $('#sidebar').classList.remove('open');$('#menu-backdrop').classList.remove('open');$('#sidebar').removeAttribute('role');$('#sidebar').removeAttribute('aria-modal');$('#app').inert=false;$('#open-menu').setAttribute('aria-expanded','false');document.body.style.overflow='';if(returnFocus)$('#open-menu').focus();
+}
+function changedInput(target){
+ const key=target.dataset.field;if(!key)return;
+ // Empty optional scalar inputs retain null rather than creating an accidental empty-string edit.
+ const raw=target.value,value=raw===''&&!FIELD[key].required&&editor.baseline()[key]===null?null:raw;
+ if(!editor.change(key,value))return;
+ if(errors[key]){delete errors[key];target.setAttribute('aria-invalid','false');$(`#error-${key}`).textContent='';renderProblem();}
+ if(FIELD[key].type==='color'){const picker=$(`[data-color="${key}"]`);if(picker&&/^#[0-9a-f]{6}$/i.test(raw))picker.value=raw;}
+ syncControls();
+ if(previewSearch&&$('#search-preview'))$('#search-preview').innerHTML=searchPreview();
+ if(previewShare&&$('#share-preview'))$('#share-preview').innerHTML=sharePreview();
+}
+document.addEventListener('input',event=>{
+ const target=event.target;
+ if(target.matches('[data-field]'))changedInput(target);
+ if(target.matches('[data-color]')){const input=$(`[data-field="${target.dataset.color}"]`);input.value=target.value;changedInput(input);}
+ if(target.matches('[data-messenger]')){
+  const list=val('messengers');if(!Array.isArray(list)||!isWritable('messengers'))return;
+  const index=Number(target.dataset.messenger);list[index]={...list[index],[target.dataset.property]:target.value};editor.change('messengers',list);delete errors.messengers;syncControls();renderProblem();
+ }
+});
+document.addEventListener('change',event=>{
+ const target=event.target;if(!target.matches('[data-file]'))return;
+ const key=target.dataset.file,file=target.files?.[0];if(!file||!isWritable(key))return;
+ const accepted=key==='favicon'?['image/png','image/x-icon','image/vnd.microsoft.icon','image/webp']:['image/png','image/jpeg','image/webp'];
+ if(!accepted.includes(file.type)||file.size>10*1024*1024){errors[key]='Для макета выберите подходящее изображение до 10 МБ.';render();return;}
+ // Asset UUID mirrors a relation field; no file bytes are stored in the settings payload.
+ const id=typeof crypto.randomUUID==='function'?crypto.randomUUID():`00000000-0000-4000-8000-${String(++selectedAsset).padStart(12,'0')}`;
+ assets.set(id,{name:file.name,url:URL.createObjectURL(file)});editor.change(key,id);delete errors[key];renderView();$(`[data-pick="${key}"]`)?.focus();toast('Файл выбран только в браузере. Загрузка на сервер не выполнялась.');
+});
+document.addEventListener('click',async event=>{
+ const button=event.target.closest('button,a');if(!button||button.disabled)return;
+ if(button.dataset.route){event.preventDefault();navigate(button.dataset.route,button.dataset.focus);}
+ if(button.dataset.inline){
+  const group=button.dataset.inline;if(editor.status()==='saving')return;
+  inlineGroup=inlineGroup===group?null:group;renderView();
+  if(inlineGroup)$(`[data-field="${quickGroups[group][0]}"]:not(:disabled)`)?.focus();else $(`[data-inline="${group}"]`)?.focus();
+ }
+ if(button.dataset.errorLink){event.preventDefault();showFieldError(button.dataset.errorLink);}
+ if(button.dataset.pick){aboutFocus=button;$('#library-dialog').showModal();$('#library-dialog [data-close-library]')?.focus();}
+ if(button.hasAttribute('data-close-library'))$('#library-dialog').close();
+ if(button.dataset.detach){editor.change(button.dataset.detach,null);renderView();$(`[data-pick="${button.dataset.detach}"]`)?.focus();}
+ if(button.hasAttribute('data-add-messenger')){const rows=val('messengers');if(Array.isArray(rows)&&isWritable('messengers')){rows.push({label:'',url:''});editor.change('messengers',rows);renderView();$(`#messenger-name-${rows.length-1}`)?.focus();}}
+ if(button.hasAttribute('data-remove-messenger')){const rows=val('messengers');if(Array.isArray(rows)&&isWritable('messengers')){rows.splice(Number(button.dataset.removeMessenger),1);editor.change('messengers',rows);renderView();$('[data-add-messenger]')?.focus();}}
+ if(button.dataset.preview){if(button.dataset.preview==='search')previewSearch=!previewSearch;else previewShare=!previewShare;renderView();$(`[data-preview="${button.dataset.preview}"]`)?.focus();}
+ if(button.hasAttribute('data-retry-save'))save();
+ if(button.hasAttribute('data-retry-load')){mode='normal';render();toast('Демонстрационная загрузка завершена.');}
+ if(button.hasAttribute('data-open-compare')){comparedRecord=copy(remoteRecord);renderProblem();$('[data-apply-compare]')?.focus();}
+ if(button.hasAttribute('data-apply-compare')){
+  const choices=Object.fromEntries(editor.dirtyFields().map(key=>[key,$(`input[name="choice-${key}"]:checked`)?.value]));
+  if(editor.rebase(comparedRecord,choices)){comparedRecord=null;problem=null;errors={};render();toast(editor.dirtyFields().length?'Варианты сверены. Проверьте изменения и нажмите «Сохранить».':'Приняты сохранённые значения.');}
+ }
+ if(button.hasAttribute('data-check-result')){button.disabled=true;await new Promise(resolve=>setTimeout(resolve,240));if(editor.checkRemote(remoteRecord)){problem=null;errors={};inlineGroup=null;render();toast('Проверено: изменения сохранились в макете. Повторной отправки не было.');}else{problem='conflict';render();}}
+});
+$('#save-button').addEventListener('click',save);$('#discard-button').addEventListener('click',discard);
+$('#about-button')?.addEventListener('click',openAbout);
+ $('#library-dialog').addEventListener('close',()=>aboutFocus?.focus());$('#about-close').addEventListener('click',closeAbout);$('#about-dialog').addEventListener('close',()=>aboutFocus?.focus());
+$('#confirm-no').addEventListener('click',()=>{$('#confirm-dialog').close();confirmAction=null;confirmFocus?.focus();});
+$('#confirm-yes').addEventListener('click',()=>{const action=confirmAction;confirmAction=null;$('#confirm-dialog').close();action?.();confirmFocus?.isConnected&&confirmFocus.focus();});
+$('#confirm-dialog').addEventListener('cancel',()=>{confirmAction=null;confirmFocus?.focus();});
+$('#apply-demo').addEventListener('click',applyDemo);
+$('#reset-demo').addEventListener('click',()=>{closeAbout();if(editor.dirtyFields().length)confirmChanges(()=>resetModel());else resetModel();});
+$('#open-menu').addEventListener('click',openMenu);$('#close-menu').addEventListener('click',()=>closeMenu());$('#menu-backdrop').addEventListener('click',()=>closeMenu());
+document.addEventListener('keydown',event=>{
+ if($('#sidebar').classList.contains('open')){
+  if(event.key==='Escape'){event.preventDefault();closeMenu();}
+  if(event.key==='Tab'){
+   const focusable=$$('button:not(:disabled)', $('#sidebar')),first=focusable[0],last=focusable.at(-1);
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  }
+ }
+ if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){event.preventDefault();if(!document.querySelector('dialog[open]'))save();}
+});
+window.addEventListener('beforeunload',event=>{if(editor.dirtyFields().length||['saving','uncertain'].includes(editor.status())){event.preventDefault();event.returnValue='';}});
+window.addEventListener('resize',()=>{syncControls();if(matchMedia('(min-width:900px)').matches)closeMenu(false);});
+const requested=new URLSearchParams(location.search).get('state')||location.hash.slice(1);
+const scenarioMap={overview:['overview','normal'],company:['company','normal'],contacts:['contacts','normal'],appearance:['appearance','normal'],search:['search','normal'],conflict:['contacts','normal'],uncertain:['contacts','normal'],access:['contacts','denied'],denied:['contacts','denied'],cardinality:['overview','multiple'],multiple:['overview','multiple'],read_error:['overview','loadError'],load_error:['overview','loadError'],missing:['overview','missing']};
+if(scenarioMap[requested]){route=scenarioMap[requested][0];mode=scenarioMap[requested][1];}
+if(requested==='conflict'||requested==='uncertain'){editor.change('phone','+7 111 111-11-11');if(requested==='conflict'){editor.conflict();comparedRecord=copy(remoteRecord);problem='conflict';}else{editor.uncertain();problem='uncertain';}}
+render();
+})();</script>
+</body></html>

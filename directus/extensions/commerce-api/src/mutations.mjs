@@ -10,6 +10,25 @@ const keySafe = key => /^[a-z][a-z0-9_]*$/.test(key) && !['constructor', 'protot
 function failure(code, message, status) { return Object.assign(new Error(message), { code, status }); }
 const SINGLE_RELATIONS = new Set(['category','main_image','og_image','image','file','product','product_from','product_to','page','home_page','logo','favicon','default_og_image','hero_image']);
 const MANY_RELATIONS = new Set(['image_items','specification_items','document_items','related_products']);
+const SITE_SETTINGS_FIELDS = new Set(['company_name','legal_name','inn','kpp','ogrn','legal_address','vat_info','requisites_url','documents_url','phone','email','address','city','working_hours','delivery_region','logo','favicon','company_image','primary_color','accent_color','primary_cta_text','primary_cta_url','footer_text','footer_disclaimer','seo_title','seo_description','og_title','og_description','default_og_image']);
+const SITE_SETTINGS_FILES = new Set(['logo','favicon','company_image','default_og_image']);
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SITE_SETTINGS_REQUIRED = new Set(['company_name','phone','email']);
+function validateSiteSettingsPayload(expected,changes,action) {
+  if(action!=='update'||!Object.hasOwn(expected,'id')||!Object.hasOwn(expected,'updated_at')||
+    Object.keys(changes).some(field=>!SITE_SETTINGS_FIELDS.has(field))||
+    Object.keys(changes).some(field=>!Object.hasOwn(expected,field))) {
+    throw failure('INVALID_PAYLOAD','Изменения настроек сайта содержат недопустимые поля.',400);
+  }
+  for(const [field,value] of Object.entries(changes)) {
+    if(SITE_SETTINGS_FILES.has(field)) {
+      if(value!==null&&(typeof value!=='string'||!UUID.test(value)))throw failure('INVALID_PAYLOAD','Для изображения нужно выбрать доступный файл.',400);
+    } else if(value!==null&&typeof value!=='string') {
+      throw failure('INVALID_PAYLOAD','Значение настройки должно быть текстом.',400);
+    }
+    if(SITE_SETTINGS_REQUIRED.has(field)&&(typeof value!=='string'||!value.trim()))throw failure('INVALID_PAYLOAD','Заполните обязательные настройки сайта.',400);
+  }
+}
 function canonical(value) {
   if (value === undefined) return null;
   if (Array.isArray(value)) return value.map(canonical);
@@ -33,7 +52,7 @@ export function equalSnapshotField(field, left, right) {
   }
   return JSON.stringify(canonical(left)) === JSON.stringify(canonical(right));
 }
-export function createGuardedMutationHandler({database,services,getSchema,logger}) {
+export function createGuardedMutationHandler({database,services,getSchema,logger,env=process.env}) {
   return async function guardedMutation(req,res) {
     if (!req?.accountability?.user) return res.status(403).json({errors:[{code:'FORBIDDEN',message:'Требуется авторизация.'}]});
     try {
@@ -51,6 +70,7 @@ export function createGuardedMutationHandler({database,services,getSchema,logger
       }
       const schema=await getSchema();
       if(!schema.collections?.[collection])throw failure('INVALID_PAYLOAD','Коллекция недоступна.',400);
+      if(collection==='site_settings')validateSiteSettingsPayload(expected,changes,action);
       if(require_unreferenced) {
         const fields=schema.collections[collection].fields;
         if(!fields || !Array.isArray(schema.relations))throw failure('INVALID_PAYLOAD','Полная схема удаления недоступна.',400);
@@ -61,8 +81,35 @@ export function createGuardedMutationHandler({database,services,getSchema,logger
       }
       const result=await database.transaction(async trx=>{
         const svc=new services.ItemsService(collection,{schema,accountability:req.accountability,knex:trx});
-        // Check visibility before locking. Do not expose a raw SQL row.
+        // Check visibility before taking the settings-wide serialization lock.
         await svc.readOne(id,{fields:['id']});
+        if(collection==='site_settings') {
+          const metadata=schema.collections.site_settings;
+          if(metadata.collection!=='site_settings'||metadata.singleton!==true)throw failure('INVALID_PAYLOAD','Структура настроек сайта не подтверждена.',400);
+          if(String(expected.id)!==id)throw failure('INVALID_PAYLOAD','Идентификатор настроек не совпадает.',400);
+          // Serialize cardinality checks against concurrent inserts/deletes, then prove
+          // the whole table contains exactly the requested singleton without returning rows.
+          await trx.raw('LOCK TABLE ?? IN SHARE ROW EXCLUSIVE MODE',['site_settings']);
+          const cardinality=await trx('site_settings').count({count:'id'}).first();
+          const singletonCount=Number(cardinality?.count);
+          const identity=await trx('site_settings').where({id}).first('id');
+          if(singletonCount!==1||!identity)throw failure('CONFLICT','Не удалось подтвердить единственную запись настроек сайта.',409);
+          for(const field of Object.keys(changes)) {
+            const fieldSchema=metadata.fields?.[field];
+            if(!fieldSchema||fieldSchema.alias||fieldSchema.type==='alias'||fieldSchema.generated===true)throw failure('INVALID_PAYLOAD','Поле настроек недоступно для изменения.',400);
+            if(SITE_SETTINGS_FILES.has(field)?fieldSchema.type!=='uuid':!['string','text'].includes(fieldSchema.type))throw failure('INVALID_PAYLOAD','Тип поля настроек не соответствует разрешённому значению.',400);
+            if(SITE_SETTINGS_FILES.has(field)&&changes[field]!==null&&expected[field]!==changes[field]) {
+              const folderId=env.COMMERCE_STOREFRONT_PUBLIC_FOLDER_ID;
+              if(typeof folderId!=='string'||!UUID.test(folderId))throw failure('INVALID_PAYLOAD','Общая папка изображений не настроена.',400);
+              const fileService=new services.ItemsService('directus_files',{schema,accountability:req.accountability,knex:trx});
+              let file;
+              try { file=await fileService.readOne(changes[field],{fields:['id','folder','type']}); }
+              catch(error) { if(['FORBIDDEN','NOT_FOUND'].includes(error.code))throw failure('FORBIDDEN','Можно выбрать только доступное изображение из общей папки.',403); throw error; }
+              if(!file||file.id!==changes[field]||String(file.folder).toLowerCase()!==folderId.toLowerCase()||typeof file.type!=='string'||!file.type.startsWith('image/'))throw failure('FORBIDDEN','Можно выбрать только доступное изображение из общей папки.',403);
+            }
+          }
+        }
+        // Do not expose a raw SQL row; all returned data comes from caller-scoped services.
         const locked=await trx(collection).where({id}).forUpdate().first('id');
         if(!locked)throw failure('CONFLICT','Запись удалена. Обновите данные.',409);
         const current=await svc.readOne(id,{fields:Object.keys(expected)});

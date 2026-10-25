@@ -1,0 +1,254 @@
+[
+  {
+    "file": "after-access-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "a2178be0f3150b94ea0c17c07513c90f405d65f2d39c63d411f993c43e58a493"
+  },
+  {
+    "file": "after-access-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "31953cf3de58c737a759824d66463de000b424bdce7430b0b80dd426176650de"
+  },
+  {
+    "file": "after-appearance-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "e9f072aa3d5c560e525f7048ae42116a6b6e4911606237e06315e8587fb021fd"
+  },
+  {
+    "file": "after-appearance-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "65633f7981080309c171347d371026dacbd83a10a6a2de591d2dbbfb3a485b66"
+  },
+  {
+    "file": "after-cardinality-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "6c615d7c5b91beb1ffdb51b3e785f67e9c82f4e23aa4ff41ec859ce0065b1771"
+  },
+  {
+    "file": "after-cardinality-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "9489249c946881baf373d2560acf7b401fe2eb92c5b40a692666335ca8a4779f"
+  },
+  {
+    "file": "after-company-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "b6ef8c12d0ead0f5f8d0581aa1ab6eeccde0b6179e25ba408c0fefee79699ff1"
+  },
+  {
+    "file": "after-company-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "25e0f0d6c23301d4c0cc7d5fd44a678a2b08e419e5b1a4367dde5864de3effde"
+  },
+  {
+    "file": "after-conflict-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "6345a2fb6d031e901943e3addbf6701e9b66429e005c87f6c7d4190e4f7ff9a3"
+  },
+  {
+    "file": "after-conflict-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "1501fc15f2881254d31d63490b35a9cff2732cc3d15af64f25c9e97a0d4a9ab5"
+  },
+  {
+    "file": "after-contacts-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "39ed8f65cb7775498e655c78aef483fcae1803de73f7f4ef26030934721b454f"
+  },
+  {
+    "file": "after-contacts-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "2fd04d40839a489b9e1b9f19ad56db58d26408df6d566e0fe0e969dfd221fa7b"
+  },
+  {
+    "file": "after-dirty-company-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "397f3f49aa21d54b86a02367e97fc0de61ce8c3baed07adf1154349a19a2b351"
+  },
+  {
+    "file": "after-dirty-company-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "212518a59fbf5329bdfe0d0820fcb01e324197c43738b7d23ef0d320dc08bffe"
+  },
+  {
+    "file": "after-discard-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "efcfc6fae3c43fcaba5d4084ab93c2f7b3a2cec8aab4b610583b5d14739e218c"
+  },
+  {
+    "file": "after-discard-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "11d456daa99d2e7510d25d5d13afb6e1ea6794dee277cae7de1062c3450a009b"
+  },
+  {
+    "file": "after-footer-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "db6b72360ae6744b14969b7732386b13fc52b035e47c5451fb65ba5145d1133c"
+  },
+  {
+    "file": "after-footer-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "0bf3f60ae9ed882e65e99d16ea985ee8e0a53bb371e9da592b6ef9c3752e83dd"
+  },
+  {
+    "file": "after-inline-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "909d66ee2fe4e48acbcfec6cd7a164ec603d452dd66182546ace8b3ea2b5f174"
+  },
+  {
+    "file": "after-inline-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "a8e0d4a902922f7c331787ad7211cb2129b41ef1eefbccc688d528fbf3d4cdb5"
+  },
+  {
+    "file": "after-overview-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "019c145d56a0a3ad7fef24ae5b3f994ec9bd216ce49fc510b499c4ab851bc2cb"
+  },
+  {
+    "file": "after-overview-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "a6f30fff517456201f87c9cdf42e7cc891a0e1ee1fcc9d92c969c9bb7911f990"
+  },
+  {
+    "file": "after-picker-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "445b2fd6cfa7c9805771ba4c7a7673166d50f81069859338827164e76747d779"
+  },
+  {
+    "file": "after-picker-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "1a666dad0e55ef7a93f07444607f191c71b7965185e23329f502c7eef74ac413"
+  },
+  {
+    "file": "after-search-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "a15e009d2585be4d9342e4d6c5d7b3953f802cf71b52aa596c9866567e5c3188"
+  },
+  {
+    "file": "after-search-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "691798c06662fc4c55c9f62ac7b1c37b055dacc9254aa62a976fff7e4297f1a9"
+  },
+  {
+    "file": "after-uncertain-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "72d30330259751c96b62ac19d1ba5504e7eb5e714cb7a6ca459eb9ec25d4fb98"
+  },
+  {
+    "file": "after-uncertain-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "ba6361caa801e13b0d546512d19d02b91d1f4004ac35989b7087c8f5901c5924"
+  },
+  {
+    "file": "before-appearance-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "41a9ea2d6ab85cf261ce00a7216248479d2cc0b093b441acf04afdd833f8fc46"
+  },
+  {
+    "file": "before-appearance-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "95b52643607ee80d8ed9d093c92a811c1f90c042904caaf19ff5886da8e6ae96"
+  },
+  {
+    "file": "before-company-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "4d898840dd7b2880e1b19f0e833cd31b18edeb3c079a5814b2cfbcb0595b2849"
+  },
+  {
+    "file": "before-company-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "d50040d81e95bec9cd6431cc5c70cc9182627b893842ae6e6e0a3740e0aa7087"
+  },
+  {
+    "file": "before-contacts-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "9c5f7b010d203ac02ba0d869a1f92a238b96eb5ccddb12d06e80fefd58feab42"
+  },
+  {
+    "file": "before-contacts-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "03050b338fd124f7a51e34e8a6a8dccb85512308308b68e240e6dfde9249d05c"
+  },
+  {
+    "file": "before-footer-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "b8c1c71949d31169373ab5f39d2639e9e5838af567661ecfa78ab0893bf3fa14"
+  },
+  {
+    "file": "before-footer-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "9dbd210c2ba146577f4b96749461e88453cb2cfafa6028a936101a1fd07ce659"
+  },
+  {
+    "file": "before-overview-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "ae42fe4fa6580894e526d5c1029873b7fc437f4e61ee33200817eec879d0f54d"
+  },
+  {
+    "file": "before-overview-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "b6bf24d97011d8753914ab1a9b4b963fb82ab1013a521fa56da1c0fe3fc33a3c"
+  },
+  {
+    "file": "before-picker-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "2c4502b718aa248df830071f625d9dc86180dd4556e3cbf828ae3759bae8869e"
+  },
+  {
+    "file": "before-picker-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "0651a84e60e90c46a1bcb36ce7c2acb1c99e8509d5e671ac5237308388fbf5dd"
+  },
+  {
+    "file": "before-search-desktop.jpg",
+    "width": 1536,
+    "height": 1024,
+    "sha256": "12a2e1e06ad33de8baa6439997eda488ef0d39d396ca81f3df28326ba1d0eb04"
+  },
+  {
+    "file": "before-search-mobile.jpg",
+    "width": 390,
+    "height": 844,
+    "sha256": "af620ca75fa51d30039418aba2eab1fb6d02e962e37a0948b3c386b82075c2c6"
+  }
+]
