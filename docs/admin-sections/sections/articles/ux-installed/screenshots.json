@@ -1,0 +1,187 @@
+{
+  "capturedAt": "2026-10-25",
+  "kind": "actual installed Windows Directus screenshots on owned synthetic fixtures",
+  "target": "http://127.0.0.1:18056",
+  "directus": "12.1.1",
+  "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5",
+  "servedAggregateSha256": "cdd4710fcc538fab326ae3a501a3d6612a3d0af9b2ed8bcc27add135b29e3fa7",
+  "nativeDialogsNote": "Dialog captures verified candidate 6; final candidate changes only publication/additional-date CSS.",
+  "images": [
+    {
+      "file": "installed-main-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "dbd11772a6d2f21fa4ce10bf63e8085be6823e8d6f6e8068bcfcf3ca58ca0882",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-main-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "fcc6cace426a8e098dbf21b79054e25515b17cd44f4d1cdeee443e169636154b",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-material-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "11679fa061de0e43c24c00f63600394c7649a8762b625671ec9d2b2e3580d16e",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-material-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "b27da4b0994a0d9b4c1566ce2ce3c7fba88d67aeff6455c08f36a9b4395ff8e4",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-relations-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "f31617d23d7a0f68a0fc88f11ff4007f63aea0b0c644b94cc9b52a5268a9bed9",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-relations-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "98bcd9997ee0ffd99b176c704005b1a5fab73de41b167f148a7b1b1c5daa8670",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-seo-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "81fa5861a23512a0a32ae265118c32d6d73ef9013b6760ee85cb7232509b7f49",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-seo-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "37fed8a42cabe1733ce14cea2a30f09b45e1535e74708a9a7ec43ed23d7d366c",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-other-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "7da61cb7cead0fddcb07bacdffd1d8d15252daab8fb949a13c04cbc3a00782ad",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-other-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "d1f67c1a99a26af21d44008361c618c271b404f1555e4e2c17c431805a4bd9aa",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-dialog-link-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "d5d3b61e1574676d9d1ee6d87bb586285da2d6ce808846a2925b225e71bcf9b5",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-dialog-link-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "1890b86336e054cc994d2c9be528d4c52c91a9f36ca086878e23b014efa04b72",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-dialog-image-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "23d49a576801a84513414987778ecdad5e4c8e463f466870619047417f358976",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-dialog-image-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "10fbfafdec66b78b25fb5d58d560c0122227a3eff4a150ba44e06924bd7db1e1",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-dialog-source-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "10ecd2d670c9498c6b1a12d5b3ab20c71d09d0eee4bd7d23cea8f4fa34a03aef",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-dialog-source-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "a72da0ef26a2083436e8403df86972af05250cc002fb1b00ca3ec38538482feb",
+      "run": "703b1308-a9d9-4cf1-9e99-fcc57e930155",
+      "articlePairSha256": "80e3ba98bea172213807dece812211f677e99b56370a3e80d23e88c8ddf4979d"
+    },
+    {
+      "file": "installed-error-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "8842f874ed56742242b69f949a0cdb8959d645b5d3e57f099550cb304447ddb3",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-error-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "2415bf3fc98d380e7c30c9e791c3268178df1b8a3eae7153d95f5a583820bd7c",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-comparison-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "e421ad8025bee6ab36975bb046f923adf7efc9a6497a0057a913072395367477",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-comparison-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "851ac1a1d9f1cb2240eac8847cc070f5faf8632c61f213754007f1f3353e278d",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-scheduled-1536.png",
+      "width": 1536,
+      "height": 1024,
+      "sha256": "dc56bc944b95a047d4885143bcbcb065a91c9437e483d61bf68545deb595cf69",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    },
+    {
+      "file": "installed-scheduled-390.png",
+      "width": 390,
+      "height": 844,
+      "sha256": "6bda9c9947ce64ec075ef9acfdb5a0f5f2b9acfc1297210ac1ff1011b6bac588",
+      "run": "01531ade-9959-420a-9224-95f609536410",
+      "articlePairSha256": "f2b358e72ec4ee2760d87c8df76aac4229353428f876921db3180994863cdda5"
+    }
+  ]
+}
