@@ -13,7 +13,7 @@ const source = await readFile(new URL('../../src/sections/articles.js', import.m
 const distSource = await readFile(new URL('../../dist/sections/articles.js', import.meta.url), 'utf8');
 const adminState = new URL('../../src/admin-state.mjs', import.meta.url).href;
 const moduleUrl = uri(rewrite(source).replaceAll('"../admin-shell.js"', JSON.stringify(shell)).replaceAll('"../admin-state.mjs"', JSON.stringify(adminState)));
-const { buildArticlesQuery, articlePermissions, validateArticle, parseArticleDate, createArticlesController, articlePublicationState, createNativeEditAuthorization, articleComparisonRows } = await import(moduleUrl);
+const { buildArticlesQuery, articlePermissions, validateArticle, parseArticleDate, createArticlesController, createArticleRelationsController, articleSeoScalarValues, articleSeoDisplayValues, articlePublicationState, createNativeEditAuthorization, articleComparisonRows } = await import(moduleUrl);
 
 const required = ['title','slug','excerpt','content','published_at'];
 const metadata = ['id','updated_at','created_at','status','title','slug','excerpt','content','content_blocks','editor_nodes','cover_image','image_alt','published_at','category_label','reading_time_minutes','author','reviewer','sources','related_categories','related_products','is_featured','sort_order','seo_title','seo_description','og_image','seo','translations'].map(field => ({
@@ -55,6 +55,9 @@ test('Unicode public slugs and required datetime validation preserve exact valid
   assert.equal(validateArticle({...article,slug:'статья-2'},metadata).length,0);
   assert.ok(validateArticle({...article,slug:'плохой/путь'},metadata).some(e=>e.field==='slug'));
   assert.ok(validateArticle({...article,published_at:null},metadata).some(e=>e.field==='published_at'));
+  const missingTitle=validateArticle({...article,title:'  '},metadata).find(e=>e.field==='title');
+  assert.equal(missingTitle.type,'FAILED_VALIDATION');
+  assert.equal(missingTitle.reason,'required');
   assert.equal(parseArticleDate(article.published_at),article.published_at);
   assert.equal(parseArticleDate('2026-02-30T12:00:00+03:00'),null);
   assert.equal(parseArticleDate('2026-10-18T13:00:00+03:00'),'2026-10-18T10:00:00.000Z');
@@ -67,9 +70,16 @@ test('article comparison limits labels and values to safe business descriptions'
   );
   assert.deepEqual(rows, [
     { field: 'title', label: 'Название статьи', own: 'Локальное название', remote: 'Сохранённое название' },
-    { field: 'related_categories', label: 'Связанные категории', own: 'Связано', remote: 'Не указано' },
-    { field: 'seo', label: 'Настройки SEO', own: 'Составное значение скрыто', remote: 'Составное значение скрыто' },
+    { field: 'related_categories', label: 'Связанные категории', own: '1 связь', remote: 'Не указано' },
   ]);
+});
+
+test('article comparison turns HTML into bounded plain text without exposing markup', () => {
+  const rows=articleComparisonRows({content:`<p><script>secret()</script>${'A'.repeat(220)}</p>`},{content:'<p>Saved <strong>copy</strong></p>'});
+  assert.equal(rows[0].own.length,178);
+  assert.equal(rows[0].own.includes('<'),false);
+  assert.equal(rows[0].own.includes('secret()'),false);
+  assert.equal(rows[0].remote,'Saved copy');
 });
 
 test('cancel discards ordinary article edits without requiring comparison or writing', async () => {
@@ -129,6 +139,11 @@ test('a true 409 keeps local input without misreporting a field validation error
   const api=apiFixture({post:async()=>{throw Object.assign(Error('stale version'),{response:{status:409,data:{errors:[{code:'CONFLICT',message:'The record changed in another window.'}]}}});}});const c=createArticlesController(api);await c.open('article-1');c.change('title','Локальный вариант');
   assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().conflict,true);assert.equal(c.snapshot().writeUncertain,true);assert.equal(c.snapshot().validation.length,0);assert.equal(c.snapshot().values.title,'Локальный вариант');await c.save();assert.equal(api.calls.filter(row=>row[0]==='POST').length,1);
 });
+
+test('native validation errors keep the field and staged input without showing backend messages', async () => {
+  const api=apiFixture({post:async()=>{throw Object.assign(Error('internal error'),{response:{status:422,data:{errors:[{field:'published_at',message:'secret database detail'}]}}});}});const c=createArticlesController(api);await c.open('article-1');c.change('title','Keep this title');
+  assert.equal((await c.save()).ok,false);assert.equal(c.snapshot().validation[0].field,'published_at');assert.match(c.snapshot().validation[0].message,/Дата публикации/);assert.doesNotMatch(c.snapshot().validation[0].message,/secret database detail/);assert.equal(c.snapshot().values.title,'Keep this title');
+});
 test('native content needs a trusted editor action and distribution stays byte-identical', async () => {
   assert.ok(distSource===source,'distributed article section must match source byte-for-byte');const c=createArticlesController(apiFixture());await c.open('article-1');assert.equal(c.change('content','<p>untrusted mount normalization</p>'),false);assert.equal(c.changeTab(['content'],{content:'<p>untrusted form echo</p>'}),false);assert.equal(c.snapshot().values.content,article.content);assert.equal(c.change('content','<p>edited by TinyMCE</p>',{trustedFields:['content']}),true);assert.equal(c.snapshot().values.content,'<p>edited by TinyMCE</p>');
 });
@@ -155,12 +170,42 @@ test('publishing is blocked if a required field cannot be read and accepts a val
   assert.equal((await allowed.transitionStatus('published')).ok,true);assert.deepEqual(full.calls.find(row=>row[0]==='POST')[2].changes,{status:'published'});
 });
 
-test('SEO scalar updates leave native SEO JSON untouched in the guarded delta', async () => {
-  const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');assert.equal(c.change('seo_title','Новый заголовок SEO'),true);assert.equal((await c.save()).ok,true);const payload=api.calls.find(row=>row[0]==='POST')[2];assert.deepEqual(payload.changes,{seo_title:'Новый заголовок SEO'});assert.deepEqual(c.snapshot().values.seo,article.seo);
+test('SEO scalar updates guard the JSON-first projection and preserve unknown SEO keys', async () => {
+  const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');assert.equal(c.change('seo_title','Новый заголовок SEO'),true);assert.equal((await c.save()).ok,true);const payload=api.calls.find(row=>row[0]==='POST')[2];assert.deepEqual(payload.changes,{seo_title:'Новый заголовок SEO',seo:{title:'Новый заголовок SEO',custom:{keep:true}}});assert.deepEqual(payload.expected.seo,article.seo);assert.deepEqual(c.snapshot().values.seo,{title:'Новый заголовок SEO',custom:{keep:true}});
 });
 
 test('related identifier edits preserve legacy string values in JSON arrays', async () => {
   const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');assert.equal(c.change('related_categories',['cat-1','legacy-category','cat-2']),true);assert.equal((await c.save()).ok,true);const payload=api.calls.find(row=>row[0]==='POST')[2];assert.deepEqual(payload.changes,{related_categories:['cat-1','legacy-category','cat-2']});assert.deepEqual(c.snapshot().values.related_products,article.related_products);
+});
+
+test('legacy JSON-string relation containers survive unrelated and intentional saves', async () => {
+  const original=JSON.stringify(['550e8400-e29b-41d4-a716-446655440000','legacy-entry',123]);
+  const unknown={content_blocks:'legacy structure text',seo:'legacy SEO text',translations:'legacy translations text'};
+  const unrelatedApi=apiFixture({item:{...article,...unknown,related_products:original}});const unrelated=createArticlesController(unrelatedApi);await unrelated.open('article-1');
+  unrelated.change('excerpt','Updated excerpt');
+  assert.equal((await unrelated.save()).ok,true);
+  assert.equal(unrelatedApi.calls.find(row=>row[0]==='POST')[2].changes.related_products,undefined);
+  assert.equal(unrelated.snapshot().values.content_blocks,unknown.content_blocks);
+  assert.equal(unrelated.snapshot().values.seo,unknown.seo);
+  assert.equal(unrelated.snapshot().values.translations,unknown.translations);
+
+  const malformedApi=apiFixture({item:{...article,related_products:'unrecognized legacy value'}});const malformed=createArticlesController(malformedApi);await malformed.open('article-1');
+  malformed.change('excerpt','Updated excerpt');
+  assert.equal((await malformed.save()).ok,true);
+  assert.equal(malformedApi.calls.find(row=>row[0]==='POST')[2].changes.related_products,undefined);
+
+  const changedApi=apiFixture({item:{...article,related_products:original}});const changed=createArticlesController(changedApi);await changed.open('article-1');
+  const next=JSON.stringify(['550e8400-e29b-41d4-a716-446655440000','legacy-entry',123,'new-entry']);
+  assert.equal(changed.change('related_products',next),true);
+  assert.equal((await changed.save()).ok,true);
+  const body=changedApi.calls.find(row=>row[0]==='POST')[2];
+  assert.equal(body.changes.related_products,next);
+  assert.equal(typeof body.changes.related_products,'string');
+
+  const invalidApi=apiFixture();const invalid=createArticlesController(invalidApi);await invalid.open('article-1');
+  assert.equal(invalid.change('translations','malformed JSON',{trustedFields:['translations']}),true);
+  assert.equal((await invalid.save()).reason,'validation');
+  assert.equal(invalidApi.calls.filter(row=>row[0]==='POST').length,0);
 });
 
 test('SEO projection rejects contradictory scalar and native JSON edits and keeps unknown JSON keys', async () => {
@@ -170,6 +215,136 @@ test('SEO projection rejects contradictory scalar and native JSON edits and keep
   const result=await c.save();assert.equal(result.ok,false);assert.equal(result.reason,'validation');
   assert.equal(api.calls.filter(row=>row[0]==='POST').length,0);
   assert.equal(c.snapshot().values.seo_title,'Scalar title');assert.deepEqual(c.snapshot().values.seo.custom,{keep:true});assert.equal(c.snapshot().values.seo.new_key,'retained');
+});
+
+test('SEO validation releases saving state so a corrected projection can be saved', async () => {
+  const api=apiFixture();const c=createArticlesController(api);await c.open('article-1');
+  c.change('seo_title','Scalar title');
+  c.change('seo',{...article.seo,title:'Different JSON title'},{trustedFields:['seo']});
+  assert.equal((await c.save()).reason,'validation');
+  assert.equal(c.snapshot().saving,false);
+  assert.equal(api.calls.filter(row=>row[0]==='POST').length,0);
+  c.change('seo',{...article.seo,title:'Scalar title'},{trustedFields:['seo']});
+  assert.equal((await c.save()).ok,true);
+  assert.equal(api.calls.filter(row=>row[0]==='POST').length,1);
+});
+
+test('SEO display uses JSON-first projections and scalar edits retain unknown SEO keys', async () => {
+  const item={...article,seo_title:'stale scalar',seo_description:'scalar description',seo:{title:'JSON title',meta_description:'',custom:{keep:true}}};
+  assert.deepEqual(articleSeoScalarValues(item),{seo_title:'JSON title',seo_description:'',og_image:''});
+  const api=apiFixture({item});const c=createArticlesController(api);await c.open('article-1');
+  assert.equal(c.change('seo_title','Edited title'),true);assert.equal((await c.save()).ok,true);
+  const payload=api.calls.find(row=>row[0]==='POST')[2];
+  assert.deepEqual(payload.changes,{seo_title:'Edited title',seo:{title:'Edited title',meta_description:'',custom:{keep:true}}});
+  assert.deepEqual(payload.expected.seo,item.seo);
+  const fallbackApi=apiFixture({item});const fallback=createArticlesController(fallbackApi);await fallback.open('article-1');
+  assert.equal(fallback.change('seo_title','stale scalar'),true);
+  assert.equal(fallback.snapshot().dirty,true);
+  assert.equal((await fallback.save()).ok,true);
+  assert.deepEqual(fallbackApi.calls.find(row=>row[0]==='POST')[2].changes,{seo_title:'stale scalar',seo:{title:'stale scalar',meta_description:'',custom:{keep:true}}});
+});
+
+test('SEO display switches to an intentional scalar edit before save', () => {
+  const item={...article,seo_title:'stale scalar',seo_description:'scalar description',seo:{title:'JSON title',meta_description:'JSON description'}};
+  assert.deepEqual(articleSeoDisplayValues(item,item),{seo_title:'JSON title',seo_description:'JSON description',og_image:''});
+  assert.deepEqual(articleSeoDisplayValues(item,{...item,seo_title:'Edited title'}),{seo_title:'Edited title',seo_description:'JSON description',og_image:''});
+  assert.deepEqual(articleSeoDisplayValues(item,{...item,og_image:'file-next'}),{seo_title:'JSON title',seo_description:'JSON description',og_image:'file-next'});
+});
+
+test('selected article relations resolve independently with bounded readable fields and stale results ignored', async () => {
+  const pending=[];const calls=[];const api={get(path,config={}){calls.push([path,config]);if(path==='/permissions/me')return Promise.resolve({data:{data:{products:{read:{access:'partial',fields:['id','title','sku']}}}}});return new Promise((resolve,reject)=>pending.push({path,config,resolve,reject}));}};
+  const relations=createArticleRelationsController(api,{collection:'products',modelValue:['550e8400-e29b-41d4-a716-446655440000','legacy-product-slug']});
+  const waitFor=async predicate=>{for(let i=0;i<50&&!predicate();i++)await new Promise(resolve=>setImmediate(resolve));assert.ok(predicate(),'relation request started');};
+  const first=relations.resolve();await waitFor(()=>pending.length===1);
+  assert.deepEqual(calls.find(([path])=>path==='/items/products')[1].params,{fields:'id,title,sku',limit:25,filter:{id:{_in:['550e8400-e29b-41d4-a716-446655440000']}}});
+  const second=relations.setSelection(['550e8400-e29b-41d4-a716-446655440000','550e8400-e29b-41d4-a716-446655440001']);await waitFor(()=>pending.length===2);
+  pending[0].resolve({data:{data:[{id:'550e8400-e29b-41d4-a716-446655440000',title:'Stale title'}]}});await first;
+  pending[1].resolve({data:{data:[{id:'550e8400-e29b-41d4-a716-446655440000',title:'Permitted title',sku:'SKU-1'}]}});await second;
+  assert.deepEqual(relations.snapshot().selected,[{value:'550e8400-e29b-41d4-a716-446655440000',label:'Permitted title · SKU-1',available:true,removable:true},{value:'550e8400-e29b-41d4-a716-446655440001',label:'Товар недоступен',available:false,removable:false},]);
+  assert.equal(relations.remove('550e8400-e29b-41d4-a716-446655440001'),false);
+  assert.deepEqual(relations.snapshot().values,['550e8400-e29b-41d4-a716-446655440000','550e8400-e29b-41d4-a716-446655440001']);
+  assert.equal(relations.remove('550e8400-e29b-41d4-a716-446655440000'),true);
+  assert.deepEqual(relations.snapshot().values,['550e8400-e29b-41d4-a716-446655440001']);
+});
+
+test('relation lookup filters invalid slugs, preserves selection on failure, retries, and ignores stale search responses', async () => {
+  const pending=[],api={get(path,config={}){if(path==='/permissions/me')return Promise.resolve({data:{data:{categories:{read:{access:'partial',fields:['id','title','slug']}}}}});return new Promise((resolve,reject)=>pending.push({path,config,resolve,reject}));}};
+  const original=['550e8400-e29b-41d4-a716-446655440000','valid-slug','invalid/slug'];const relations=createArticleRelationsController(api,{collection:'categories',modelValue:original});
+  const first=relations.resolve();await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(pending[0].config.params.filter,{_or:[{id:{_in:['550e8400-e29b-41d4-a716-446655440000']}},{slug:{_in:['valid-slug']}}]});
+  pending[0].reject(Object.assign(Error('denied'),{response:{status:403}}));await first;
+  assert.deepEqual(relations.snapshot().values,original);
+  const retry=relations.retry();await new Promise(resolve=>setImmediate(resolve));
+  pending[1].resolve({data:{data:[{id:'550e8400-e29b-41d4-a716-446655440000',title:'Allowed category',slug:'valid-slug'}]}});await retry;
+  assert.equal(relations.snapshot().selected[0].label,'Allowed category');
+  const stale=relations.search('old');await new Promise(resolve=>setImmediate(resolve));
+  const latest=relations.search('new');await new Promise(resolve=>setImmediate(resolve));
+  pending[3].resolve({data:{data:[{id:'550e8400-e29b-41d4-a716-446655440001',title:'Newest'}]}});await latest;
+  pending[2].resolve({data:{data:[{id:'550e8400-e29b-41d4-a716-446655440002',title:'Stale'}]}});await stale;
+  assert.equal(relations.snapshot().candidates[0].title,'Newest');
+});
+
+test('relation resolution chunks selected IDs, queries collection-safe fields, and exact prop replacement drops remotely removed unknown refs', async () => {
+  const calls=[];const ids=Array.from({length:26},(_,index)=>`550e8400-e29b-41d4-a716-${String(index+1).padStart(12,'0')}`);
+  const api={async get(path,config={}){calls.push([path,config]);if(path==='/permissions/me')return{data:{data:{products:{read:{access:'full',fields:['*']}}}}};return{data:{data:[]}};}};
+  const relations=createArticleRelationsController(api,{collection:'products',modelValue:ids});await relations.resolve();
+  const lookups=calls.filter(([path])=>path==='/items/products');assert.equal(lookups.length,2);assert.deepEqual(lookups.map(([,config])=>config.params.filter.id._in.length),[25,1]);
+  for(const [,config] of lookups){assert.equal(config.params.limit,25);assert.deepEqual(config.params.fields.split(',').sort(),['brand','id','sku','slug','title']);assert.ok(!config.params.fields.split(',').includes('name'));}
+  const original=['legacy-removed-reference','550e8400-e29b-41d4-a716-000000000001'];const relation=createArticleRelationsController(api,{collection:'products',modelValue:original});
+  const next=relation.setSelection(['550e8400-e29b-41d4-a716-000000000001']);assert.equal((await next).ok,true);assert.deepEqual(relation.snapshot().values,['550e8400-e29b-41d4-a716-000000000001']);
+});
+
+test('an intentional relation removal retains JSON-string container and unknown entries', async () => {
+  const original='["550e8400-e29b-41d4-a716-446655440000","legacy-entry"]',emitted=[];const api={async get(path){if(path==='/permissions/me')return{data:{data:{products:{read:{access:'partial',fields:['id','title']}}}}};return{data:{data:[{id:'550e8400-e29b-41d4-a716-446655440000',title:'Visible product'}]}};}};
+  const relations=createArticleRelationsController(api,{collection:'products',modelValue:original,onChange:value=>emitted.push(value)});await relations.resolve();assert.deepEqual(relations.snapshot().values,['550e8400-e29b-41d4-a716-446655440000','legacy-entry']);assert.equal(emitted.some(value=>typeof value==='string'),false);
+  assert.equal(relations.remove('550e8400-e29b-41d4-a716-446655440000'),true);assert.equal(emitted.filter(value=>typeof value==='string').at(-1),'["legacy-entry"]');assert.deepEqual(relations.snapshot().values,['legacy-entry']);assert.equal(relations.changeValue(),'["legacy-entry"]');
+});
+
+test('product relation labels and search use brand only when its field is permitted', async () => {
+  const id='550e8400-e29b-41d4-a716-446655440000';
+  const makeApi=fields=>({calls:[],async get(path,config={}){this.calls.push([path,config]);if(path==='/permissions/me')return{data:{data:{products:{read:{access:'partial',fields}}}}};return{data:{data:[{id,title:'Pump',sku:'P-1',brand:'Acme'}]}};}});
+  const allowedApi=makeApi(['id','title','sku','brand']);
+  const allowed=createArticleRelationsController(allowedApi,{collection:'products',modelValue:[id]});
+  await allowed.resolve();
+  assert.equal(allowed.snapshot().selected[0].label,'Pump · P-1 · Acme');
+  const allowedSearch=allowed.search('Acme');await new Promise(resolve=>setImmediate(resolve));
+  const searchCall=allowedApi.calls.filter(([path])=>path==='/items/products').at(-1);
+  assert.equal(searchCall[1].params.fields,'id,title,sku,brand');
+  assert.ok(searchCall[1].params.filter._or.some(term=>Object.hasOwn(term,'brand')));
+  await allowedSearch;
+
+  const deniedApi=makeApi(['id','title','sku']);
+  const denied=createArticleRelationsController(deniedApi,{collection:'products',modelValue:[id]});
+  await denied.resolve();
+  assert.equal(denied.snapshot().selected[0].label,'Pump · P-1');
+  assert.equal(deniedApi.calls.filter(([path])=>path==='/items/products')[0][1].params.fields,'id,title,sku');
+});
+
+test('unknown non-string relation values cannot resolve or be removed by slug coercion', async () => {
+  const id='550e8400-e29b-41d4-a716-446655440000';
+  const api={async get(path){if(path==='/permissions/me')return{data:{data:{products:{read:{access:'partial',fields:['id','title','slug']}}}}};return{data:{data:[{id,title:'Product',slug:'123'}]}};}};
+  const relations=createArticleRelationsController(api,{collection:'products',modelValue:[id,123,'123']});
+  await relations.resolve();
+  const selected=relations.snapshot().selected;
+  assert.equal(selected[0].removable,true);
+  assert.equal(selected[1].available,false);
+  assert.equal(selected[1].removable,false);
+  assert.equal(selected[2].removable,true);
+  assert.equal(relations.remove(123),false);
+  assert.deepEqual(relations.snapshot().values,[id,123,'123']);
+});
+
+test('article comparison strips executable and formatting markup and excludes structural JSON duplicates', () => {
+  const rows=articleComparisonRows({content:'<p>Same <b>text</b></p>',seo:{title:'A'},translations:{ru:{title:'A'}},content_blocks:{secret:true}},{content:'<div>Same text</div>',seo:{title:'B'},translations:{ru:{title:'B'}},content_blocks:{secret:false}});
+  assert.deepEqual(rows.map(row=>row.field),['content']);assert.equal(rows[0].own,'Форматирование или разметка изменились');assert.equal(rows[0].remote,'Форматирование или разметка изменились');
+  const dangerous=articleComparisonRows({content:'<p>Safe</p><script>secret()</script><style>.x{}</style><!-- private -->'},{content:'<p>Changed</p>'});
+  assert.ok(!dangerous[0].own.includes('secret'));assert.ok(!dangerous[0].own.includes('private'));
+});
+
+test('comparison describes relation counts and formats date values without exposing relation identifiers', () => {
+  const id='550e8400-e29b-41d4-a716-446655440000';const rows=articleComparisonRows({related_products:[id,'legacy'],published_at:'2026-10-18T10:00:00.000Z'},{related_products:[id],published_at:'2026-10-18T11:00:00.000Z'});
+  assert.equal(rows.find(row=>row.field==='related_products').own,'2 связи');assert.equal(rows.find(row=>row.field==='related_products').remote,'1 связь');
+  assert.ok(rows.find(row=>row.field==='published_at').own.includes('2026'));assert.doesNotMatch(rows.find(row=>row.field==='published_at').own,/T10:00/);assert.ok(rows.every(row=>!JSON.stringify(row).includes(id)));
 });
 
 test('SEO projection seeds omitted native keys from scalar values and preserves explicit empty and unknown keys', async () => {
@@ -189,7 +364,7 @@ test('compatible scalar and native SEO edits synchronize the scalar projection w
 
 test('publication view state handles future, due, and invalid dates without changing stored status', () => {
   const now=Date.parse('2026-10-18T10:00:00.000Z');
-  assert.deepEqual(articlePublicationState('published','2026-10-18T10:01:00.000Z',now),{label:'Ожидает даты',kind:'scheduled',publicNow:false});
+  assert.deepEqual(articlePublicationState('published','2026-10-18T10:01:00.000Z',now),{label:'Запланирована',kind:'scheduled',publicNow:false});
   assert.deepEqual(articlePublicationState('published','2026-10-18T10:00:00.000Z',now),{label:'Опубликована',kind:'published',publicNow:true});
   assert.deepEqual(articlePublicationState('published','bad-date',now),{label:'Ошибка даты',kind:'invalid-date',publicNow:false});
   assert.deepEqual(articlePublicationState('draft','2026-10-18T09:00:00.000Z',now),{label:'Черновик',kind:'draft',publicNow:false});
