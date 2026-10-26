@@ -12,6 +12,7 @@ const privateId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const timestamp = "2026-10-07T12:00:00.000Z";
 let rows: Record<string, Row[]>;
 let unavailable = false;
+const requests: string[] = [];
 
 // Synthetic HTTP data service, independent of the adapter's request order.
 function matches(value: unknown, filter: unknown): boolean {
@@ -42,13 +43,33 @@ const server = createServer((request, response) => {
   if (request.headers.authorization !== `Bearer ${token}`) return json({}, 403);
   if (unavailable) return json({ errors: [{ message: `upstream diagnostic ${token}` }] }, 503);
   const url = new URL(request.url!, "http://localhost");
+  requests.push(`${url.pathname}${url.search}`);
   if (url.pathname.startsWith("/commerce/storefront/assets/")) {
     response.writeHead(200, { "content-type": url.pathname.endsWith(htmlId) ? "text/html" : url.pathname.endsWith(pdfId) ? "application/pdf" : "image/png" });
     return response.end("synthetic asset bytes");
   }
   if (url.pathname === "/commerce/storefront/search") {
-    const query = url.searchParams.get("q")!.replace(/[^a-z0-9]/gi, "").toUpperCase();
-    const products = rows.products.filter(row => row.status === "published" && String(row.sku).replace(/[^a-z0-9]/gi, "").includes(query));
+    const raw = url.searchParams.get("q")!.trim();
+    const query = raw.replace(/[^a-z0-9]/gi, "").toUpperCase();
+    let products = rows.products.filter(row => row.status === "published").filter(row => {
+      const sku = String(row.sku ?? "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+      const title = String(row.title ?? "").toLocaleLowerCase("ru");
+      const brand = String(row.brand ?? "").toLocaleLowerCase("ru");
+      return (query && (sku === query || sku.startsWith(query))) || title.includes(raw.toLocaleLowerCase("ru")) || brand.includes(raw.toLocaleLowerCase("ru"));
+    });
+    const brand = url.searchParams.get("brand");
+    const category = url.searchParams.get("category");
+    const availability = url.searchParams.get("availability");
+    const partType = url.searchParams.get("partType");
+    if (brand) products = products.filter(row => row.brand === brand);
+    if (category) products = products.filter(row => (row.category as Row | null)?.slug === category);
+    if (availability) products = products.filter(row => row.availability_status === availability);
+    if (partType) products = products.filter(row => row.part_type === partType);
+    const sort = url.searchParams.get("sort");
+    if (sort === "price_asc") products.sort((a, b) => Number(a.price) - Number(b.price));
+    else if (sort === "price_desc") products.sort((a, b) => Number(b.price) - Number(a.price));
+    else if (sort === "title") products.sort((a, b) => String(a.title).localeCompare(String(b.title), "ru"));
+    else products.sort((a, b) => Number(b.popularity_score) - Number(a.popularity_score));
     return json({ data: sliceRows(products, url.searchParams).map(({ id }) => ({ id })), meta: { total: products.length } });
   }
   const collection = /^\/commerce\/storefront\/items\/([a-z_]+)$/.exec(url.pathname)?.[1];
@@ -100,6 +121,7 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
+  requests.length = 0;
   unavailable = false;
   const category = { id: "parts", slug: "parts", title: "Parts", status: "published" };
   const products = Array.from({ length: 32 }, (_, i) => ({
@@ -164,6 +186,22 @@ describe("storefront routes and adapters over HTTP", () => {
     expect(filtered.items.map(row => row.id)).toEqual(["p23", "p25", "p27"]);
     expect((await catalog.getProducts({ ...query, sort: "price_asc" })).items.map(row => row.id)).toEqual(["p31", "p30", "p29"]);
     expect((await catalog.getProducts({ q: "PART-31" })).items.map(row => row.id)).toEqual(["p31"]);
+  });
+
+  it("requests one filtered search page and hydrates only its returned product IDs", async () => {
+    const result = await catalog.getProducts({ q: "PART", brand: "liugong", category: "parts", availability: "in_stock", partType: "original", page: 2, limit: 3 });
+    const searchRequests = requests.filter(path => path.startsWith("/commerce/storefront/search?"));
+    expect(searchRequests).toHaveLength(1);
+    const search = new URL(searchRequests[0], "http://local");
+    expect(search.searchParams.get("brand")).toBe("LiuGong");
+    expect(search.searchParams.get("category")).toBe("parts");
+    expect(search.searchParams.get("availability")).toBe("in_stock");
+    expect(search.searchParams.get("partType")).toBe("original");
+    expect(search.searchParams.get("page")).toBe("2");
+    const hydration = requests.find(path => path.startsWith("/commerce/storefront/items/products?") && path.includes("_in"));
+    expect(hydration).toBeDefined();
+    expect(JSON.parse(new URL(hydration!, "http://local").searchParams.get("filter")!)._and[1].id._in).toHaveLength(3);
+    expect(result.total).toBe(9);
   });
 
   it("excludes drafts and noindex products/pages from sitemap and metadata", async () => {

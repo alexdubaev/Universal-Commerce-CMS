@@ -142,7 +142,6 @@ function directusSort(sort: SortOption = "popular") {
 
 
 const SEARCH_PAGE_LIMIT = 20;
-const SEARCH_CANDIDATE_LIMIT = 200;
 
 async function imageFirstPage(filters: Record<string, unknown>[], page: number, limit: number): Promise<ProductList> {
   const partitionFilter = (hasImage: boolean) => JSON.stringify({
@@ -179,33 +178,11 @@ async function imageFirstPage(filters: Record<string, unknown>[], page: number, 
   return { items: [...photos, ...placeholders], total: photoCount + placeholderCount, page, limit, source: "directus" };
 }
 
-async function getSearchCandidateIds(q: string) {
-  const first = await directusFetch<{ data: Array<{ id: string }>; meta?: { total?: number } }>(
-    `/commerce/search?q=${encodeURIComponent(q)}&page=1&limit=${SEARCH_PAGE_LIMIT}`,
-    { revalidate: 15 },
-  );
-  const boundedTotal = Math.min(
-    SEARCH_CANDIDATE_LIMIT,
-    Math.max(0, Number(first.meta?.total ?? first.data.length)),
-  );
-  const pageCount = Math.max(1, Math.ceil(boundedTotal / SEARCH_PAGE_LIMIT));
-  const remaining = pageCount > 1
-    ? await Promise.all(
-      Array.from({ length: pageCount - 1 }, (_, index) =>
-        directusFetch<{ data: Array<{ id: string }> }>(
-          `/commerce/search?q=${encodeURIComponent(q)}&page=${index + 2}&limit=${SEARCH_PAGE_LIMIT}`,
-          { revalidate: 15 },
-        ),
-      ),
-    )
-    : [];
-
-  const ids = [
-    ...first.data.map((item) => item.id),
-    ...remaining.flatMap((page) => page.data.map((item) => item.id)),
-  ].filter(Boolean);
-
-  return [...new Set(ids)].slice(0, SEARCH_CANDIDATE_LIMIT);
+export async function getSearchSuggestions(q: string) {
+  if (isMockMode()) return mockQuery({ q, page: 1, limit: 6 }).items.map(({ id, slug, title, sku, brand }) => ({ id, slug, title, sku, brand }));
+  const params = new URLSearchParams({ q: q.trim(), page: "1", limit: "6", mode: "suggestions" });
+  const result = await directusFetch<{ data: Array<{ id: string; slug: string; title: string; sku: string; brand: string | null }> }>(`/commerce/search?${params}`, { revalidate: 15 });
+  return result.data;
 }
 
 export async function getBrands(): Promise<Brand[]> {
@@ -264,90 +241,40 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
 
   try {
     const filters: Record<string, unknown>[] = [{ status: { _eq: "published" } }];
+    let resolvedBrand: Brand | null = null;
     if (query.brand) {
-      const meta = await getBrand(query.brand);
-      if (!meta) return { items: [], total: 0, page, limit, source: "directus" };
-      filters.push({ brand: { _eq: meta.name } });
+      resolvedBrand = await getBrand(query.brand);
+      if (!resolvedBrand) return { items: [], total: 0, page, limit, source: "directus" };
+      filters.push({ brand: { _eq: resolvedBrand.name } });
     }
     if (query.category) filters.push({ category: { slug: { _eq: query.category } } });
     if (query.availability) filters.push({ availability_status: { _eq: query.availability } });
     if (query.partType) filters.push({ part_type: { _eq: query.partType } });
 
-    if (!query.q?.trim() && (!query.sort || query.sort === "popular")) {
-      return await imageFirstPage(filters, page, limit);
-    }
-
-    const hasPostSearchFilters = Boolean(query.brand || query.category || query.availability || query.partType);
-
-    if (query.q?.trim() && (hasPostSearchFilters || Boolean(query.sort))) {
-      const ids = await getSearchCandidateIds(query.q);
-      if (!ids.length) return { items: [], total: 0, page, limit, source: "directus" };
-      filters.push({ id: { _in: ids } });
-
-      if (query.sort) {
-        const params = new URLSearchParams({
-          fields: productFields,
-          limit: String(limit),
-          page: String(page),
-          sort: directusSort(query.sort),
-          meta: "filter_count",
-          filter: JSON.stringify({ _and: filters }),
-        });
-        const result = await directusFetch<{ data: Record<string, unknown>[]; meta?: { filter_count?: number } }>(
-          `/items/products?${params.toString()}`,
-          { revalidate: 30 },
-        );
-        return {
-          items: result.data.map(mapProduct),
-          total: Number(result.meta?.filter_count ?? result.data.length),
-          page,
-          limit,
-          source: "directus",
-        };
-      }
-
-      const params = new URLSearchParams({
-        fields: productFields,
-        limit: String(Math.min(ids.length, SEARCH_CANDIDATE_LIMIT)),
-        page: "1",
-        filter: JSON.stringify({ _and: filters }),
-      });
-      const result = await directusFetch<{ data: Record<string, unknown>[] }>(
-        `/items/products?${params.toString()}`,
-        { revalidate: 30 },
-      );
-      const order = new Map(ids.map((id, index) => [id, index]));
-      const mapped = result.data
-        .map(mapProduct)
-        .sort((a, b) => (order.get(a.id) ?? SEARCH_CANDIDATE_LIMIT) - (order.get(b.id) ?? SEARCH_CANDIDATE_LIMIT));
-      const startIndex = (page - 1) * limit;
-      return {
-        items: mapped.slice(startIndex, startIndex + limit),
-        total: mapped.length,
-        page,
-        limit,
-        source: "directus",
-      };
-    }
-
-    let ids: string[] | null = null;
-    let searchTotal: number | null = null;
-
     if (query.q?.trim()) {
-      const search = await directusFetch<{ data: Array<{ id: string }>; meta?: { total?: number } }>(
-        `/commerce/search?q=${encodeURIComponent(query.q)}&page=${page}&limit=${Math.min(limit, SEARCH_PAGE_LIMIT)}`,
-        { revalidate: 15 },
-      );
-      ids = search.data.map((item) => item.id);
-      searchTotal = Math.min(SEARCH_CANDIDATE_LIMIT, Number(search.meta?.total ?? ids.length));
-      if (!ids.length) return { items: [], total: 0, page, limit, source: "directus" };
-      filters.push({ id: { _in: ids } });
+      const params = new URLSearchParams({ q: query.q.trim(), page: String(page), limit: String(Math.min(limit, SEARCH_PAGE_LIMIT)) });
+      if (resolvedBrand) params.set("brand", resolvedBrand.name);
+      if (query.category) params.set("category", query.category);
+      if (query.availability) params.set("availability", query.availability);
+      if (query.partType) params.set("partType", query.partType);
+      if (query.sort) params.set("sort", query.sort);
+      const search = await directusFetch<{ data: Array<{ id: string }>; meta?: { total?: number; partial?: boolean } }>(`/commerce/search?${params}`, { revalidate: 15 });
+      const ids = search.data.map(item => item.id).filter(Boolean);
+      if (!ids.length) return { items: [], total: Number(search.meta?.total ?? 0), page, limit, source: "directus", partial: search.meta?.partial };
+      const hydration = new URLSearchParams({ fields: productFields, limit: String(ids.length), page: "1", filter: JSON.stringify({ _and: [{ status: { _eq: "published" } }, { id: { _in: ids } }] }) });
+      const hydrated = await directusFetch<{ data: Record<string, unknown>[] }>(`/items/products?${hydration}`, { revalidate: 30 });
+      const byId = new Map(hydrated.data.map(row => [String(row.id), mapProduct(row)]));
+      return { items: ids.map(id => byId.get(id)).filter((item): item is Product => Boolean(item)), total: Number(search.meta?.total ?? ids.length), page, limit, source: "directus", partial: search.meta?.partial };
+    }
+
+    if (!query.sort || query.sort === "popular") {
+      return await imageFirstPage(filters, page, limit);
     }
 
     const params = new URLSearchParams({
       fields: productFields,
       limit: String(limit),
-      page: String(ids ? 1 : page),
+      page: String(page),
       sort: directusSort(query.sort),
       meta: "filter_count",
       filter: JSON.stringify({ _and: filters }),
@@ -359,14 +286,9 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
     );
 
     const mapped = result.data.map(mapProduct);
-    if (ids && !query.sort) {
-      const order = new Map(ids.map((id, index) => [id, index]));
-      mapped.sort((a, b) => (order.get(a.id) ?? SEARCH_CANDIDATE_LIMIT) - (order.get(b.id) ?? SEARCH_CANDIDATE_LIMIT));
-    }
-
     return {
       items: mapped,
-      total: ids ? searchTotal ?? mapped.length : Number(result.meta?.filter_count ?? mapped.length),
+      total: Number(result.meta?.filter_count ?? mapped.length),
       page,
       limit,
       source: "directus",

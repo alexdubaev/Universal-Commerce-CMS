@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useId, useState, type KeyboardEvent } from "react";
 import { useCatalogSearch } from "@/hooks/useCatalogSearch";
 
 export function SearchBox({
@@ -18,8 +19,26 @@ export function SearchBox({
 }) {
   const {
     query, suggestions, history, hydrated, showHistory, showSuggestions,
-    changeQuery, focus, blur, chooseHistory, go, submit,
+    changeQuery, focus, blur, close, chooseHistory, go, submit,
   } = useCatalogSearch(initial);
+  const id = useId();
+  const listboxId = `${id}-listbox`;
+  const [active, setActive] = useState(-1);
+  const optionCount = (showHistory ? history.length : 0) + (showSuggestions ? suggestions.length : 0);
+  const move = (direction: number) => setActive(current => optionCount
+    ? current < 0 ? (direction > 0 ? 0 : optionCount - 1) : (current + direction + optionCount) % optionCount
+    : -1);
+  const activeOption = (showHistory || showSuggestions) && active >= 0 && active < optionCount;
+  const keyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "ArrowDown") { event.preventDefault(); move(1); }
+    if (event.key === "ArrowUp") { event.preventDefault(); move(-1); }
+    if (event.key === "Escape") { setActive(-1); close(); }
+    if (event.key === "Enter" && activeOption) {
+      event.preventDefault();
+      if (showHistory && active < history.length) chooseHistory(history[active]);
+      else if (showSuggestions) document.getElementById(`${id}-option-${active}`)?.click();
+    }
+  };
 
   return (
     <div className={compact ? "search-wrap compact" : "search-wrap"}>
@@ -29,12 +48,17 @@ export function SearchBox({
           id={inputId}
           disabled={!hydrated}
           value={query}
-          onChange={(event) => changeQuery(event.target.value)}
+          onChange={(event) => { setActive(-1); changeQuery(event.target.value); }}
           onFocus={focus}
-          onBlur={blur}
+          onBlur={() => { setActive(-1); blur(); }}
           placeholder={placeholder}
           aria-label="Поиск запчастей"
           aria-expanded={showHistory || showSuggestions}
+          aria-autocomplete="list"
+          aria-controls={listboxId}
+          aria-activedescendant={activeOption ? `${id}-option-${active}` : undefined}
+          role="combobox"
+          onKeyDown={keyDown}
           autoComplete="off"
         />
         <button type="submit" disabled={!hydrated}>{buttonLabel}</button>
@@ -45,23 +69,27 @@ export function SearchBox({
           {showHistory && (
             <>
               <div className="search-popover-title">Недавние запросы</div>
-              {history.map((item) => (
-                <button type="button" className="history-item" key={item} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseHistory(item)}>
-                  <span>↺</span><strong>{item}</strong>
-                </button>
-              ))}
+              <div id={listboxId} role="listbox" aria-label="Недавние запросы">
+                {history.map((item, index) => (
+                  <button type="button" role="option" aria-selected={active === index} id={`${id}-option-${index}`} className="history-item" key={item} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseHistory(item)}>
+                    <span>↺</span><strong>{item}</strong>
+                  </button>
+                ))}
+              </div>
             </>
           )}
 
           {showSuggestions && (
             <>
               <div className="search-popover-title">Подсказки</div>
-              {suggestions.map((product) => (
-                <Link className="suggestion-item" href={`/product/${product.slug}`} key={product.id} onMouseDown={(event) => event.preventDefault()}>
-                  <span className="suggestion-code">{product.sku}</span>
-                  <span><strong>{product.title}</strong><small>{product.brand}</small></span>
-                </Link>
-              ))}
+              <div id={listboxId} role="listbox" aria-label="Поисковые подсказки">
+                {suggestions.map((product, index) => (
+                  <Link role="option" aria-selected={active === (showHistory ? history.length : 0) + index} id={`${id}-option-${(showHistory ? history.length : 0) + index}`} className="suggestion-item" href={`/product/${product.slug}`} key={product.id} onMouseDown={(event) => event.preventDefault()}>
+                    <span className="suggestion-code">{product.sku}</span>
+                    <span><strong>{product.title}</strong><small>{product.brand}</small></span>
+                  </Link>
+                ))}
+              </div>
               <button className="search-all" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => go(query)}>
                 Показать все результаты →
               </button>

@@ -14,16 +14,15 @@ import { registerStorefrontConfig } from './storefront-config.mjs';
 // indexed normalized columns instead of a full catalog scan:
 //
 //   GET /commerce/search?q=re-5048&page=1&limit=6
-//   -> { data: [{id,slug,title,sku,mpn,category:{slug,title}}], meta:{total,page,limit,source} }
+//   -> { data: [{id,slug,title,sku,mpn,brand,category:{slug,title}}], meta:{total,page,limit,source} }
 //
 // Contract:
 // - q is required and must normalize (uppercase, trim, strip non-alphanumerics
 //   — the same derivation as the backfill migration) to 2..64 characters,
 //   otherwise 400;
 // - page >= 1 (default 1); limit 1..20 (default 10), otherwise 400;
-// - every Directus query carries an explicit positive numeric limit —
-//   limit=-1 (unbounded) is FORBIDDEN here, the bounded candidate window is
-//   CANDIDATE_LIMIT;
+// - every Directus query carries a bounded positive numeric limit; tier counts
+//   use Directus aggregates and rows are limited to the requested page;
 // - only published products and only the bounded result fields are returned;
 // - product_codes is optional: a missing collection or a failing lookup
 //   degrades to normalized-only results instead of breaking the search.
@@ -43,9 +42,8 @@ export const MIN_QUERY_LENGTH = 2;
 export const MAX_QUERY_LENGTH = 64;
 
 /**
- * Bounded candidate window per source query. Both sources are merged and
- * deduped in memory before pagination; the window keeps worst-case cost
- * bounded on shared-prefix queries (e.g. "RE").
+ * Maximum optional product_codes lookup window. Native product search does
+ * not use a candidate window; its rows come from counted database tiers.
  */
 export const CANDIDATE_LIMIT = 200;
 
@@ -59,6 +57,7 @@ export const PRODUCT_FIELDS = [
   "mpn",
   "category.slug",
   "category.title",
+  "brand",
 ];
 
 /**
@@ -88,25 +87,26 @@ const parseStrictPositiveInt = (raw) => {
 
 /**
  * Pure validation of the raw query parameters (accepts an Express req.query
- * object or a URLSearchParams). Returns { ok: true, q, page, limit } or
+ * object or a URLSearchParams). Returns raw q, normalized code and filters or
  * { ok: false, errors: [{ code, message }] }.
  */
 export function parseSearchParameters(params) {
   const errors = [];
 
   const rawQuery = (parameter(params, "q") ?? "").trim();
-  const q = normalizeCode(rawQuery);
+  const q = rawQuery;
+  const normalized = normalizeCode(rawQuery);
   if (!rawQuery) {
     errors.push({ code: "missing-q", message: "q is required" });
-  } else if (q.length < MIN_QUERY_LENGTH) {
+  } else if (rawQuery.length < MIN_QUERY_LENGTH) {
     errors.push({
       code: "invalid-q",
-      message: `q must normalize to at least ${MIN_QUERY_LENGTH} alphanumeric characters`,
+      message: `q must contain at least ${MIN_QUERY_LENGTH} characters`,
     });
-  } else if (q.length > MAX_QUERY_LENGTH) {
+  } else if (rawQuery.length > MAX_QUERY_LENGTH) {
     errors.push({
       code: "invalid-q",
-      message: `q must normalize to at most ${MAX_QUERY_LENGTH} alphanumeric characters`,
+      message: `q must contain at most ${MAX_QUERY_LENGTH} characters`,
     });
   }
 
@@ -135,9 +135,19 @@ export function parseSearchParameters(params) {
     }
   }
 
-  return errors.length > 0
-    ? { ok: false, errors }
-    : { ok: true, q, page, limit };
+  const brand = parameter(params, "brand");
+  const category = parameter(params, "category");
+  const availability = parameter(params, "availability");
+  const partType = parameter(params, "partType");
+  const sort = parameter(params, "sort");
+  const mode = parameter(params, "mode");
+  if (brand !== null && (!brand.trim() || brand.length > 80)) errors.push({ code: "invalid-brand", message: "brand is invalid" });
+  if (category !== null && !/^[a-z0-9][a-z0-9-]{0,79}$/i.test(category)) errors.push({ code: "invalid-category", message: "category is invalid" });
+  if (availability !== null && !["in_stock", "on_request", "out_of_stock"].includes(availability)) errors.push({ code: "invalid-availability", message: "availability is invalid" });
+  if (partType !== null && !["original", "oem", "analog"].includes(partType)) errors.push({ code: "invalid-partType", message: "partType is invalid" });
+  if (sort !== null && !["popular", "price_asc", "price_desc", "title"].includes(sort)) errors.push({ code: "invalid-sort", message: "sort is invalid" });
+  if (mode !== null && mode !== "suggestions") errors.push({ code: "invalid-mode", message: "mode is invalid" });
+  return errors.length > 0 ? { ok: false, errors } : { ok: true, q, normalized, page, limit, brand: brand?.trim() ?? null, category, availability, partType, sort, mode };
 }
 
 const assertValidPagination = (page, limit) => {
@@ -150,11 +160,8 @@ const assertValidPagination = (page, limit) => {
 };
 
 /**
- * PURE query builder: given a raw query and pagination, returns the two
- * bounded Directus readByQuery payloads (products by normalized starts_with,
- * active product_codes by normalized_code starts_with) plus the in-memory
- * pagination slice. Every returned query carries an explicit positive numeric
- * limit — never -1.
+ * PURE legacy query builder retained for callers that still need the bounded
+ * alias lookup payload. The live handler counts and pages product tiers.
  */
 export function buildSearchQueries(q, { page = 1, limit = DEFAULT_PAGE_LIMIT } = {}) {
   const normalizedQuery = normalizeCode(q);
@@ -236,6 +243,7 @@ export function mapSuggestion(item) {
     title: item?.title ?? null,
     sku: item?.sku ?? null,
     mpn: item?.mpn ?? null,
+    brand: item?.brand ?? null,
     category: item?.category
       ? {
           slug: item.category.slug ?? null,
@@ -370,19 +378,6 @@ export function createSearchHandler(context) {
       return;
     }
 
-    let plan;
-    try {
-      plan = buildSearchQueries(parameters.q, {
-        page: parameters.page,
-        limit: parameters.limit,
-      });
-    } catch (error) {
-      res
-        .status(400)
-        .json({ errors: [{ code: "invalid-parameters", message: error.message }] });
-      return;
-    }
-
     try {
       const schema = await getSchema();
       const serviceOptions = {
@@ -392,70 +387,100 @@ export function createSearchHandler(context) {
         accountability: req?.accountability ?? EMPTY_ACCOUNTABILITY,
         knex: database,
       };
-      if (context.forcePublishedCategory === true) {
-        plan.products.query.filter = {
-          _and: [plan.products.query.filter, {
-            _or: [{ category: { _null: true } }, { category: { status: { _eq: "published" } } }],
-          }],
-        };
-      }
-
-      const productsService = new services.ItemsService(
-        plan.products.collection,
-        serviceOptions,
-      );
-      const productItems = await productsService.readByQuery(plan.products.query);
-
-      // product_codes is optional (owner-gated rollout): a missing collection
-      // or a failing lookup degrades to normalized-only results.
-      let codeProductItems = [];
-      if ((context.env ?? process.env).COMMERCE_ENABLE_ADDITIONAL_CODES !== "false" && Boolean(schema?.collections?.[plan.codes.collection])) {
-        try {
-          const codesService = new services.ItemsService(
-            plan.codes.collection,
-            serviceOptions,
-          );
-          const codeRows = await codesService.readByQuery(plan.codes.query);
-          const productIds = [
-            ...new Set((codeRows ?? []).map((row) => row?.product).filter(Boolean)),
-          ];
-          if (productIds.length > 0) {
-            const codeFilter = {
-                status: { _eq: "published" },
-                id: { _in: productIds },
-              };
-            if (context.forcePublishedCategory === true) {
-              codeFilter._or = [{ category: { _null: true } }, { category: { status: { _eq: "published" } } }];
-            }
-            codeProductItems = await productsService.readByQuery({
-              filter: codeFilter,
-              fields: [...PRODUCT_FIELDS],
-              sort: [...SEARCH_SORT],
-              limit: CANDIDATE_LIMIT,
-              page: 1,
-            });
-          }
-        } catch (error) {
-          logger?.warn?.(
-            `commerce-search: product_codes lookup failed, continuing with normalized results: ${
-              error?.message ?? error
-            }`,
-          );
+      const productsService = new services.ItemsService("products", serviceOptions);
+      const base = [{ status: { _eq: "published" } }];
+      if (parameters.brand) base.push({ brand: { _eq: parameters.brand } });
+      if (parameters.category) base.push({ category: { slug: { _eq: parameters.category } } });
+      if (parameters.availability) base.push({ availability_status: { _eq: parameters.availability } });
+      if (parameters.partType) base.push({ part_type: { _eq: parameters.partType } });
+      if (context.forcePublishedCategory === true) base.push({ _or: [{ category: { _null: true } }, { category: { status: { _eq: "published" } } }] });
+      const and = (...conditions) => ({ _and: [...base, ...conditions] });
+      const codePrefix = parameters.normalized ? { _or: [
+        { sku_normalized: { _starts_with: parameters.normalized } },
+        { mpn_normalized: { _starts_with: parameters.normalized } },
+      ] } : null;
+      const titleMatch = { title: { _icontains: parameters.q } };
+      const brandMatch = { brand: { _icontains: parameters.q } };
+      const sortMap = { popular: [...SEARCH_SORT, "id"], price_asc: ["price", "title", "id"], price_desc: ["-price", "title", "id"], title: ["title", "id"] };
+      let rows = [];
+      let total = 0;
+      let partial = false;
+      let source = "normalized";
+      const explicitSort = Boolean(parameters.sort && parameters.sort !== "popular");
+      if (explicitSort) {
+        const match = codePrefix ? { _or: [codePrefix._or[0], codePrefix._or[1], titleMatch, brandMatch] } : { _or: [titleMatch, brandMatch] };
+        const filter = and(match);
+        const counts = await productsService.readByQuery({ filter, aggregate: { count: ["id"] }, limit: 1 });
+        total = Number(counts?.[0]?.count?.id ?? 0);
+        rows = await productsService.readByQuery({ filter, fields: [...PRODUCT_FIELDS], sort: sortMap[parameters.sort], limit: parameters.limit, page: parameters.page });
+      } else {
+        const excluded = (field, value) => ({ _or: [{ [field]: { _null: true } }, { [field]: { _neq: value } }] });
+        const tiers = [];
+        if (parameters.normalized) {
+          tiers.push(and({ sku_normalized: { _eq: parameters.normalized } }));
+          tiers.push(and({ mpn_normalized: { _eq: parameters.normalized } }, excluded("sku_normalized", parameters.normalized)));
+          tiers.push(and({ _or: [...codePrefix._or, titleMatch, brandMatch] }, excluded("sku_normalized", parameters.normalized), excluded("mpn_normalized", parameters.normalized)));
+        } else tiers.push(and({ _or: [titleMatch, brandMatch] }));
+        const counts = await Promise.all(tiers.map(filter => productsService.readByQuery({ filter, aggregate: { count: ["id"] }, limit: 1 })));
+        const totals = counts.map(result => Number(result?.[0]?.count?.id ?? 0));
+        total = totals.reduce((sum, count) => sum + count, 0);
+        let offset = (parameters.page - 1) * parameters.limit;
+        let remaining = parameters.limit;
+        for (let index = 0; index < tiers.length && remaining > 0; index++) {
+          if (offset >= totals[index]) { offset -= totals[index]; continue; }
+          const size = Math.min(remaining, totals[index] - offset);
+          const result = await productsService.readByQuery({ filter: tiers[index], fields: [...PRODUCT_FIELDS], sort: [...SEARCH_SORT, "id"], limit: size, page: 1, offset });
+          rows.push(...(result ?? []));
+          remaining -= size;
+          offset = 0;
         }
       }
-
-      const merged = mergeSearchResults(
-        { productItems, codeProductItems },
-        { page: parameters.page, limit: parameters.limit },
-      );
+      const baseTotal = total;
+      const aliasEnabled = (context.env ?? process.env).COMMERCE_ENABLE_ADDITIONAL_CODES !== "false"
+        && Boolean(schema?.collections?.product_codes) && Boolean(parameters.normalized);
+      if (aliasEnabled) {
+        try {
+          const codesService = new services.ItemsService("product_codes", serviceOptions);
+          const codeFilter = { is_active: { _eq: true }, normalized_code: { _starts_with: parameters.normalized } };
+          const countedCodes = await codesService.readByQuery({ filter: codeFilter, aggregate: { count: ["id"] }, limit: 1 });
+          const codeCount = Number(countedCodes?.[0]?.count?.id ?? 0);
+          const codeRows = await codesService.readByQuery({ filter: codeFilter, fields: ["product"], sort: ["product"], limit: CANDIDATE_LIMIT, page: 1 });
+          const aliasIds = [...new Set((codeRows ?? []).map(row => row?.product).filter(Boolean))];
+          partial = codeCount > (codeRows ?? []).length;
+          const aliasItems = aliasIds.length ? await productsService.readByQuery({ filter: and({ id: { _in: aliasIds } }), fields: [...PRODUCT_FIELDS, "sku_normalized", "mpn_normalized"], sort: [...SEARCH_SORT, "id"], limit: aliasIds.length, page: 1 }) : [];
+          const textQuery = parameters.q.toLocaleLowerCase();
+          const eligibleItems = (aliasItems ?? []).filter(item => {
+            const nativeCodeMatch = [item?.sku_normalized, item?.mpn_normalized].some(value => String(value ?? "").startsWith(parameters.normalized));
+            const nativeTextMatch = [item?.title, item?.brand].some(value => String(value ?? "").toLocaleLowerCase().includes(textQuery));
+            return !nativeCodeMatch && !nativeTextMatch;
+          });
+          const eligibleAliasIds = [...new Set(eligibleItems.map(item => item?.id).filter(Boolean))];
+          if (eligibleAliasIds.length) source = "codes";
+          total += eligibleAliasIds.length;
+          const start = (parameters.page - 1) * parameters.limit;
+          const offset = Math.max(0, start - baseTotal);
+          const baseItemsInPage = Math.max(0, Math.min(parameters.limit, baseTotal - start));
+          const aliasSlots = parameters.limit - baseItemsInPage;
+          const selectedIds = eligibleAliasIds.slice(offset, offset + aliasSlots);
+          if (selectedIds.length) {
+            const itemById = new Map(eligibleItems.map(item => [String(item.id), item]));
+            rows.push(...selectedIds.map(id => itemById.get(String(id))).filter(Boolean));
+          }
+        } catch (error) {
+          partial = true;
+          logger?.warn?.(`commerce-search: additional-code lookup failed: ${error?.message ?? error}`);
+        }
+      }
+      const data = (rows ?? []).map(mapSuggestion);
 
       res.json({
-        data: merged.data.map(mapSuggestion),
+        data,
         meta: {
-          total: merged.total,
+          total,
           page: parameters.page,
           limit: parameters.limit,
-          source: merged.source,
+          source,
+          ...(partial ? { partial: true } : {}),
         },
       });
     } catch (error) {
