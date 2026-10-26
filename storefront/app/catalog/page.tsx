@@ -80,6 +80,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           </div>}
           <div className="catalog-toolbar">
             <span>Найдено: <strong>{result.total}</strong></span>
+            {result.partial && <span className="catalog-partial" role="status" aria-live="polite">Часть совпадений по дополнительным кодам не проверена.</span>}
             <div className="catalog-toolbar-right">
               <form action="/catalog" method="get">
                 {params.q && <input type="hidden" name="q" value={params.q} />}

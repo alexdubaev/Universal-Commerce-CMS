@@ -69,6 +69,13 @@ test('search gateway admits only bounded supported filters and forwards facets u
   const denied = harness();
   assert.equal((await denied.invoke('/storefront/search', { query: { q: 'AB', fields: '*' } })).statusCode, 400);
   assert.equal(denied.calls.length, 0);
+  const maxPage = harness();
+  assert.equal((await maxPage.invoke('/storefront/search', { query: { q: 'AB', page: '10000', limit: '20' } })).statusCode, 200);
+  for (const page of ['0', '10001', '9007199254740992']) {
+    const invalid = harness();
+    assert.equal((await invalid.invoke('/storefront/search', { query: { q: 'AB', page } })).statusCode, 400);
+    assert.equal(invalid.calls.length, 0);
+  }
 });
 
 test('image partition queries accept narrow null filters and deterministic bounded offsets', async () => {

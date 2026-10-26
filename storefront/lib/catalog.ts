@@ -236,7 +236,8 @@ export async function getBrand(slug: string): Promise<Brand | null> {
 
 export async function getProducts(query: CatalogQuery = {}): Promise<ProductList> {
   const page = Math.max(1, query.page ?? 1);
-  const limit = Math.min(24, Math.max(1, query.limit ?? 12));
+  const requestedLimit = Math.min(24, Math.max(1, query.limit ?? 12));
+  const limit = query.q?.trim() ? Math.min(SEARCH_PAGE_LIMIT, requestedLimit) : requestedLimit;
   if (isMockMode()) return mockQuery({ ...query, page, limit });
 
   try {

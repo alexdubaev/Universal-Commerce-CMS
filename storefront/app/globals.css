@@ -375,6 +375,7 @@ button:disabled { cursor: wait; opacity: .65; }
 .filter-note { display: block; margin-top: 10px; color: var(--text-filter-note); font-size: 9px; line-height: 1.45; }
 .catalog-content { min-width: 0; }
 .catalog-toolbar { display: flex; align-items: center; justify-content: space-between; min-height: 42px; margin-bottom: 11px; color: var(--muted); font-size: 11px; }
+.catalog-partial { flex: 1; padding-inline: 12px; color: var(--muted); font-size: 11px; }
 .source-badge { padding: 5px 8px; background: rgba(var(--white-rgb),.04); border: 1px solid var(--line); border-radius: 0; color: var(--text-source-badge); }
 .catalog-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
 .pagination { display: flex; gap: 7px; justify-content: center; margin-top: 28px; }

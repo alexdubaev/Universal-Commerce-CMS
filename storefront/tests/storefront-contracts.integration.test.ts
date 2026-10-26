@@ -12,6 +12,7 @@ const privateId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const timestamp = "2026-10-07T12:00:00.000Z";
 let rows: Record<string, Row[]>;
 let unavailable = false;
+let partialSearch = false;
 const requests: string[] = [];
 
 // Synthetic HTTP data service, independent of the adapter's request order.
@@ -70,7 +71,7 @@ const server = createServer((request, response) => {
     else if (sort === "price_desc") products.sort((a, b) => Number(b.price) - Number(a.price));
     else if (sort === "title") products.sort((a, b) => String(a.title).localeCompare(String(b.title), "ru"));
     else products.sort((a, b) => Number(b.popularity_score) - Number(a.popularity_score));
-    return json({ data: sliceRows(products, url.searchParams).map(({ id }) => ({ id })), meta: { total: products.length } });
+    return json({ data: sliceRows(products, url.searchParams).map(({ id }) => ({ id })), meta: { total: products.length, ...(partialSearch ? { partial: true } : {}) } });
   }
   const collection = /^\/commerce\/storefront\/items\/([a-z_]+)$/.exec(url.pathname)?.[1];
   if (!collection || !rows[collection]) return json({}, 404);
@@ -95,6 +96,7 @@ let directus: typeof import("../lib/directus");
 let sitemap: typeof import("../app/sitemaps/[name]/route");
 let assets: typeof import("../app/api/assets/[id]/route");
 let lead: typeof import("../app/api/lead/route");
+let catalogPage: typeof import("../app/catalog/page");
 
 beforeAll(async () => {
   server.listen(0, "127.0.0.1");
@@ -108,9 +110,9 @@ beforeAll(async () => {
   vi.stubEnv("STOREFRONT_DIRECTUS_GATEWAY", "true");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://synthetic.example");
   vi.resetModules();
-  [catalog, content, directus, sitemap, assets, lead] = await Promise.all([
+  [catalog, content, directus, sitemap, assets, lead, catalogPage] = await Promise.all([
     import("../lib/catalog"), import("../lib/content"), import("../lib/directus"),
-    import("../app/sitemaps/[name]/route"), import("../app/api/assets/[id]/route"), import("../app/api/lead/route"),
+    import("../app/sitemaps/[name]/route"), import("../app/api/assets/[id]/route"), import("../app/api/lead/route"), import("../app/catalog/page"),
   ]);
 });
 
@@ -123,6 +125,7 @@ afterAll(async () => {
 beforeEach(() => {
   requests.length = 0;
   unavailable = false;
+  partialSearch = false;
   const category = { id: "parts", slug: "parts", title: "Parts", status: "published" };
   const products = Array.from({ length: 32 }, (_, i) => ({
     id: `p${String(i).padStart(2, "0")}`, slug: `part-${i}`, sku: `PART-${i}`, title: `Part ${i}`,
@@ -202,6 +205,17 @@ describe("storefront routes and adapters over HTTP", () => {
     expect(hydration).toBeDefined();
     expect(JSON.parse(new URL(hydration!, "http://local").searchParams.get("filter")!)._and[1].id._in).toHaveLength(3);
     expect(result.total).toBe(9);
+  });
+
+  it("uses a consistent 20-item search page cap and announces partial alias results", async () => {
+    const capped = await catalog.getProducts({ q: "PART", limit: 24 });
+    expect(capped.limit).toBe(20);
+    expect(capped.items).toHaveLength(20);
+
+    partialSearch = true;
+    const html = renderToStaticMarkup(await catalogPage.default({ searchParams: Promise.resolve({ q: "PART" }) }));
+    expect(html).toContain("Часть совпадений по дополнительным кодам не проверена.");
+    expect(html).toContain('role="status"');
   });
 
   it("excludes drafts and noindex products/pages from sitemap and metadata", async () => {

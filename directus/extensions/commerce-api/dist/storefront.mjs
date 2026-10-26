@@ -363,8 +363,8 @@ export function registerStorefrontGateway(router, context) {
     const config = gate(req, res, gatewayContext.env); if (!config) return;
     if (Object.keys(req.query ?? {}).some(key => !['q','page','limit','brand','category','availability','partType','sort','mode'].includes(key))) return error(res, 400);
     if (Object.values(req.query ?? {}).some(value => typeof value !== 'string' || value.length > 128)) return error(res, 400);
-    if (req.query?.page !== undefined && (!/^\d+$/.test(req.query.page) || Number(req.query.page) > 200)) return error(res, 400);
-    if (req.query?.limit !== undefined && (!/^\d+$/.test(req.query.limit) || Number(req.query.limit) > 20)) return error(res, 400);
+    if (req.query?.page !== undefined && (!/^\d+$/.test(req.query.page) || !Number.isSafeInteger(Number(req.query.page)) || Number(req.query.page) < 1 || Number(req.query.page) > 10000)) return error(res, 400);
+    if (req.query?.limit !== undefined && (!/^\d+$/.test(req.query.limit) || !Number.isSafeInteger(Number(req.query.limit)) || Number(req.query.limit) < 1 || Number(req.query.limit) > 20)) return error(res, 400);
     if (req.query?.mode !== undefined && req.query.mode !== 'suggestions') return error(res, 400);
     req.accountability = { user: config.userId, role: null, admin: true, app: false };
     res.set(noStore);

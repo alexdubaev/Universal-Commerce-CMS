@@ -40,6 +40,7 @@ export const DEFAULT_PAGE_LIMIT = 10;
 export const MAX_PAGE_LIMIT = 20;
 export const MIN_QUERY_LENGTH = 2;
 export const MAX_QUERY_LENGTH = 64;
+export const MAX_SEARCH_PAGE = 10_000;
 
 /**
  * Maximum optional product_codes lookup window. Native product search does
@@ -82,7 +83,7 @@ const parameter = (params, key) => {
 const parseStrictPositiveInt = (raw) => {
   if (!/^\d+$/.test(raw)) return null;
   const value = Number.parseInt(raw, 10);
-  return value >= 1 ? value : null;
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
 };
 
 /**
@@ -118,6 +119,7 @@ export function parseSearchParameters(params) {
       errors.push({ code: "invalid-page", message: "page must be an integer >= 1" });
     } else {
       page = parsed;
+      if (page > MAX_SEARCH_PAGE) errors.push({ code: "invalid-page", message: `page must be an integer <= ${MAX_SEARCH_PAGE}` });
     }
   }
 
@@ -436,7 +438,7 @@ export function createSearchHandler(context) {
         }
       }
       const baseTotal = total;
-      const aliasEnabled = (context.env ?? process.env).COMMERCE_ENABLE_ADDITIONAL_CODES !== "false"
+      const aliasEnabled = (context.env ?? process.env).COMMERCE_ENABLE_ADDITIONAL_CODES === "true"
         && Boolean(schema?.collections?.product_codes) && Boolean(parameters.normalized);
       if (aliasEnabled) {
         try {

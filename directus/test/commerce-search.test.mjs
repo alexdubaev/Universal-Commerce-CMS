@@ -61,6 +61,30 @@ test('exact MPN is ranked ahead of remaining prefix rows', async () => {
   assert.match(JSON.stringify(productReads[0].query.filter), /"mpn_normalized"/);
 });
 
+test('caps pages at 10000, keeps the maximum offset safe, and rejects unsafe integers', async () => {
+  const h = harness([0, 0, 250000], [[{ id: 'last-tier' }]]);
+  const maximum = await h.invoke({ q: 'RE', page: '10000', limit: '20' });
+  assert.equal(maximum.code, 200);
+  assert.equal(h.calls.find(call => !call.query.aggregate)?.query.offset, 199980);
+  for (const page of ['10001', '9007199254740992']) {
+    const rejected = await h.invoke({ q: 'RE', page, limit: '20' });
+    assert.equal(rejected.code, 400);
+  }
+});
+
+test('leaves additional-code aliases disabled unless explicitly enabled', async () => {
+  const collections = [];
+  class ItemsService {
+    constructor(collection) { this.collection = collection; collections.push(collection); }
+    async readByQuery(query) { return query.aggregate ? [{ count: { id: 0 } }] : []; }
+  }
+  const handler = createSearchHandler({ services: { ItemsService }, getSchema: async () => ({ collections: { product_codes: {} } }), env: {} });
+  const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+  await handler({ query: { q: 'RE' } }, res);
+  assert.equal(res.code, undefined);
+  assert.equal(collections.includes('product_codes'), false);
+});
+
 test('reports an incomplete optional additional-code candidate window', async () => {
   const calls = [];
   class ItemsService {
@@ -74,7 +98,7 @@ test('reports an incomplete optional additional-code candidate window', async ()
       return [];
     }
   }
-  const handler = createSearchHandler({ services: { ItemsService }, getSchema: async () => ({ collections: { product_codes: {} } }), env: {}, forcePublishedCategory: true });
+  const handler = createSearchHandler({ services: { ItemsService }, getSchema: async () => ({ collections: { product_codes: {} } }), env: { COMMERCE_ENABLE_ADDITIONAL_CODES: 'true' }, forcePublishedCategory: true });
   const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
   await handler({ query: { q: 'RE', page: '21', limit: '10' } }, res);
   assert.equal(res.body.meta.partial, true);
@@ -96,7 +120,7 @@ test('deduplicates aliases that already match native product fields', async () =
       return [{ id: 'native', slug: 'native', title: 'Pump', sku: 'RE' }];
     }
   }
-  const handler = createSearchHandler({ services: { ItemsService }, getSchema: async () => ({ collections: { product_codes: {} } }), env: {} });
+  const handler = createSearchHandler({ services: { ItemsService }, getSchema: async () => ({ collections: { product_codes: {} } }), env: { COMMERCE_ENABLE_ADDITIONAL_CODES: 'true' } });
   const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
   await handler({ query: { q: 'RE', limit: '10' } }, res);
   assert.equal(res.body.meta.total, 2);
