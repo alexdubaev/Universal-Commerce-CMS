@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MAX_REQUEST_QUANTITY, REQUEST_STORAGE_KEY, normalizeRequestQuantity, readRequestItems, writeRequestItems } from "@/lib/request-store";
+import { MAX_REQUEST_QUANTITY, readRequestItemCount, readRequestItems, writeRequestItems } from "@/lib/request-store";
 import type { RequestItem } from "@/lib/types";
 
 function useRequestSynchronization(sync: () => void) {
@@ -16,15 +16,8 @@ function useRequestSynchronization(sync: () => void) {
   }, [sync]);
 }
 
-// The header historically counts raw storage entries, including default quantities
-// and numeric coercion. Reading normalized request items would change that contract.
 export function readRequestCount() {
-  try {
-    const items = JSON.parse(localStorage.getItem(REQUEST_STORAGE_KEY) ?? "[]") as Array<{ quantity?: number }>;
-    return items.reduce((sum, item) => sum + normalizeRequestQuantity(item.quantity), 0);
-  } catch {
-    return 0;
-  }
+  return readRequestItemCount();
 }
 
 export function useRequestCount() {

@@ -3,6 +3,7 @@ import type { RequestItem } from "./types";
 export const REQUEST_STORAGE_KEY = "smtechno-request";
 export const MAX_REQUEST_ITEMS = 100;
 export const MAX_REQUEST_QUANTITY = 100000;
+let inMemoryRequestItems: RequestItem[] = [];
 
 export function normalizeRequestQuantity(value: unknown) {
   const quantity = Number(value);
@@ -26,8 +27,7 @@ export function readRequestItems(): RequestItem[] {
   if (typeof window === "undefined") return [];
   try {
     const parsed = JSON.parse(localStorage.getItem(REQUEST_STORAGE_KEY) ?? "[]") as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed
+    const items = Array.isArray(parsed) ? parsed
       .filter((item): item is RequestItem => Boolean(item && typeof item === "object" && "article" in item))
       .map((item) => ({
         article: String(item.article ?? "").trim(),
@@ -36,9 +36,11 @@ export function readRequestItems(): RequestItem[] {
         quantity: normalizeRequestQuantity(item.quantity),
       }))
       .filter((item) => item.article)
-      .slice(0, MAX_REQUEST_ITEMS);
+      .slice(0, MAX_REQUEST_ITEMS) : [];
+    inMemoryRequestItems = items.map((item) => ({ ...item }));
+    return items;
   } catch {
-    return [];
+    return inMemoryRequestItems.map((item) => ({ ...item }));
   }
 }
 
@@ -50,9 +52,14 @@ export function writeRequestItems(items: RequestItem[]) {
       article: String(item.article).trim(),
       quantity: normalizeRequestQuantity(item.quantity),
     }));
-    localStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(normalized));
+    inMemoryRequestItems = normalized.map((item) => ({ ...item }));
+    try { localStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(normalized)); } catch { /* In-memory cart remains available during this page session. */ }
     window.dispatchEvent(new Event("request-updated"));
-  } catch { /* The in-memory selection remains usable when storage is denied. */ }
+  } catch { /* Malformed in-memory values should not break the page. */ }
+}
+
+export function readRequestItemCount() {
+  return readRequestItems().reduce((sum, item) => sum + item.quantity, 0);
 }
 
 export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[], onOverflow?: () => void) {
