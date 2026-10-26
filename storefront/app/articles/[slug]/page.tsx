@@ -20,12 +20,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ArticlePage({ params }: Props) {
   const article = await getPublishedArticle((await params).slug);
   if (!article) notFound();
-  const [{ items }, relatedLinks] = await Promise.all([getPublishedArticles({ limit: 3 }), getArticleRelatedLinks(article)]);
+  const [{ items }, relatedLinks] = await Promise.all([getPublishedArticles({ limit: 2 }), getArticleRelatedLinks(article)]);
   const related = items.find(item => item.id !== article.id);
   const prepared = prepareArticleContent(article.content, [article.cover_image, article.og_image].filter((id): id is string => id !== null));
   const showContents = prepared.headings.length >= 4 || (prepared.headings.length >= 2 && article.content.length >= 6_000);
   const url = absoluteUrl(`/articles/${encodeURIComponent(article.slug)}`);
-  const articleSchema = { "@context": "https://schema.org", "@type": "Article", headline: article.title, description: article.excerpt || undefined, datePublished: article.published_at, mainEntityOfPage: url, url, author: article.author ? { "@type": "Person", name: article.author } : undefined, image: article.cover_image ? absoluteUrl(`/api/assets/${article.cover_image}`) : undefined };
+  const articleSchema = { "@context": "https://schema.org", "@type": "Article", "@id": `${url}#article`, headline: article.title, description: article.excerpt || undefined, datePublished: article.published_at, mainEntityOfPage: url, url, author: article.author ? { "@type": "Person", name: article.author } : undefined, publisher: { "@id": `${absoluteUrl("/")}#organization` }, image: article.cover_image ? absoluteUrl(`/api/assets/${article.cover_image}`) : undefined };
   const breadcrumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [ { "@type": "ListItem", position: 1, name: "Главная", item: absoluteUrl("/") }, { "@type": "ListItem", position: 2, name: "Статьи", item: absoluteUrl("/articles") }, { "@type": "ListItem", position: 3, name: article.title, item: url } ] };
   return <div className="shell page-shell article-detail-page">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(articleSchema) }} />

@@ -1,4 +1,5 @@
 import type { Product, RequestItem } from "@/lib/types";
+import { normalizeCurrency } from "@/lib/format";
 
 export function normalizeSku(value: string) {
   return value.trim().toLocaleUpperCase("en").replace(/[^A-Z0-9А-ЯЁ]/g, "");
@@ -19,7 +20,8 @@ export function resolveCartProduct(item: RequestItem, products: Product[], total
 
 export function cartUnitPrice(product: Product | null) {
   if (!product || product.price_status !== "fixed" || product.price == null || !Number.isFinite(product.price) || product.price < 0) return null;
-  const currency = product.currency?.trim() || "RUB";
+  const currency = normalizeCurrency(product.currency);
+  if (!currency) return null;
   try {
     const formatter = new Intl.NumberFormat("ru-RU", { style: "currency", currency });
     const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2;

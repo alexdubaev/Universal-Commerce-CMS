@@ -361,10 +361,11 @@ export function registerStorefrontGateway(router, context) {
   router.get('/storefront/items/:collection', makeItemsHandler(gatewayContext));
   router.get('/storefront/search', (req, res) => {
     const config = gate(req, res, gatewayContext.env); if (!config) return;
-    if (Object.keys(req.query ?? {}).some(key => !['q','page','limit'].includes(key))) return error(res, 400);
+    if (Object.keys(req.query ?? {}).some(key => !['q','page','limit','brand','category','availability','partType','sort','mode'].includes(key))) return error(res, 400);
     if (Object.values(req.query ?? {}).some(value => typeof value !== 'string' || value.length > 128)) return error(res, 400);
-    if (req.query?.page !== undefined && (!/^\d+$/.test(req.query.page) || Number(req.query.page) > 200)) return error(res, 400);
-    if (req.query?.limit !== undefined && (!/^\d+$/.test(req.query.limit) || Number(req.query.limit) > 20)) return error(res, 400);
+    if (req.query?.page !== undefined && (!/^\d+$/.test(req.query.page) || !Number.isSafeInteger(Number(req.query.page)) || Number(req.query.page) < 1 || Number(req.query.page) > 10000)) return error(res, 400);
+    if (req.query?.limit !== undefined && (!/^\d+$/.test(req.query.limit) || !Number.isSafeInteger(Number(req.query.limit)) || Number(req.query.limit) < 1 || Number(req.query.limit) > 20)) return error(res, 400);
+    if (req.query?.mode !== undefined && req.query.mode !== 'suggestions') return error(res, 400);
     req.accountability = { user: config.userId, role: null, admin: true, app: false };
     res.set(noStore);
     return createSearchHandler({ ...gatewayContext, env: { COMMERCE_ENABLE_ADDITIONAL_CODES: 'false' }, forcePublishedCategory: true })(req, res);

@@ -10,10 +10,9 @@ import { groupProductRelations, productHeading } from "@/components/product-pres
 import { slugifyBrand } from "@/lib/brands";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 import type { ProductCode, ProductRelation } from "@/lib/types";
+import { formatProductPrice, normalizeCurrency } from "@/lib/format";
 
 type Props = { params: Promise<{ slug: string }> };
-
-const money = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 
 const codeLabels: Record<ProductCode["code_type"], string> = {
   oem: "OEM-номер", mpn: "Номер производителя", supplier: "Номер поставщика",
@@ -64,7 +63,7 @@ export default async function ProductPage({ params }: Props) {
   const hasPhoto = Boolean(product.main_image || product.images.some((image) => image.image));
 
   const price = product.price_status === "fixed" && product.price != null
-    ? `${money.format(product.price)} ₽`
+    ? formatProductPrice(product.price, product.currency)
     : "Цена по запросу";
 
   const availability = product.availability_status === "in_stock"
@@ -73,27 +72,30 @@ export default async function ProductPage({ params }: Props) {
       ? "Нет в наличии"
       : "Под заказ";
 
-  const availabilitySchema = product.availability_status === "in_stock"
-    ? "https://schema.org/InStock"
-    : product.availability_status === "out_of_stock"
-      ? "https://schema.org/OutOfStock"
-      : "https://schema.org/PreOrder";
+  const productUrl = absoluteUrl(`/product/${product.slug}`);
+  const offerCurrency = normalizeCurrency(product.currency);
 
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${productUrl}#product`,
+    url: productUrl,
     name: heading,
     sku: product.sku,
     mpn: product.mpn || undefined,
-    brand: { "@type": "Brand", name: product.brand },
+    brand: { "@type": "Brand", "@id": `${absoluteUrl(`/brand/${slugifyBrand(product.brand)}`)}#brand`, name: product.brand },
     description: product.short_description || product.full_description || undefined,
     image: product.main_image ? [absoluteUrl(`/api/assets/${product.main_image}`)] : undefined,
-    offers: product.price_status === "fixed" && product.price != null ? {
+    additionalProperty: product.specification_items.length
+      ? product.specification_items.map((item) => ({ "@type": "PropertyValue", name: item.name, value: [item.value, item.unit].filter(Boolean).join(" ") }))
+      : Object.entries(product.specifications ?? {}).map(([name, value]) => ({ "@type": "PropertyValue", name, value })),
+    offers: product.price_status === "fixed" && product.price != null && Number.isFinite(product.price) && product.price >= 0 && offerCurrency ? {
       "@type": "Offer",
-      priceCurrency: product.currency || "RUB",
+      "@id": `${productUrl}#offer`,
+      priceCurrency: offerCurrency,
       price: product.price,
-      availability: availabilitySchema,
-      url: absoluteUrl(`/product/${product.slug}`),
+      ...(product.availability_status === "in_stock" ? { availability: "https://schema.org/InStock" } : product.availability_status === "out_of_stock" ? { availability: "https://schema.org/OutOfStock" } : {}),
+      url: productUrl,
     } : undefined,
   };
 
@@ -140,9 +142,11 @@ export default async function ProductPage({ params }: Props) {
           <h1>{heading}</h1>
           <div className="article-big"><span>Артикул <strong>{product.sku}</strong></span><CopyArticle article={product.sku} /></div>
           <p>{product.short_description ?? "Описание и применяемость уточняются по запросу."}</p>
-          <div className="product-price">{price}</div>
-          <AddToRequest product={product} full />
-          <Link className="button secondary wide" href="/request">Открыть заявку</Link>
+          <div className="purchase-area">
+            <div className="product-price">{price}</div>
+            <AddToRequest product={product} full />
+            <Link className="button secondary wide" href="/request">Открыть корзину</Link>
+          </div>
           <div className="product-trust">
             <div><strong>Поставка</strong><span>уточняется для выбранной позиции</span></div>
             <div><strong>Документы</strong><span>состав документов согласуется при оформлении</span></div>

@@ -3,6 +3,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/types";
+import { getSearchQueryError } from "@/lib/search-query";
 
 const HISTORY_KEY = "smtechno-search-history";
 
@@ -19,7 +20,7 @@ function saveHistory(query: string) {
   const clean = query.trim();
   if (!clean) return;
   const next = [clean, ...readHistory().filter((item) => item.toLowerCase() !== clean.toLowerCase())].slice(0, 6);
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+  try { localStorage.setItem(HISTORY_KEY, JSON.stringify(next)); } catch { /* storage may be unavailable */ }
 }
 
 export function useCatalogSearch(initial = "") {
@@ -30,6 +31,7 @@ export function useCatalogSearch(initial = "") {
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const controller = useRef<AbortController | null>(null);
+  const latestQuery = useRef(query);
 
   useEffect(() => {
     setHistory(readHistory());
@@ -38,7 +40,8 @@ export function useCatalogSearch(initial = "") {
 
   useEffect(() => {
     const value = query.trim();
-    if (value.length < 2) {
+    latestQuery.current = value;
+    if (!value || getSearchQueryError(value)) {
       controller.current?.abort();
       setSuggestions([]);
       return;
@@ -49,16 +52,19 @@ export function useCatalogSearch(initial = "") {
       const nextController = new AbortController();
       controller.current = nextController;
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(value)}`, { signal: nextController.signal });
-        if (!response.ok) return;
+        const response = await fetch(`/api/search?q=${encodeURIComponent(value)}&mode=suggestions`, { signal: nextController.signal });
+        if (!response.ok) { if (latestQuery.current === value) setSuggestions([]); return; }
         const payload = await response.json() as { data?: Product[] };
-        setSuggestions((payload.data ?? []).slice(0, 6));
+        if (latestQuery.current === value) setSuggestions((payload.data ?? []).slice(0, 6));
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setSuggestions([]);
+        if (!(error instanceof DOMException && error.name === "AbortError") && latestQuery.current === value) setSuggestions([]);
       }
     }, 180);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      controller.current?.abort();
+    };
   }, [query]);
 
   const go = useCallback((value: string) => {
@@ -81,6 +87,9 @@ export function useCatalogSearch(initial = "") {
   }, [go, hydrated, query]);
 
   const changeQuery = useCallback((value: string) => {
+    controller.current?.abort();
+    latestQuery.current = value.trim();
+    setSuggestions([]);
     setQuery(value);
     setOpen(true);
   }, []);
@@ -93,16 +102,17 @@ export function useCatalogSearch(initial = "") {
   const blur = useCallback(() => {
     window.setTimeout(() => setOpen(false), 160);
   }, []);
+  const close = useCallback(() => setOpen(false), []);
 
   const chooseHistory = useCallback((value: string) => {
-    setQuery(value);
+    changeQuery(value);
     go(value);
-  }, [go]);
+  }, [changeQuery, go]);
 
   return {
     query, suggestions, history, hydrated,
     showHistory: open && !query.trim() && history.length > 0,
-    showSuggestions: open && query.trim().length >= 2 && suggestions.length > 0,
-    changeQuery, focus, blur, chooseHistory, go, submit,
+    showSuggestions: open && Boolean(query.trim()) && !getSearchQueryError(query) && suggestions.length > 0,
+    changeQuery, focus, blur, close, chooseHistory, go, submit,
   };
 }

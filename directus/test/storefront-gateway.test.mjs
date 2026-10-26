@@ -59,6 +59,25 @@ test('collection handler pins publication and fields and rejects unknown collect
   assert.ok(sent.fields.every(field => !field.includes('*'))); assert.equal(sent.limit, 12);
 });
 
+test('search gateway admits only bounded supported filters and forwards facets under publication gates', async () => {
+  const h = harness();
+  assert.equal((await h.invoke('/storefront/search', { query: { q: 'AB', brand: 'Acme', category: 'hydraulics', availability: 'in_stock', partType: 'oem', sort: 'title' } })).statusCode, 200);
+  const aggregate = h.calls.find(call => call.query?.aggregate)?.query;
+  assert.equal(aggregate.filter._and.some(part => part.brand?._eq === 'Acme'), true);
+  assert.equal(aggregate.filter._and.some(part => part.category?.slug?._eq === 'hydraulics'), true);
+  assert.equal(aggregate.filter._and.some(part => part._or?.some(term => term.category?.status?._eq === 'published')), true);
+  const denied = harness();
+  assert.equal((await denied.invoke('/storefront/search', { query: { q: 'AB', fields: '*' } })).statusCode, 400);
+  assert.equal(denied.calls.length, 0);
+  const maxPage = harness();
+  assert.equal((await maxPage.invoke('/storefront/search', { query: { q: 'AB', page: '10000', limit: '20' } })).statusCode, 200);
+  for (const page of ['0', '10001', '9007199254740992']) {
+    const invalid = harness();
+    assert.equal((await invalid.invoke('/storefront/search', { query: { q: 'AB', page } })).statusCode, 400);
+    assert.equal(invalid.calls.length, 0);
+  }
+});
+
 test('image partition queries accept narrow null filters and deterministic bounded offsets', async () => {
   for (const operator of ['_null', '_nnull']) {
     const h = harness();
@@ -271,12 +290,13 @@ test('health and orders are bounded, gated routes; orders stay disabled', async 
   assert.equal(order.statusCode, 404); assert.deepEqual(order.body, { error: 'disabled' });
 });
 
-test('search preserves normalization, no-store, candidate cap and published category predicate', async () => {
+test('search is bounded, no-store, disables aliases and preserves published category predicate', async () => {
   const h = harness();
   const res = await h.invoke('/storefront/search', { query: { q: ' re-5048 ', page: '1', limit: '10' } });
   assert.equal(res.statusCode, 200); assert.equal(res.headers['Cache-Control'], 'no-store');
-  const query = h.calls.find(call => call.query)?.query;
-  assert.equal(query.limit, 200); assert.deepEqual(query.filter._and[1]._or[1], { category: { status: { _eq: 'published' } } });
+  const queries = h.calls.filter(call => call.query).map(call => call.query);
+  assert.ok(queries.every(query => query.limit > 0 && query.limit <= 20));
+  assert.ok(queries.filter(query => query.aggregate).every(query => query.filter._and.some(part => part._or?.some(term => term.category?.status?._eq === 'published'))));
   assert.equal(h.calls.some(call => call.collection === 'product_codes'), false);
   const escalated = await h.invoke('/storefront/search', { query: { q: 'RE', filter: '{}' } });
   assert.equal(escalated.statusCode, 400);

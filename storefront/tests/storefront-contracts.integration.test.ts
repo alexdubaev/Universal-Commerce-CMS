@@ -12,6 +12,8 @@ const privateId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const timestamp = "2026-10-07T12:00:00.000Z";
 let rows: Record<string, Row[]>;
 let unavailable = false;
+let partialSearch = false;
+const requests: string[] = [];
 
 // Synthetic HTTP data service, independent of the adapter's request order.
 function matches(value: unknown, filter: unknown): boolean {
@@ -42,14 +44,34 @@ const server = createServer((request, response) => {
   if (request.headers.authorization !== `Bearer ${token}`) return json({}, 403);
   if (unavailable) return json({ errors: [{ message: `upstream diagnostic ${token}` }] }, 503);
   const url = new URL(request.url!, "http://localhost");
+  requests.push(`${url.pathname}${url.search}`);
   if (url.pathname.startsWith("/commerce/storefront/assets/")) {
     response.writeHead(200, { "content-type": url.pathname.endsWith(htmlId) ? "text/html" : url.pathname.endsWith(pdfId) ? "application/pdf" : "image/png" });
     return response.end("synthetic asset bytes");
   }
   if (url.pathname === "/commerce/storefront/search") {
-    const query = url.searchParams.get("q")!.replace(/[^a-z0-9]/gi, "").toUpperCase();
-    const products = rows.products.filter(row => row.status === "published" && String(row.sku).replace(/[^a-z0-9]/gi, "").includes(query));
-    return json({ data: sliceRows(products, url.searchParams).map(({ id }) => ({ id })), meta: { total: products.length } });
+    const raw = url.searchParams.get("q")!.trim();
+    const query = raw.replace(/[^a-z0-9]/gi, "").toUpperCase();
+    let products = rows.products.filter(row => row.status === "published").filter(row => {
+      const sku = String(row.sku ?? "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+      const title = String(row.title ?? "").toLocaleLowerCase("ru");
+      const brand = String(row.brand ?? "").toLocaleLowerCase("ru");
+      return (query && (sku === query || sku.startsWith(query))) || title.includes(raw.toLocaleLowerCase("ru")) || brand.includes(raw.toLocaleLowerCase("ru"));
+    });
+    const brand = url.searchParams.get("brand");
+    const category = url.searchParams.get("category");
+    const availability = url.searchParams.get("availability");
+    const partType = url.searchParams.get("partType");
+    if (brand) products = products.filter(row => row.brand === brand);
+    if (category) products = products.filter(row => (row.category as Row | null)?.slug === category);
+    if (availability) products = products.filter(row => row.availability_status === availability);
+    if (partType) products = products.filter(row => row.part_type === partType);
+    const sort = url.searchParams.get("sort");
+    if (sort === "price_asc") products.sort((a, b) => Number(a.price) - Number(b.price));
+    else if (sort === "price_desc") products.sort((a, b) => Number(b.price) - Number(a.price));
+    else if (sort === "title") products.sort((a, b) => String(a.title).localeCompare(String(b.title), "ru"));
+    else products.sort((a, b) => Number(b.popularity_score) - Number(a.popularity_score));
+    return json({ data: sliceRows(products, url.searchParams).map(({ id }) => ({ id })), meta: { total: products.length, ...(partialSearch ? { partial: true } : {}) } });
   }
   const collection = /^\/commerce\/storefront\/items\/([a-z_]+)$/.exec(url.pathname)?.[1];
   if (!collection || !rows[collection]) return json({}, 404);
@@ -74,6 +96,7 @@ let directus: typeof import("../lib/directus");
 let sitemap: typeof import("../app/sitemaps/[name]/route");
 let assets: typeof import("../app/api/assets/[id]/route");
 let lead: typeof import("../app/api/lead/route");
+let catalogPage: typeof import("../app/catalog/page");
 
 beforeAll(async () => {
   server.listen(0, "127.0.0.1");
@@ -87,9 +110,9 @@ beforeAll(async () => {
   vi.stubEnv("STOREFRONT_DIRECTUS_GATEWAY", "true");
   vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://synthetic.example");
   vi.resetModules();
-  [catalog, content, directus, sitemap, assets, lead] = await Promise.all([
+  [catalog, content, directus, sitemap, assets, lead, catalogPage] = await Promise.all([
     import("../lib/catalog"), import("../lib/content"), import("../lib/directus"),
-    import("../app/sitemaps/[name]/route"), import("../app/api/assets/[id]/route"), import("../app/api/lead/route"),
+    import("../app/sitemaps/[name]/route"), import("../app/api/assets/[id]/route"), import("../app/api/lead/route"), import("../app/catalog/page"),
   ]);
 });
 
@@ -100,7 +123,9 @@ afterAll(async () => {
 });
 
 beforeEach(() => {
+  requests.length = 0;
   unavailable = false;
+  partialSearch = false;
   const category = { id: "parts", slug: "parts", title: "Parts", status: "published" };
   const products = Array.from({ length: 32 }, (_, i) => ({
     id: `p${String(i).padStart(2, "0")}`, slug: `part-${i}`, sku: `PART-${i}`, title: `Part ${i}`,
@@ -166,6 +191,79 @@ describe("storefront routes and adapters over HTTP", () => {
     expect((await catalog.getProducts({ q: "PART-31" })).items.map(row => row.id)).toEqual(["p31"]);
   });
 
+  it("keeps invalid search queries out of the upstream adapter while blank searches browse", async () => {
+    for (const q of ["A", "x".repeat(65)]) {
+      const result = await catalog.getProducts({ q });
+      expect(result).toMatchObject({ items: [], total: 0, source: "directus" });
+    }
+    expect(requests).toEqual([]);
+
+    const browse = await catalog.getProducts({ q: "   " });
+    expect(browse.total).toBe(32);
+    expect(browse.items).toHaveLength(12);
+    expect(requests.some(path => path.startsWith("/commerce/storefront/items/products?"))).toBe(true);
+  });
+
+  it("renders actionable catalog guidance for too-short and too-long search queries", async () => {
+    for (const [q, guidance] of [
+      ["A", "Поисковый запрос должен содержать не менее 2 символов."],
+      ["x".repeat(65), "Сократите поисковый запрос до 64 символов."],
+    ]) {
+      const html = renderToStaticMarkup(await catalogPage.default({ searchParams: Promise.resolve({ q }) }));
+      expect(html).toContain(guidance);
+      expect(html).toContain('role="status"');
+    }
+    expect(requests.some(path => path.startsWith("/commerce/storefront/search?"))).toBe(false);
+  });
+
+  it("requests one filtered search page and hydrates only its returned product IDs", async () => {
+    const result = await catalog.getProducts({ q: "PART", brand: "liugong", category: "parts", availability: "in_stock", partType: "original", page: 2, limit: 3 });
+    const searchRequests = requests.filter(path => path.startsWith("/commerce/storefront/search?"));
+    expect(searchRequests).toHaveLength(1);
+    const search = new URL(searchRequests[0], "http://local");
+    expect(search.searchParams.get("brand")).toBe("LiuGong");
+    expect(search.searchParams.get("category")).toBe("parts");
+    expect(search.searchParams.get("availability")).toBe("in_stock");
+    expect(search.searchParams.get("partType")).toBe("original");
+    expect(search.searchParams.get("page")).toBe("2");
+    const hydration = requests.find(path => path.startsWith("/commerce/storefront/items/products?") && path.includes("_in"));
+    expect(hydration).toBeDefined();
+    expect(JSON.parse(new URL(hydration!, "http://local").searchParams.get("filter")!)._and[1].id._in).toHaveLength(3);
+    expect(result.total).toBe(9);
+  });
+
+  it("uses a consistent 20-item search page cap and announces partial alias results", async () => {
+    const capped = await catalog.getProducts({ q: "PART", limit: 24 });
+    expect(capped.limit).toBe(20);
+    expect(capped.items).toHaveLength(20);
+
+    partialSearch = true;
+    const html = renderToStaticMarkup(await catalogPage.default({ searchParams: Promise.resolve({ q: "PART" }) }));
+    expect(html).toContain("Часть совпадений по дополнительным кодам не проверена.");
+    expect(html).toContain('role="status"');
+  });
+
+  it("emits crawlable asset paths while disallowing storefront API data", async () => {
+    const { default: robots } = await import("../app/robots");
+    expect(robots().rules).toEqual([{ userAgent: "*", allow: ["/", "/api/assets/"], disallow: ["/api/"] }]);
+  });
+
+  it("canonicalizes clean catalog pagination and noindexes searches, facets, and sorts", async () => {
+    const { generateMetadata } = await import("../app/catalog/page");
+    expect(await generateMetadata({ searchParams: Promise.resolve({ page: "2" }) })).toMatchObject({ alternates: { canonical: "/catalog?page=2" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ q: "bolt", page: "2" }) })).toMatchObject({ robots: { index: false, follow: true }, alternates: { canonical: "/catalog" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ brand: "liugong", sort: "price_asc" }) })).toMatchObject({ robots: { index: false, follow: true }, alternates: { canonical: "/catalog" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ page: "-2" }) })).toMatchObject({ alternates: { canonical: "/catalog" } });
+  });
+
+  it("excludes CMS routes whose canonical points elsewhere from the sitemap", async () => {
+    rows.pages.push({ id: "external", slug: "external", title: "External", status: "published", is_indexable: true, canonical_url: "https://outside.example/canonical" });
+    rows.home_page[0].canonical_url = "https://outside.example/";
+    const statics = await (await mapResponse("static.xml")).text();
+    expect(statics).not.toContain("https://synthetic.example/</loc>");
+    expect(statics).not.toContain("/external</loc>");
+  });
+
   it("excludes drafts and noindex products/pages from sitemap and metadata", async () => {
     expect(await catalog.getSitemapProductCount()).toBe(31);
     const xml = await (await mapResponse("products-0.xml")).text();
@@ -210,6 +308,27 @@ describe("storefront routes and adapters over HTTP", () => {
     expect(html).not.toContain("</script><script>alert(1)</script>");
     expect(html).toContain("\\u003c/script>");
     expect(html).not.toContain(token);
+  });
+
+  it("links product JSON-LD to stable entities and only emits truthful offers", async () => {
+    rows.products[0].price_status = "fixed";
+    rows.products[0].price = 1234;
+    rows.products[0].currency = "USD";
+    rows.products[0].availability_status = "unknown_value";
+    rows.products[0].specifications = { Width: "120 mm" };
+    const { default: ProductPage } = await import("../app/product/[slug]/page");
+    const html = renderToStaticMarkup(await ProductPage({ params: Promise.resolve({ slug: "part-0" }) }));
+    expect(html).toContain('"@id":"https://synthetic.example/product/part-0#product"');
+    expect(html).toContain('"@id":"https://synthetic.example/brand/liugong#brand"');
+    expect(html).toContain('"priceCurrency":"USD"');
+    expect(html).not.toContain('"availability":"https://schema.org/PreOrder"');
+    expect(html).not.toContain('"availability":');
+    expect(html).toContain('"name":"Width","value":"120 mm"');
+    expect(html).toContain("$");
+    const { default: BrandPage } = await import("../app/brand/[brand]/page");
+    const brandHtml = renderToStaticMarkup(await BrandPage({ params: Promise.resolve({ brand: "liugong" }) }));
+    expect(brandHtml).toContain('"@type":"Brand","@id":"https://synthetic.example/brand/liugong#brand"');
+    expect(brandHtml).toContain('"@type":"CollectionPage"');
   });
 
   it("fails closed and keeps upstream diagnostics out of public failures", async () => {

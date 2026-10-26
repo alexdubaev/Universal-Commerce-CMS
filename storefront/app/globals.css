@@ -375,6 +375,7 @@ button:disabled { cursor: wait; opacity: .65; }
 .filter-note { display: block; margin-top: 10px; color: var(--text-filter-note); font-size: 9px; line-height: 1.45; }
 .catalog-content { min-width: 0; }
 .catalog-toolbar { display: flex; align-items: center; justify-content: space-between; min-height: 42px; margin-bottom: 11px; color: var(--muted); font-size: 11px; }
+.catalog-partial { flex: 1; padding-inline: 12px; color: var(--muted); font-size: 11px; }
 .source-badge { padding: 5px 8px; background: rgba(var(--white-rgb),.04); border: 1px solid var(--line); border-radius: 0; color: var(--text-source-badge); }
 .catalog-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
 .pagination { display: flex; gap: 7px; justify-content: center; margin-top: 28px; }
@@ -720,7 +721,7 @@ button:disabled { cursor: wait; opacity: .65; }
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px 10px;
   color: var(--text);
   background: transparent;
@@ -859,6 +860,7 @@ button:disabled { cursor: wait; opacity: .65; }
 }
 
 @media (max-width: 520px) {
+  .search-box input { font-size: 16px; }
   .search-wrap, .search-wrap.compact { max-width: none; width: 100%; }
   .search-popover { top: calc(100% + 6px); }
   .suggestion-item { grid-template-columns: 1fr; gap: 2px; }
@@ -1040,10 +1042,10 @@ a.cms-item:hover { border-color: rgba(var(--accent-rgb),.4); transform: translat
 @keyframes menuEnter { from { opacity:0; transform:translateY(-6px) scale(.99); } to { opacity:1; transform:translateY(0) scale(1); } }
 .header-search { flex:1 1 280px; min-width:150px; }
 .header-search .search-wrap.compact { max-width:100%; }
-.header-search .search-box.compact { min-height:42px; border-color:var(--line-strong); border-radius: 0; }
+.header-search .search-box.compact { min-height:44px; border-color:var(--line-strong); border-radius: 0; }
 .header-search .search-box button { min-width:75px; font-size:12px; }
 .header-search .search-icon { padding-left:12px; }
-.header-search .search-box input { padding-inline:10px; font-size:14px; }
+.header-search .search-box input { min-height:44px; padding-inline:10px; font-size:16px; }
 .main-nav { margin:0; border-top:1px solid var(--line); }
 .main-nav-inner { display:flex; align-items:center; gap:25px; min-height:44px; }
 .machine-stage picture { position:absolute; inset:0; }
@@ -1277,10 +1279,10 @@ body { background: var(--bg); color: var(--text); }
  .catalog-menu { grid-column:2; grid-row:1; }
  .catalog-menu summary { min-height:40px; }
  .header-search { grid-column:1 / 5; grid-row:2; width:100%; }
- .header-search .search-box.compact { display:flex; min-height:42px; height:42px; max-width:none; border:1px solid var(--line-strong); background:var(--surface-light); overflow:hidden; }
+ .header-search .search-box.compact { display:flex; min-height:44px; height:44px; max-width:none; border:1px solid var(--line-strong); background:var(--surface-light); overflow:hidden; }
  .header-search .search-icon { display:none; }
- .header-search .search-box input { display:block; flex:1; width:auto; min-width:0; height:40px; padding-inline:11px; border-radius: 0; background:var(--surface-light); font-size:16px; }
- .header-search .search-box button { align-self:stretch; grid-column:auto; min-width:58px; height:40px; margin:0; border-radius: 0; font-size:12px; }
+ .header-search .search-box input { display:block; flex:1; width:auto; min-width:0; height:44px; min-height:44px; padding-inline:11px; border-radius: 0; background:var(--surface-light); font-size:16px; }
+ .header-search .search-box button { align-self:stretch; grid-column:auto; min-width:58px; min-height:44px; height:44px; margin:0; border-radius: 0; font-size:12px; }
  .main-nav { display:block; visibility:hidden; opacity:0; pointer-events:none; transform:translateY(-8px); background:var(--surface-light); border:1px solid var(--line); box-shadow:var(--shadow); transition:opacity .2s ease, transform .2s ease, visibility .2s; }
  .main-nav.is-open { visibility:visible; opacity:1; pointer-events:auto; transform:translateY(0); }
  .main-nav-inner { align-items:stretch; flex-direction:column; gap:0; padding-block:8px; }

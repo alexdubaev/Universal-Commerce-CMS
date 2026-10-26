@@ -82,6 +82,7 @@ export type ProductList = {
   page: number;
   limit: number;
   source: "directus" | "mock";
+  partial?: boolean;
 };
 
 export type CatalogQuery = {

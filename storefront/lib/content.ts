@@ -233,12 +233,12 @@ export async function getCmsHome(): Promise<CmsHome | null> {
   }
 }
 
-export async function getIndexableCmsPages(): Promise<Array<{ slug: string; updated_at?: string | null }>> {
+export async function getIndexableCmsPages(): Promise<Array<{ slug: string; updated_at?: string | null; canonical_url?: string | null }>> {
   if (isMockMode()) return [];
 
   try {
     const params = new URLSearchParams({
-      fields: "slug,updated_at",
+      fields: "slug,updated_at,canonical_url",
       limit: "500",
       sort: "slug",
       filter: JSON.stringify({
@@ -248,7 +248,7 @@ export async function getIndexableCmsPages(): Promise<Array<{ slug: string; upda
         ],
       }),
     });
-    const result = await directusFetch<{ data: Array<{ slug?: unknown; updated_at?: unknown }> }>(
+    const result = await directusFetch<{ data: Array<{ slug?: unknown; updated_at?: unknown; canonical_url?: unknown }> }>(
       `/items/pages?${params.toString()}`,
       { revalidate: 300 },
     );
@@ -256,6 +256,7 @@ export async function getIndexableCmsPages(): Promise<Array<{ slug: string; upda
       .map((row) => ({
         slug: String(row.slug ?? "").trim(),
         updated_at: typeof row.updated_at === "string" ? row.updated_at : null,
+        canonical_url: stringOrNull(row.canonical_url),
       }))
       .filter((row) => row.slug);
   } catch (error) {

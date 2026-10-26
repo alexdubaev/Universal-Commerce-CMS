@@ -3,13 +3,9 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { ResponsiveFilters } from "@/components/ResponsiveFilters";
 import { getBrands, getCategories, getProducts } from "@/lib/catalog";
+import { getSearchQueryError } from "@/lib/search-query";
+import { normalizeCatalogPage } from "@/lib/seo";
 import type { Availability, PartType, SortOption } from "@/lib/types";
-
-export const metadata: Metadata = {
-  title: "Каталог запчастей",
-  description: "Мультибрендовый B2B-каталог запчастей для спецтехники с поиском по артикулу и OEM-коду.",
-  alternates: { canonical: "/catalog" },
-};
 
 type SearchParams = {
   q?: string;
@@ -22,6 +18,18 @@ type SearchParams = {
 };
 
 type Props = { searchParams: Promise<SearchParams> };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const page = normalizeCatalogPage(params.page);
+  const filtered = Boolean(params.q || params.brand || params.category || params.availability || params.partType || params.sort);
+  return {
+    title: "Каталог запчастей",
+    description: "Мультибрендовый B2B-каталог запчастей для спецтехники с поиском по артикулу и OEM-коду.",
+    alternates: { canonical: page > 1 && !filtered ? `/catalog?page=${page}` : "/catalog" },
+    robots: filtered ? { index: false, follow: true } : undefined,
+  };
+}
 
 function href(params: SearchParams, patch: Partial<SearchParams>) {
   const next = { ...params, ...patch };
@@ -42,7 +50,8 @@ function pages(current: number, max: number) {
 
 export default async function CatalogPage({ searchParams }: Props) {
   const params = await searchParams;
-  const page = Math.max(1, Number(params.page ?? 1) || 1);
+  const page = normalizeCatalogPage(params.page);
+  const searchQueryError = getSearchQueryError(params.q);
   const [brandList, categories, result] = await Promise.all([
     getBrands(),
     getCategories(),
@@ -80,6 +89,7 @@ export default async function CatalogPage({ searchParams }: Props) {
           </div>}
           <div className="catalog-toolbar">
             <span>Найдено: <strong>{result.total}</strong></span>
+            {result.partial && <span className="catalog-partial" role="status" aria-live="polite">Часть совпадений по дополнительным кодам не проверена.</span>}
             <div className="catalog-toolbar-right">
               <form action="/catalog" method="get">
                 {params.q && <input type="hidden" name="q" value={params.q} />}
@@ -103,30 +113,6 @@ export default async function CatalogPage({ searchParams }: Props) {
         <ResponsiveFilters>
         <summary>Фильтры и подбор</summary>
         <aside className="filters panel">
-          <details open>
-            <summary>Категории</summary>
-            <div className="filter-links">
-              <Link className={!params.category ? "active" : ""} href={href(params, { category: undefined, page: undefined })}>Все категории</Link>
-              {categories.map((category) => <Link className={params.category === category.slug ? "active" : ""} href={href(params, { category: category.slug, page: undefined })} key={category.slug}>{category.title}</Link>)}
-            </div>
-          </details>
-
-          <details open>
-            <summary>Бренд</summary>
-            <div className="filter-links">
-              <Link className={!params.brand ? "active" : ""} href={href(params, { brand: undefined, page: undefined })}>Все бренды</Link>
-              {brandList.map((brand) => (
-                <Link
-                  className={params.brand === brand.slug ? "active" : ""}
-                  href={href(params, { brand: brand.slug, page: undefined })}
-                  key={brand.slug}
-                >
-                  {brand.name}
-                </Link>
-              ))}
-            </div>
-          </details>
-
           <form className="facet-form" action="/catalog" method="get">
             {params.q && <input type="hidden" name="q" value={params.q} />}
             {params.brand && <input type="hidden" name="brand" value={params.brand} />}
@@ -156,11 +142,42 @@ export default async function CatalogPage({ searchParams }: Props) {
             <button className="button secondary wide" type="submit">Применить фильтры</button>
             {(params.q || params.brand || params.category || params.availability || params.partType || params.sort) && <Link className="reset-filters" href="/catalog">Сбросить все фильтры</Link>}
           </form>
+
+          <details open>
+            <summary>Категории</summary>
+            <div className="filter-links">
+              <Link className={!params.category ? "active" : ""} href={href(params, { category: undefined, page: undefined })}>Все категории</Link>
+              {categories.map((category) => <Link className={params.category === category.slug ? "active" : ""} href={href(params, { category: category.slug, page: undefined })} key={category.slug}>{category.title}</Link>)}
+            </div>
+          </details>
+
+          <details open>
+            <summary>Бренд</summary>
+            <div className="filter-links">
+              <Link className={!params.brand ? "active" : ""} href={href(params, { brand: undefined, page: undefined })}>Все бренды</Link>
+              {brandList.map((brand) => (
+                <Link
+                  className={params.brand === brand.slug ? "active" : ""}
+                  href={href(params, { brand: brand.slug, page: undefined })}
+                  key={brand.slug}
+                >
+                  {brand.name}
+                </Link>
+              ))}
+            </div>
+          </details>
         </aside>
         </ResponsiveFilters>
 
         <section className="catalog-content">
-          {result.items.length ? (
+          {searchQueryError ? (
+            <div className="panel empty-state">
+              <h2>Проверьте поисковый запрос</h2>
+              <p role="status">{searchQueryError === "too_short"
+                ? "Поисковый запрос должен содержать не менее 2 символов."
+                : "Сократите поисковый запрос до 64 символов."}</p>
+            </div>
+          ) : result.items.length ? (
             <div className="product-grid catalog-grid">
               {result.items.map((product) => <ProductCard product={product} key={product.id} />)}
             </div>

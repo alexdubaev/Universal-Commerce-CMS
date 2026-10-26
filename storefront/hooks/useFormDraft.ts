@@ -7,6 +7,10 @@ const draftFields = ["company", "name", "phone", "email", "message"] as const;
 type FormDraft = Partial<Record<typeof draftFields[number], string>>;
 type SubmittedDraft = { key: string; serialized: string | null };
 
+export function sameFormValues(submitted: Record<string, string>, current: Record<string, string>) {
+  return Object.keys(submitted).every((field) => submitted[field] === current[field]);
+}
+
 export function readFormDraft(storage: DraftStorage, key: string): FormDraft {
   try {
     const saved: unknown = JSON.parse(storage.getItem(key) ?? "{}");

@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { NavigationItem, SiteSettings } from "@/lib/types";
 
 function FooterLink({ item }: { item: NavigationItem }) {
-  const label = item.url === "/request" ? "Ваша заявка" : item.label;
+  const label = item.url === "/request" ? "Корзина" : item.label;
   const external = !item.url.startsWith("/");
   if (external) {
     return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined}>{label}</a>;

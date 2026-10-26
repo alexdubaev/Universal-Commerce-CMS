@@ -1,7 +1,7 @@
 /* Canonical light storefront palette. */
 @font-face {
   font-family: "Oswald";
-  src: url("/fonts/Oswald-Variable.ttf") format("truetype");
+  src: url("/fonts/Oswald-Variable.woff2") format("woff2");
   font-style: normal;
   font-weight: 200 700;
   font-display: swap;
