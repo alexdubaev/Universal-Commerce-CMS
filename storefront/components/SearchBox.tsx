@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, useState, type KeyboardEvent } from "react";
 import { useCatalogSearch } from "@/hooks/useCatalogSearch";
+import { SEARCH_QUERY_MAX_LENGTH, SEARCH_QUERY_MIN_LENGTH } from "@/lib/search-query";
 
 export function SearchBox({
   compact = false,
@@ -53,6 +54,8 @@ export function SearchBox({
           onBlur={() => { setActive(-1); blur(); }}
           placeholder={placeholder}
           aria-label="Поиск запчастей"
+          minLength={SEARCH_QUERY_MIN_LENGTH}
+          maxLength={SEARCH_QUERY_MAX_LENGTH}
           aria-expanded={showHistory || showSuggestions}
           aria-autocomplete="list"
           aria-controls={listboxId}

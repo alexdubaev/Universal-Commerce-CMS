@@ -191,6 +191,31 @@ describe("storefront routes and adapters over HTTP", () => {
     expect((await catalog.getProducts({ q: "PART-31" })).items.map(row => row.id)).toEqual(["p31"]);
   });
 
+  it("keeps invalid search queries out of the upstream adapter while blank searches browse", async () => {
+    for (const q of ["A", "x".repeat(65)]) {
+      const result = await catalog.getProducts({ q });
+      expect(result).toMatchObject({ items: [], total: 0, source: "directus" });
+    }
+    expect(requests).toEqual([]);
+
+    const browse = await catalog.getProducts({ q: "   " });
+    expect(browse.total).toBe(32);
+    expect(browse.items).toHaveLength(12);
+    expect(requests.some(path => path.startsWith("/commerce/storefront/items/products?"))).toBe(true);
+  });
+
+  it("renders actionable catalog guidance for too-short and too-long search queries", async () => {
+    for (const [q, guidance] of [
+      ["A", "Поисковый запрос должен содержать не менее 2 символов."],
+      ["x".repeat(65), "Сократите поисковый запрос до 64 символов."],
+    ]) {
+      const html = renderToStaticMarkup(await catalogPage.default({ searchParams: Promise.resolve({ q }) }));
+      expect(html).toContain(guidance);
+      expect(html).toContain('role="status"');
+    }
+    expect(requests.some(path => path.startsWith("/commerce/storefront/search?"))).toBe(false);
+  });
+
   it("requests one filtered search page and hydrates only its returned product IDs", async () => {
     const result = await catalog.getProducts({ q: "PART", brand: "liugong", category: "parts", availability: "in_stock", partType: "original", page: 2, limit: 3 });
     const searchRequests = requests.filter(path => path.startsWith("/commerce/storefront/search?"));

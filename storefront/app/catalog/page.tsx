@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { ResponsiveFilters } from "@/components/ResponsiveFilters";
 import { getBrands, getCategories, getProducts } from "@/lib/catalog";
+import { getSearchQueryError } from "@/lib/search-query";
 import { normalizeCatalogPage } from "@/lib/seo";
 import type { Availability, PartType, SortOption } from "@/lib/types";
 
@@ -50,6 +51,7 @@ function pages(current: number, max: number) {
 export default async function CatalogPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = normalizeCatalogPage(params.page);
+  const searchQueryError = getSearchQueryError(params.q);
   const [brandList, categories, result] = await Promise.all([
     getBrands(),
     getCategories(),
@@ -168,7 +170,14 @@ export default async function CatalogPage({ searchParams }: Props) {
         </ResponsiveFilters>
 
         <section className="catalog-content">
-          {result.items.length ? (
+          {searchQueryError ? (
+            <div className="panel empty-state">
+              <h2>Проверьте поисковый запрос</h2>
+              <p role="status">{searchQueryError === "too_short"
+                ? "Поисковый запрос должен содержать не менее 2 символов."
+                : "Сократите поисковый запрос до 64 символов."}</p>
+            </div>
+          ) : result.items.length ? (
             <div className="product-grid catalog-grid">
               {result.items.map((product) => <ProductCard product={product} key={product.id} />)}
             </div>

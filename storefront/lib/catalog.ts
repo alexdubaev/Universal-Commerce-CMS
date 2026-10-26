@@ -2,6 +2,7 @@ import { allowMockFallback, directusFetch, isMockMode } from "./directus";
 import { brands, findBrand, mockCategories, mockProducts } from "./mock";
 import { getCmsSiteSettings } from "./content";
 import { slugifyBrand } from "./brands";
+import { getSearchQueryError } from "./search-query";
 import type {
   Brand,
   CatalogQuery,
@@ -238,6 +239,9 @@ export async function getProducts(query: CatalogQuery = {}): Promise<ProductList
   const page = Math.max(1, query.page ?? 1);
   const requestedLimit = Math.min(24, Math.max(1, query.limit ?? 12));
   const limit = query.q?.trim() ? Math.min(SEARCH_PAGE_LIMIT, requestedLimit) : requestedLimit;
+  if (getSearchQueryError(query.q)) {
+    return { items: [], total: 0, page, limit, source: isMockMode() ? "mock" : "directus" };
+  }
   if (isMockMode()) return mockQuery({ ...query, page, limit });
 
   try {

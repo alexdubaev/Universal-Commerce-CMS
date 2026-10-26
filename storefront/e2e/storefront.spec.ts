@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 test("search to product to request submission", async ({ page }) => {
   await page.route("**/api/lead", route => route.fulfill({ json: { id: "accepted-critical-journey" } }));
   await page.goto("/");
-  const search = page.getByRole("search");
-  await search.getByRole("textbox").fill("RE-568158");
-  await search.getByRole("button", { name: "Найти" }).click();
+  const search = page.getByRole("combobox", { name: "Поиск запчастей" });
+  await search.fill("RE-568158");
+  await page.getByRole("search").getByRole("button", { name: "Найти" }).click();
   await page.locator(".product-card").filter({ hasText: "RE568158" })
     .getByRole("link", { name: "Фильтр масляный" }).first().click();
-  await page.locator(".product-info").getByRole("button", { name: "Добавить в заявку", exact: true }).click();
+  await page.locator(".product-info").getByRole("button", { name: "В корзину", exact: true }).click();
   await page.goto("/request");
   const line = page.locator(".request-line").filter({ hasText: "RE568158" });
   await line.getByRole("button", { name: /Увеличить количество/ }).click();
@@ -17,7 +17,8 @@ test("search to product to request submission", async ({ page }) => {
   await page.getByLabel("Телефон").fill("+79990000000");
   await page.getByRole("button", { name: "Отправить заявку" }).click();
   await expect(page.getByText(/Заявка принята\. Номер:/)).toBeVisible();
-  await expect(page.getByText("Список пока пуст")).toBeVisible();
+  await expect(page.getByText("Корзина пока пуста")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Отправить заявку" })).toBeDisabled();
 });
 
 test("retry preserves its key and acknowledges only submitted quantities", async ({ page }) => {
@@ -49,6 +50,10 @@ test("retry preserves its key and acknowledges only submitted quantities", async
   await expect(page.locator(".request-line .qty b")).toHaveText("3");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("smtechno-request") ?? "[]")))
     .toEqual([expect.objectContaining({ article: "RE568158", quantity: 3 })]);
+  await page.reload();
+  await expect(page.getByLabel("Контактное лицо")).toHaveValue("Иван");
+  await expect(page.getByLabel("Телефон")).toHaveValue("+79990000000");
+  await expect(page.locator(".request-line .qty b")).toHaveText("3");
   await submit.click();
   await expect(page.getByText("Заявка принята. Номер: accepted-retry")).toBeVisible();
   expect(payloads[1].request_key).toBe(payloads[0].request_key);

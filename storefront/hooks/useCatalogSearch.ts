@@ -3,6 +3,7 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/types";
+import { getSearchQueryError } from "@/lib/search-query";
 
 const HISTORY_KEY = "smtechno-search-history";
 
@@ -40,7 +41,7 @@ export function useCatalogSearch(initial = "") {
   useEffect(() => {
     const value = query.trim();
     latestQuery.current = value;
-    if (value.length < 2) {
+    if (!value || getSearchQueryError(value)) {
       controller.current?.abort();
       setSuggestions([]);
       return;
@@ -111,7 +112,7 @@ export function useCatalogSearch(initial = "") {
   return {
     query, suggestions, history, hydrated,
     showHistory: open && !query.trim() && history.length > 0,
-    showSuggestions: open && query.trim().length >= 2 && suggestions.length > 0,
+    showSuggestions: open && Boolean(query.trim()) && !getSearchQueryError(query) && suggestions.length > 0,
     changeQuery, focus, blur, close, chooseHistory, go, submit,
   };
 }
