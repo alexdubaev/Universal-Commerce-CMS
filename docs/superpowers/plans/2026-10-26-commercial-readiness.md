@@ -47,9 +47,25 @@ Interfaces: getSiteUrl/absoluteUrl/safeCanonicalUrl remain. Explicit mock mode m
 - [ ] Reduce avoidable work only with evidence; preserve current visual design and dynamic content. Test metadata/rendered route behavior rather than source snapshots.
 - [ ] Run frontend tests/typecheck; commit owned files. Document indexing/real-content prerequisites.
 
-### Task 4: Integration and acceptance
+### Task 4: Mobile and desktop UX completion
+Files: storefront/components/MobileActions.tsx (new), app/layout.tsx, styles/responsive-ux.css (new), app/catalog/page.tsx layout only, app/product/[slug]/page.tsx purchase grouping only; existing shared styles/components if necessary within the same scope.
+Interfaces: existing useRequestCount, SearchBox header input id and /catalog,/request routes. Keep industrial v3 square geometry and colors. Evidence: /tmp/uccms-work/mobile-audit.md.
+- [ ] On <=820px provide compact persistent bottom navigation for search, catalogue and cart. Search scrolls/focuses the actual header search. Include safe-area bottom spacing, do not obscure content or focused form fields; hide the bar while text fields/selects have focus. No separate mobile app.
+- [ ] Make mobile search controls, product-title links, filter links, footer links and navigation targets at least 44px; text inputs at least 16px to avoid iOS focus zoom. Preserve wrapping and readable density at 360/390/430px.
+- [ ] Move availability/type filter form before long taxonomy lists so desktop controls are reachable; keep active filters and category/brand discovery clear. Use bounded scrollable lists only if needed; retain keyboard access.
+- [ ] Group desktop product price/actions in an aligned area with max-width 440px; mobile full width. Preserve product content and no-photo behavior.
+- [ ] Browser QA mobile 360/390/430 + desktop1440/tablet1024: no overflow, bottom navigation visible on scroll, hidden when form focused, navigation/search works, no occlusion, filters reachable, cart and forms unchanged. Use screenshots and measurements, no CSS/source snapshot tests.
+- [ ] Run typecheck and affected existing tests; commit owned changes and report before/after evidence. Parent performs independent review and final gate.
+
+### Task 5: Integration and acceptance
 Files: existing e2e/storefront.spec.ts only short flow updates where needed, docs/development/commercial-readiness.md and this plan checkboxes.
 - [ ] Run node scripts/verify-local.mjs and resolve genuine regressions.
 - [ ] Browser flow: search → product → cart quantities → intercepted failure → retry → success. Check empty cart, reload recovery, keyboard suggestions, Russian search, facets and metadata. Desktop 1440, tablet 1024, mobile 390; inspect screenshots against industrial v3/current baseline. Save screenshots outside repository.
 - [ ] Independent whole-branch review, fix findings, rerun affected tests/full gate if changed. Report measured evidence and production blockers separately from code completion.
 - [ ] Integrate via reviewed PR only if remote write access is available and gate passes; do not deploy.
+
+Implementation refinements: Task2 follows /tmp/uccms-work/search-design-check.md (Directus aggregate counts, NULL-safe tier exclusion, explicit lightweight suggestions mode; default cart lookup unchanged). Task3 additionally batches article related links by collection if existing gateway permits the same safe query shape, keeps publication/no-store behavior, reduces Header props to consumed fields, and adds image decoding/sizing hints without unsupported transforms. Read-only performance evidence is /tmp/uccms-work/perf-review.md.
+
+Task3 scope refinement: Header.tsx may use minimal prop types, ProductCard/ProductGallery may receive sizing/decoding and price-currency consistency changes; create public/fonts/Oswald-Variable.woff2 from the existing licensed TTF, change only font source in app/theme.css, retain TTF/OFL, verify variable axes/glyph count and report byte savings. All runtime schemas, configuration and dependencies remain unchanged.
+
+Task5 integration refinement: validate nonblank trimmed catalogue q at 2..64 characters consistently in mock/live adapter, show inline guidance rather than route failure, and align SearchBox native input bounds. Allowed focused files: lib/search-query.ts, lib/catalog.ts, components/SearchBox.ts, hooks/useCatalogSearch.ts (query validation only), app/catalog/page.tsx and adapter integration tests. Empty q still browses. This closes a user-input boundary found during orchestration; no upstream access for invalid input.

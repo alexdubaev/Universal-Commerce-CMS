@@ -14,3 +14,5 @@ Deliverables:
 Allowed: storefront source/tests/styles, commerce-api search handler and storefront gateway search validation with src/dist parity, corresponding backend tests, documentation. Protected: schema, access roles, credentials, deployment/Docker, dependency manifests/lockfiles, live CMS data and G1/G2 mutation workflows. No real lead submission or production deployment.
 
 Verification: meaningful handler/domain/route tests; the existing two critical Chromium E2E journeys; scoped browser checks at 1440/1024/390px using synthetic data and intercepted submissions. Full node scripts/verify-local.mjs on final candidate. Main integration only after review and the local gate, subject to available remote write access.
+
+Owner follow-up explicitly adds mobile and desktop UI/UX completion. Use rendered audit evidence to improve navigation on long mobile pages, touch targets, form input readability, desktop filter reachability and purchase-action grouping. Retain industrial v3; final acceptance covers 360/390/430 mobile, 1024 tablet and 1440 desktop.
