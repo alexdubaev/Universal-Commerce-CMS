@@ -3,13 +3,8 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { ResponsiveFilters } from "@/components/ResponsiveFilters";
 import { getBrands, getCategories, getProducts } from "@/lib/catalog";
+import { normalizeCatalogPage } from "@/lib/seo";
 import type { Availability, PartType, SortOption } from "@/lib/types";
-
-export const metadata: Metadata = {
-  title: "Каталог запчастей",
-  description: "Мультибрендовый B2B-каталог запчастей для спецтехники с поиском по артикулу и OEM-коду.",
-  alternates: { canonical: "/catalog" },
-};
 
 type SearchParams = {
   q?: string;
@@ -22,6 +17,18 @@ type SearchParams = {
 };
 
 type Props = { searchParams: Promise<SearchParams> };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const params = await searchParams;
+  const page = normalizeCatalogPage(params.page);
+  const filtered = Boolean(params.q || params.brand || params.category || params.availability || params.partType || params.sort);
+  return {
+    title: "Каталог запчастей",
+    description: "Мультибрендовый B2B-каталог запчастей для спецтехники с поиском по артикулу и OEM-коду.",
+    alternates: { canonical: page > 1 && !filtered ? `/catalog?page=${page}` : "/catalog" },
+    robots: filtered ? { index: false, follow: true } : undefined,
+  };
+}
 
 function href(params: SearchParams, patch: Partial<SearchParams>) {
   const next = { ...params, ...patch };
@@ -42,7 +49,7 @@ function pages(current: number, max: number) {
 
 export default async function CatalogPage({ searchParams }: Props) {
   const params = await searchParams;
-  const page = Math.max(1, Number(params.page ?? 1) || 1);
+  const page = normalizeCatalogPage(params.page);
   const [brandList, categories, result] = await Promise.all([
     getBrands(),
     getCategories(),

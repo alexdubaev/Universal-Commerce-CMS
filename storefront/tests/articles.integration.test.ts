@@ -114,6 +114,8 @@ describe("published article routes over a synthetic HTTP service", () => {
     expect(await generateMetadata(props)).toMatchObject({ title: "Первый материал", description: "Краткий анонс", alternates: { canonical: "https://synthetic.example/articles/one" }, openGraph: { type: "article", publishedTime: "2020-01-02T12:00:00.000Z", url: "https://synthetic.example/articles/one" } });
     const detail = renderToStaticMarkup(await Detail(props));
     expect(detail.match(/<h1[ >]/g)).toHaveLength(1); expect(detail).toContain('"datePublished":"2020-01-02T12:00:00.000Z"'); expect(detail).not.toContain('dateModified');
+    expect(detail).toContain("Второй материал");
+    expect(requests.some(url => url.pathname.endsWith("/items/articles") && url.searchParams.get("limit") === "2")).toBe(true);
     const { GET } = await import("../app/sitemaps/[name]/route");
     const map = await GET(new Request("https://synthetic.example/sitemaps/static.xml"), { params: Promise.resolve({ name: "static.xml" }) });
     const xml = await map.text(); expect(xml).toContain('/articles/one</loc>'); expect(xml).not.toContain('/articles/draft'); expect(xml).not.toContain('/articles/future');

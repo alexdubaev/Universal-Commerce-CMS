@@ -218,6 +218,27 @@ describe("storefront routes and adapters over HTTP", () => {
     expect(html).toContain('role="status"');
   });
 
+  it("emits crawlable asset paths while disallowing storefront API data", async () => {
+    const { default: robots } = await import("../app/robots");
+    expect(robots().rules).toEqual([{ userAgent: "*", allow: ["/", "/api/assets/"], disallow: ["/api/"] }]);
+  });
+
+  it("canonicalizes clean catalog pagination and noindexes searches, facets, and sorts", async () => {
+    const { generateMetadata } = await import("../app/catalog/page");
+    expect(await generateMetadata({ searchParams: Promise.resolve({ page: "2" }) })).toMatchObject({ alternates: { canonical: "/catalog?page=2" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ q: "bolt", page: "2" }) })).toMatchObject({ robots: { index: false, follow: true }, alternates: { canonical: "/catalog" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ brand: "liugong", sort: "price_asc" }) })).toMatchObject({ robots: { index: false, follow: true }, alternates: { canonical: "/catalog" } });
+    expect(await generateMetadata({ searchParams: Promise.resolve({ page: "-2" }) })).toMatchObject({ alternates: { canonical: "/catalog" } });
+  });
+
+  it("excludes CMS routes whose canonical points elsewhere from the sitemap", async () => {
+    rows.pages.push({ id: "external", slug: "external", title: "External", status: "published", is_indexable: true, canonical_url: "https://outside.example/canonical" });
+    rows.home_page[0].canonical_url = "https://outside.example/";
+    const statics = await (await mapResponse("static.xml")).text();
+    expect(statics).not.toContain("https://synthetic.example/</loc>");
+    expect(statics).not.toContain("/external</loc>");
+  });
+
   it("excludes drafts and noindex products/pages from sitemap and metadata", async () => {
     expect(await catalog.getSitemapProductCount()).toBe(31);
     const xml = await (await mapResponse("products-0.xml")).text();
@@ -262,6 +283,27 @@ describe("storefront routes and adapters over HTTP", () => {
     expect(html).not.toContain("</script><script>alert(1)</script>");
     expect(html).toContain("\\u003c/script>");
     expect(html).not.toContain(token);
+  });
+
+  it("links product JSON-LD to stable entities and only emits truthful offers", async () => {
+    rows.products[0].price_status = "fixed";
+    rows.products[0].price = 1234;
+    rows.products[0].currency = "USD";
+    rows.products[0].availability_status = "unknown_value";
+    rows.products[0].specifications = { Width: "120 mm" };
+    const { default: ProductPage } = await import("../app/product/[slug]/page");
+    const html = renderToStaticMarkup(await ProductPage({ params: Promise.resolve({ slug: "part-0" }) }));
+    expect(html).toContain('"@id":"https://synthetic.example/product/part-0#product"');
+    expect(html).toContain('"@id":"https://synthetic.example/brand/liugong#brand"');
+    expect(html).toContain('"priceCurrency":"USD"');
+    expect(html).not.toContain('"availability":"https://schema.org/PreOrder"');
+    expect(html).not.toContain('"availability":');
+    expect(html).toContain('"name":"Width","value":"120 mm"');
+    expect(html).toContain("$");
+    const { default: BrandPage } = await import("../app/brand/[brand]/page");
+    const brandHtml = renderToStaticMarkup(await BrandPage({ params: Promise.resolve({ brand: "liugong" }) }));
+    expect(brandHtml).toContain('"@type":"Brand","@id":"https://synthetic.example/brand/liugong#brand"');
+    expect(brandHtml).toContain('"@type":"CollectionPage"');
   });
 
   it("fails closed and keeps upstream diagnostics out of public failures", async () => {

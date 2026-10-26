@@ -10,10 +10,9 @@ import { groupProductRelations, productHeading } from "@/components/product-pres
 import { slugifyBrand } from "@/lib/brands";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 import type { ProductCode, ProductRelation } from "@/lib/types";
+import { formatProductPrice } from "@/lib/format";
 
 type Props = { params: Promise<{ slug: string }> };
-
-const money = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 0 });
 
 const codeLabels: Record<ProductCode["code_type"], string> = {
   oem: "OEM-номер", mpn: "Номер производителя", supplier: "Номер поставщика",
@@ -64,7 +63,7 @@ export default async function ProductPage({ params }: Props) {
   const hasPhoto = Boolean(product.main_image || product.images.some((image) => image.image));
 
   const price = product.price_status === "fixed" && product.price != null
-    ? `${money.format(product.price)} ₽`
+    ? formatProductPrice(product.price, product.currency)
     : "Цена по запросу";
 
   const availability = product.availability_status === "in_stock"
@@ -73,27 +72,29 @@ export default async function ProductPage({ params }: Props) {
       ? "Нет в наличии"
       : "Под заказ";
 
-  const availabilitySchema = product.availability_status === "in_stock"
-    ? "https://schema.org/InStock"
-    : product.availability_status === "out_of_stock"
-      ? "https://schema.org/OutOfStock"
-      : "https://schema.org/PreOrder";
+  const productUrl = absoluteUrl(`/product/${product.slug}`);
 
   const productJsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
+    "@id": `${productUrl}#product`,
+    url: productUrl,
     name: heading,
     sku: product.sku,
     mpn: product.mpn || undefined,
-    brand: { "@type": "Brand", name: product.brand },
+    brand: { "@type": "Brand", "@id": `${absoluteUrl(`/brand/${slugifyBrand(product.brand)}`)}#brand`, name: product.brand },
     description: product.short_description || product.full_description || undefined,
     image: product.main_image ? [absoluteUrl(`/api/assets/${product.main_image}`)] : undefined,
-    offers: product.price_status === "fixed" && product.price != null ? {
+    additionalProperty: product.specification_items.length
+      ? product.specification_items.map((item) => ({ "@type": "PropertyValue", name: item.name, value: [item.value, item.unit].filter(Boolean).join(" ") }))
+      : Object.entries(product.specifications ?? {}).map(([name, value]) => ({ "@type": "PropertyValue", name, value })),
+    offers: product.price_status === "fixed" && product.price != null && Number.isFinite(product.price) && product.price >= 0 ? {
       "@type": "Offer",
-      priceCurrency: product.currency || "RUB",
+      "@id": `${productUrl}#offer`,
+      priceCurrency: product.currency && /^[A-Z]{3}$/.test(product.currency) ? product.currency : "RUB",
       price: product.price,
-      availability: availabilitySchema,
-      url: absoluteUrl(`/product/${product.slug}`),
+      ...(product.availability_status === "in_stock" ? { availability: "https://schema.org/InStock" } : product.availability_status === "out_of_stock" ? { availability: "https://schema.org/OutOfStock" } : {}),
+      url: productUrl,
     } : undefined,
   };
 

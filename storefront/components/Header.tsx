@@ -8,7 +8,7 @@ import { useRequestCount } from "@/hooks/useRequestItems";
 import type { Brand, Category, NavigationItem, SiteSettings } from "@/lib/types";
 import { SearchBox } from "./SearchBox";
 
-function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void }) {
+function NavEntry({ item, onClick }: { item: Pick<NavigationItem, "id" | "label" | "url" | "open_in_new_tab">; onClick: () => void }) {
   const label = item.url === "/request" ? "Корзина" : item.label;
   const external = !item.url.startsWith("/");
   if (external) return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined} onClick={onClick}>{label}</a>;
@@ -16,10 +16,10 @@ function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void
 }
 
 export function Header({ settings, navigation, categories, brands, searchPlaceholder, searchButtonLabel }: {
-  settings: SiteSettings;
-  navigation: NavigationItem[];
-  categories: Category[];
-  brands: Brand[];
+  settings: Pick<SiteSettings, "company_name" | "phone" | "email">;
+  navigation: Array<Pick<NavigationItem, "id" | "label" | "url" | "open_in_new_tab">>;
+  categories: Array<Pick<Category, "slug" | "title">>;
+  brands: Array<Pick<Brand, "slug" | "name">>;
   searchPlaceholder?: string;
   searchButtonLabel?: string;
 }) {

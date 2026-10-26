@@ -18,6 +18,8 @@ function item(id: string): Product {
 let product: ProductDetail;
 const props = { params: Promise.resolve({ slug: "current" }) };
 beforeEach(() => {
+  vi.stubEnv("STOREFRONT_MOCK_MODE", "true");
+  vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://synthetic.example");
   product = { ...item("current"), title: "Фильтр", sku: "2654403", codes: [], images: [], documents: [], specification_items: [], relations: [] };
   vi.mocked(getProductDetail).mockImplementation(async () => product);
   vi.mocked(getRelatedProducts).mockResolvedValue([]);
@@ -31,6 +33,7 @@ describe("rendered product identity and typed links", () => {
     const html = renderToStaticMarkup(await ProductPage(props));
     expect(html).toContain(`<h1>${heading}</h1>`);
     expect(html).toContain(`"name":"${heading}"`);
+    expect(html).not.toContain('"offers"');
   });
 
   it("recognizes the complete article with equivalent hyphen spelling without appending it twice", async () => {

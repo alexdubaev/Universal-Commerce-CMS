@@ -1,6 +1,6 @@
 import { getBrands, getCategories, getProductsForSitemap } from "@/lib/catalog";
 import { getCmsHome, getCmsPage, getIndexableCmsPages } from "@/lib/content";
-import { absoluteUrl, escapeXml } from "@/lib/seo";
+import { absoluteUrl, escapeXml, safeCanonicalUrl } from "@/lib/seo";
 import { getArticlesForSitemap } from "@/lib/articles";
 
 const PRODUCT_CHUNK = 1000;
@@ -36,16 +36,16 @@ export async function GET(_: Request, context: { params: Promise<{ name: string 
     ]);
     const staticRoutes = ["/", "/catalog", "/brands", "/delivery", "/payment", "/about", "/contacts", "/articles"];
     const indexableStaticRoutes = [
-      ...(home?.is_indexable === false ? [] : ["/"]),
+      ...(home?.is_indexable === false || safeCanonicalUrl(home?.canonical_url, "/") !== "/" ? [] : ["/"]),
       "/catalog", "/brands", "/articles",
-      ...overrideSlugs.filter((_, index) => overrides[index]?.is_indexable !== false).map((slug) => `/${slug}`),
+      ...overrideSlugs.filter((slug, index) => overrides[index]?.is_indexable !== false && safeCanonicalUrl(overrides[index]?.canonical_url, `/${slug}`) === `/${slug}`).map((slug) => `/${slug}`),
     ];
     const reserved = new Set(staticRoutes.map((path) => path.replace(/^\//, "")));
     return xmlResponse([
       ...indexableStaticRoutes.map((path) => urlNode(path)),
       ...brandList.map((brand) => urlNode(`/brand/${brand.slug}`)),
       ...categories.filter((category) => category.is_indexable !== false).map((category) => urlNode(`/category/${category.slug}`)),
-      ...cmsPages.filter((page) => !reserved.has(page.slug)).map((page) => urlNode(`/${page.slug}`, page.updated_at)),
+      ...cmsPages.filter((page) => !reserved.has(page.slug) && safeCanonicalUrl(page.canonical_url, `/${page.slug}`) === `/${page.slug}`).map((page) => urlNode(`/${page.slug}`, page.updated_at)),
       ...articles.map((article) => urlNode(`/articles/${encodeURIComponent(article.slug)}`, article.published_at)),
     ], true);
   }

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/ProductCard";
 import { getBrand, getProducts } from "@/lib/catalog";
+import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 
 type Props = { params: Promise<{ brand: string }> };
 
@@ -28,9 +29,28 @@ export default async function BrandPage({ params }: Props) {
   if (!brand) notFound();
 
   const products = await getProducts({ brand: slug, limit: 12 });
+  const brandUrl = absoluteUrl(`/brand/${brand.slug}`);
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      { "@type": "Brand", "@id": `${brandUrl}#brand`, name: brand.name, description: brand.description },
+      {
+        "@type": "CollectionPage", "@id": `${brandUrl}#collection`, url: brandUrl,
+        name: brand.name, description: brand.description,
+        mainEntity: { "@type": "ItemList", itemListElement: products.items.map((product, index) => ({ "@type": "ListItem", position: index + 1, item: { "@id": `${absoluteUrl(`/product/${product.slug}`)}#product`, name: product.title, url: absoluteUrl(`/product/${product.slug}`) } })) },
+      },
+    ],
+  };
+  const breadcrumbs = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Главная", item: absoluteUrl("/") },
+    { "@type": "ListItem", position: 2, name: "Каталог", item: absoluteUrl("/catalog") },
+    { "@type": "ListItem", position: 3, name: brand.name, item: brandUrl },
+  ] };
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbs) }} />
       <section className="brand-hero">
         <div className="shell brand-hero-grid">
           <div>

@@ -41,6 +41,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const organization = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${getSiteUrl().toString()}#organization`,
     name: settings.legal_name || settings.company_name,
     email: settings.email,
     telephone: settings.phone,
@@ -53,13 +54,13 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang="ru">
       <body>
         <MotionEnhancements />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(organization) }} />
+        {organization.name && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(organization) }} />}
         <a className="skip-link" href="#main-content" tabIndex={0}>К основному содержимому</a>
         <Header
-          settings={settings}
-          navigation={headerNav}
-          categories={categories}
-          brands={brands}
+          settings={{ company_name: settings.company_name, phone: settings.phone, email: settings.email }}
+          navigation={headerNav.map(({ id, label, url, open_in_new_tab }) => ({ id, label, url, open_in_new_tab }))}
+          categories={categories.map(({ slug, title }) => ({ slug, title }))}
+          brands={brands.map(({ slug, name }) => ({ slug, name }))}
           searchPlaceholder={cmsHome?.hero_search_placeholder || undefined}
           searchButtonLabel={cmsHome?.hero_search_button_text || undefined}
         />

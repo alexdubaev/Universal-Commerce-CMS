@@ -49,6 +49,9 @@ export function ProductGallery({
         className="product-main-image"
         src={`/api/assets/${current.image}`}
         alt={current.alt_text || title}
+        width="1200"
+        height="900"
+        decoding="async"
       />
       {gallery.length > 1 && (
         <div className="product-thumbs" aria-label="Галерея товара">
@@ -64,7 +67,10 @@ export function ProductGallery({
               <img
                 src={`/api/assets/${image.image}`}
                 alt={image.alt_text || `${title}, изображение ${index + 1}`}
+                width="160"
+                height="120"
                 loading="lazy"
+                decoding="async"
               />
             </button>
           ))}
