@@ -1,10 +1,11 @@
 export function getSiteUrl() {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const raw = process.env.NEXT_PUBLIC_SITE_URL;
   if (!raw) {
     if (process.env.STOREFRONT_MOCK_MODE === "true") return new URL("http://localhost:3000");
     throw new Error("NEXT_PUBLIC_SITE_URL must be configured for live storefront rendering");
   }
   try {
+    if (raw !== raw.trim() || /[\\\s]/u.test(raw) || !/^https?:\/\//i.test(raw)) throw new Error("invalid site URL syntax");
     const url = new URL(raw);
     if (!/^https?:$/.test(url.protocol) || !url.hostname || url.username || url.password || url.search || url.hash || (url.pathname !== "/" && url.pathname !== "")) throw new Error("invalid site URL");
     const host = url.hostname.toLowerCase();

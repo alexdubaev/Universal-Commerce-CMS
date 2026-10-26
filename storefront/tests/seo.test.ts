@@ -20,6 +20,16 @@ describe("site URL configuration", () => {
     expect(() => seo.getSiteUrl()).toThrow(/NEXT_PUBLIC_SITE_URL/);
   });
 
+  it.each(["https:example.com", "https:/example.com", "https:\\example.com", " https://example.com"]) (
+    "rejects non-canonical origin syntax %s",
+    async (siteUrl) => {
+      vi.stubEnv("STOREFRONT_MOCK_MODE", "false");
+      vi.stubEnv("NEXT_PUBLIC_SITE_URL", siteUrl);
+      const seo = await import("../lib/seo");
+      expect(() => seo.getSiteUrl()).toThrow(/NEXT_PUBLIC_SITE_URL/);
+    },
+  );
+
   it("fails clearly when live mode has no configured site URL", async () => {
     vi.stubEnv("STOREFRONT_MOCK_MODE", "false");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "");
