@@ -9,7 +9,7 @@ import type { Brand, Category, NavigationItem, SiteSettings } from "@/lib/types"
 import { SearchBox } from "./SearchBox";
 
 function NavEntry({ item, onClick }: { item: NavigationItem; onClick: () => void }) {
-  const label = item.url === "/request" ? "Ваша заявка" : item.label;
+  const label = item.url === "/request" ? "Корзина" : item.label;
   const external = !item.url.startsWith("/");
   if (external) return <a href={item.url} target={item.open_in_new_tab ? "_blank" : undefined} rel={item.open_in_new_tab ? "noreferrer" : undefined} onClick={onClick}>{label}</a>;
   return <Link href={item.url} onClick={onClick}>{label}</Link>;
@@ -88,8 +88,8 @@ export function Header({ settings, navigation, categories, brands, searchPlaceho
           <a className="header-phone" href={`tel:${settings.phone.replace(/[^+\d]/g, "")}`}><strong>{settings.phone}</strong></a>
           <a className="header-email" href={`mailto:${settings.email}`}>{settings.email}</a>
         </div>
-        <Link className="request-link" href="/request" aria-label={`Ваша заявка${requestCount ? `, позиций: ${requestCount}` : ""}`}>
-          <img className="request-icon" src="/images/cart-icon-black.webp" alt="" width="20" height="20" aria-hidden="true" /><span className="request-label">Заявка</span>{requestCount > 0 && <b>{requestCount}</b>}
+        <Link className="request-link" href="/request" aria-label={`Корзина${requestCount ? `, позиций: ${requestCount}` : ""}`}>
+          <img className="request-icon" src="/images/cart-icon-black.webp" alt="" width="20" height="20" aria-hidden="true" /><span className="request-label">Корзина</span>{requestCount > 0 && <b>{requestCount}</b>}
         </Link>
       </div>
       <button ref={menuButtonRef} className="menu-toggle" type="button" aria-expanded={open} aria-controls="main-navigation" aria-label={open ? "Закрыть меню" : "Открыть меню"} onClick={() => setOpen((value) => !value)}>

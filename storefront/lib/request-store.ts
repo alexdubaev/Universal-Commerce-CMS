@@ -2,6 +2,13 @@ import type { RequestItem } from "./types";
 
 export const REQUEST_STORAGE_KEY = "smtechno-request";
 export const MAX_REQUEST_ITEMS = 100;
+export const MAX_REQUEST_QUANTITY = 100000;
+
+export function normalizeRequestQuantity(value: unknown) {
+  const quantity = Number(value);
+  if (!Number.isFinite(quantity)) return 1;
+  return Math.max(1, Math.min(MAX_REQUEST_QUANTITY, Math.floor(quantity)));
+}
 
 export function normalizeRequestArticle(value: string) {
   return value.trim().toUpperCase().replace(/[^A-Z0-9А-ЯЁ]+/g, "");
@@ -26,7 +33,7 @@ export function readRequestItems(): RequestItem[] {
         article: String(item.article ?? "").trim(),
         title: String(item.title ?? "Позиция из списка"),
         brand: String(item.brand ?? "Не указан"),
-        quantity: Math.max(1, Number(item.quantity) || 1),
+        quantity: normalizeRequestQuantity(item.quantity),
       }))
       .filter((item) => item.article)
       .slice(0, MAX_REQUEST_ITEMS);
@@ -37,12 +44,19 @@ export function readRequestItems(): RequestItem[] {
 
 export function writeRequestItems(items: RequestItem[]) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(items.slice(0, MAX_REQUEST_ITEMS)));
-  window.dispatchEvent(new Event("request-updated"));
+  try {
+    const normalized = items.slice(0, MAX_REQUEST_ITEMS).filter((item) => normalizeRequestArticle(item.article)).map((item) => ({
+      ...item,
+      article: String(item.article).trim(),
+      quantity: normalizeRequestQuantity(item.quantity),
+    }));
+    localStorage.setItem(REQUEST_STORAGE_KEY, JSON.stringify(normalized));
+    window.dispatchEvent(new Event("request-updated"));
+  } catch { /* The in-memory selection remains usable when storage is denied. */ }
 }
 
 export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[], onOverflow?: () => void) {
-  const result = current.slice(0, MAX_REQUEST_ITEMS).map((item) => ({ ...item }));
+  const result = current.slice(0, MAX_REQUEST_ITEMS).map((item) => ({ ...item, quantity: normalizeRequestQuantity(item.quantity) }));
 
   for (const item of incoming) {
     const articleKey = normalizeRequestArticle(item.article);
@@ -59,7 +73,7 @@ export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[
     }
 
     if (existing) {
-      existing.quantity += Math.max(1, item.quantity);
+      existing.quantity = normalizeRequestQuantity(existing.quantity + normalizeRequestQuantity(item.quantity));
       continue;
     }
 
@@ -67,7 +81,7 @@ export function mergeRequestItems(current: RequestItem[], incoming: RequestItem[
       onOverflow?.();
       break;
     }
-    result.push({ ...item, quantity: Math.max(1, item.quantity) });
+    result.push({ ...item, quantity: normalizeRequestQuantity(item.quantity) });
   }
 
   return result;

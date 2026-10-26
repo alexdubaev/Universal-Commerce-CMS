@@ -9,9 +9,9 @@ export function AddToRequest({ product, full = false }: { product: Product; full
   return (
     <>
       <button className={full ? "button primary wide" : "card-action"} type="button" onClick={add}>
-        {added ? "Добавлено ✓" : "Добавить в заявку"}
+        {added ? "В корзине ✓" : "В корзину"}
       </button>
-      <span className="request-announcement" role="status" aria-live="polite">{added ? `${product.sku}: добавлено в заявку` : ""}</span>
+      <span className="request-announcement" role="status" aria-live="polite">{added ? `${product.sku}: добавлено в корзину` : ""}</span>
     </>
   );
 }

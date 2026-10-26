@@ -2,17 +2,16 @@
 
 import { type FormEvent, type SyntheticEvent, useCallback, useState } from "react";
 import type { RequestItem } from "@/lib/types";
-import { readRequestItems } from "@/lib/request-store";
 import { subtractAcknowledgedItems } from "@/lib/request-acknowledgement";
 import { useLeadSubmission } from "./useLeadSubmission";
-import { useFormDraft } from "./useFormDraft";
+import { sameFormValues, useFormDraft } from "./useFormDraft";
 
 const requestSuccessMessage = (id: string) => `Заявка принята. Номер: ${id}`;
 const quickSuccessMessage = (id: string) => `Заявка принята: ${id}`;
 
 // Omitting items selects the quick contact form. Supplying items selects the RFQ
 // form, whose payload property order and success cleanup remain independent.
-export function useRequestForm(items?: RequestItem[], persist?: (next: RequestItem[]) => void) {
+export function useRequestForm(items?: RequestItem[], persist?: (next: RequestItem[] | ((current: RequestItem[]) => RequestItem[])) => void) {
   const { formRef, saveDraft, captureDraft, clearDraft } = useFormDraft(items ? "request" : "contact");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const invalid = useCallback((event: SyntheticEvent<HTMLFormElement>) => {
@@ -39,12 +38,13 @@ export function useRequestForm(items?: RequestItem[], persist?: (next: RequestIt
       });
     }
   }, [saveDraft]);
-  const { status, message, submitLead } = useLeadSubmission(items ? requestSuccessMessage : quickSuccessMessage);
+  const { status, message, submitLead } = useLeadSubmission(items ? requestSuccessMessage : quickSuccessMessage, items ? "request" : "contact");
 
   const submit = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const submittedValues = Object.fromEntries(["company", "name", "phone", "email", "message"].map((field) => [field, String(form.get(field) ?? "")]));
     const submittedDraft = captureDraft();
     const submittedItems = items?.map((item) => ({ ...item }));
 
@@ -65,8 +65,9 @@ export function useRequestForm(items?: RequestItem[], persist?: (next: RequestIt
       request_items: [],
       page_url: window.location.href,
     }, () => {
-      if (submittedItems) persist?.(subtractAcknowledgedItems(readRequestItems(), submittedItems));
-      formElement.reset();
+      if (submittedItems) persist?.((current) => subtractAcknowledgedItems(current, submittedItems));
+      const currentValues = Object.fromEntries(["company", "name", "phone", "email", "message"].map((field) => [field, String(new FormData(formElement).get(field) ?? "")]));
+      if (sameFormValues(submittedValues, currentValues)) formElement.reset();
       clearDraft(submittedDraft);
       setFieldErrors({});
     });

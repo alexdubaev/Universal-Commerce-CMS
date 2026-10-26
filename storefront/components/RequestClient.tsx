@@ -83,7 +83,7 @@ export function RequestClient() {
       <section className="request-items panel">
         <div className="section-heading">
           <div>
-            <h2>{items.length ? formatItemCount(items.length) : "Список пока пуст"}</h2>
+            <h2>{items.length ? formatItemCount(items.length) : "Корзина пока пуста"}</h2>
           </div>
         </div>
         {items.length === 0 ? (
@@ -156,10 +156,11 @@ export function RequestClient() {
           </label>
         </div>
         <label>Комментарий<textarea name="message" rows={4} disabled={status === "sending"} placeholder="Сроки, доставка, аналоги, реквизиты…" /></label>
-        <button className="button primary wide" type="submit" disabled={status === "sending"}>
+        <button className="button primary wide" type="submit" disabled={status === "sending" || items.length === 0}>
           {status === "sending" ? "Отправляем…" : "Отправить заявку"}
         </button>
         {status === "sending" && <p className="form-hint" role="status">Отправляем заявку…</p>}
+        {items.length === 0 && <p className="form-hint">Добавьте позиции в корзину, чтобы отправить заявку.</p>}
         {message && <p role={status === "error" ? "alert" : "status"} className={status === "error" ? "form-message error" : "form-message"}>{message}</p>}
       </form>
     </div>

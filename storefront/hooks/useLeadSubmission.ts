@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { ensureIdempotencyKey, type IdempotencyState } from "@/lib/idempotency";
+import { clearPendingSubmission, ensurePendingSubmission, requireLeadAcknowledgement, validateLeadSubmission } from "@/lib/idempotency";
 
 type LeadPayload = {
   name: string;
@@ -13,42 +13,51 @@ type LeadPayload = {
   page_url: string;
 };
 
-export function useLeadSubmission(successMessage: (id: string) => string) {
+export function useLeadSubmission(successMessage: (id: string) => string, scope: "request" | "contact") {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-  const idempotency = useRef<IdempotencyState | null>(null);
+  const sending = useRef(false);
 
   const submitLead = useCallback(async (buildPayload: () => LeadPayload, onSuccess: () => void) => {
+    if (sending.current) return;
+    sending.current = true;
     setStatus("sending");
     setMessage("");
-    const payloadBody = buildPayload();
-    const fingerprint = JSON.stringify(payloadBody);
-    idempotency.current = ensureIdempotencyKey(
-      idempotency.current,
-      fingerprint,
-      () => crypto.randomUUID(),
-    );
 
     try {
+      const payloadBody = buildPayload();
+      const validationError = validateLeadSubmission(scope, payloadBody.request_items);
+      if (validationError) throw new Error(validationError);
+      let session: Storage | null = null;
+      try { session = window.sessionStorage; } catch { /* The in-memory fallback still protects retries on this page. */ }
+      const pending = await ensurePendingSubmission(session, scope, payloadBody, () => crypto.randomUUID());
       const response = await fetch("/api/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          request_key: idempotency.current.key,
+          request_key: pending.key,
           ...payloadBody,
         }),
       });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload?.error ?? "Не удалось отправить заявку");
+      const payload: unknown = await response.json();
+      if (!response.ok) {
+        const errorMessage = payload && typeof payload === "object" && typeof (payload as { error?: unknown }).error === "string"
+          ? (payload as { error: string }).error
+          : "Не удалось отправить заявку";
+        throw new Error(errorMessage);
+      }
+      const id = requireLeadAcknowledgement(payload);
       setStatus("success");
-      setMessage(successMessage(payload.id));
-      idempotency.current = null;
+      setMessage(`${successMessage(id)} Следующий шаг: менеджер уточнит наличие и стоимость.`);
+      clearPendingSubmission(session, scope, pending.fingerprint);
       onSuccess();
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Ошибка отправки");
+    } finally {
+      sending.current = false;
     }
-  }, [successMessage]);
+  }, [scope, successMessage]);
 
   return { status, message, submitLead };
 }

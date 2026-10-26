@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clearFormDraft, readFormDraft, writeFormDraft } from "../hooks/useFormDraft";
+import { clearFormDraft, readFormDraft, sameFormValues, writeFormDraft } from "../hooks/useFormDraft";
 
 function tabStorage() {
   const values = new Map<string, string>();
@@ -11,6 +11,12 @@ function tabStorage() {
 }
 
 describe("contact form draft persistence", () => {
+  it("resets a form only when its current fields still match the submitted snapshot", () => {
+    const submitted = { name: "Анна", email: "a@example.com" };
+    expect(sameFormValues(submitted, { ...submitted })).toBe(true);
+    expect(sameFormValues(submitted, { ...submitted, name: "Мария" })).toBe(false);
+  });
+
   it("restores contact fields independently for tabs and forms, clearing only the submitted form", () => {
     const firstTab = tabStorage();
     const secondTab = tabStorage();
