@@ -10,7 +10,7 @@ import { groupProductRelations, productHeading } from "@/components/product-pres
 import { slugifyBrand } from "@/lib/brands";
 import { absoluteUrl, safeJsonLd } from "@/lib/seo";
 import type { ProductCode, ProductRelation } from "@/lib/types";
-import { formatProductPrice } from "@/lib/format";
+import { formatProductPrice, normalizeCurrency } from "@/lib/format";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -73,6 +73,7 @@ export default async function ProductPage({ params }: Props) {
       : "Под заказ";
 
   const productUrl = absoluteUrl(`/product/${product.slug}`);
+  const offerCurrency = normalizeCurrency(product.currency);
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -88,10 +89,10 @@ export default async function ProductPage({ params }: Props) {
     additionalProperty: product.specification_items.length
       ? product.specification_items.map((item) => ({ "@type": "PropertyValue", name: item.name, value: [item.value, item.unit].filter(Boolean).join(" ") }))
       : Object.entries(product.specifications ?? {}).map(([name, value]) => ({ "@type": "PropertyValue", name, value })),
-    offers: product.price_status === "fixed" && product.price != null && Number.isFinite(product.price) && product.price >= 0 ? {
+    offers: product.price_status === "fixed" && product.price != null && Number.isFinite(product.price) && product.price >= 0 && offerCurrency ? {
       "@type": "Offer",
       "@id": `${productUrl}#offer`,
-      priceCurrency: product.currency && /^[A-Z]{3}$/.test(product.currency) ? product.currency : "RUB",
+      priceCurrency: offerCurrency,
       price: product.price,
       ...(product.availability_status === "in_stock" ? { availability: "https://schema.org/InStock" } : product.availability_status === "out_of_stock" ? { availability: "https://schema.org/OutOfStock" } : {}),
       url: productUrl,

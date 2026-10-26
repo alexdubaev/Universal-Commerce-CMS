@@ -31,4 +31,10 @@ describe("cart pricing", () => {
     const unit = cartUnitPrice(product());
     expect(unit && cartLineTotal(unit, 3)).toBe(37.05);
   });
+
+  it("normalizes valid currency codes and rejects malformed nonempty currency", () => {
+    expect(cartUnitPrice(product({ currency: " usd " }))?.currency).toBe("USD");
+    expect(cartUnitPrice(product({ currency: undefined }))?.currency).toBe("RUB");
+    expect(cartUnitPrice(product({ currency: "US dollars" }))).toBeNull();
+  });
 });

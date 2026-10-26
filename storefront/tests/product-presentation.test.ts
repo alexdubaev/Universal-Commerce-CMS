@@ -34,9 +34,22 @@ describe("product price formatting", () => {
     expect(formatProductPrice(12, "RUB")).toBe("12\u00a0₽");
   });
 
-  it("uses the fallback currency for unknown codes and keeps unavailable prices on request", () => {
-    expect(formatProductPrice(12.5, "invalid")).toBe("12,50\u00a0₽");
+  it("normalizes valid codes, defaults missing currency, and rejects malformed nonempty currency", () => {
+    expect(formatProductPrice(12.5, " usd ")).toBe("12,50\u00a0$");
+    expect(formatProductPrice(12.5, undefined)).toBe("12,50\u00a0₽");
+    expect(formatProductPrice(12.5, "invalid")).toBe("Цена по запросу");
     expect(formatProductPrice(null, "RUB")).toBe("Цена по запросу");
+  });
+});
+
+describe("rendered product offers", () => {
+  it("suppresses price and Offer for malformed nonempty currencies", async () => {
+    product.price_status = "fixed";
+    product.price = 12.5;
+    product.currency = "invalid";
+    const html = renderToStaticMarkup(await ProductPage(props));
+    expect(html).toContain("Цена по запросу");
+    expect(html).not.toContain('"offers"');
   });
 });
 
