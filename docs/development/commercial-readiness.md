@@ -22,4 +22,12 @@ Measure search-to-product, product-to-cart and acknowledged-RFQ conversion, no-r
 
 ## Verification result
 
-Implementation and candidate-specific evidence will be recorded here after the final local checks. Until then, this document is a release checklist, not a production acceptance certificate.
+Application candidate: `c406091` plus documentation-only completion. The final local verification gate covers 383 backend tests, 65 storefront tests, dependency audit, production mock build/typechecking, extension/client-secret checks and two critical Chromium E2E journeys. Independent task reviews and the whole-branch review are complete, including the final malformed-currency correction.
+
+Responsive browser acceptance covers 360, 390, 430, 1024 and 1440 pixels: no horizontal document overflow, search keyboard/menu/facet behavior, cart persistence/quantities, long cart content, field-focus navigation hiding, canonical/robots/Product markup, and no application console/page errors. Submissions are intercepted; zero real leads were sent. Empty search does not schedule a suggestion request. The final search input/button target is 44px or larger.
+
+Measured optimization evidence: the same mock “фильтр” query uses 617 bytes for compact suggestions versus 2547 bytes for the full response (76% less); Oswald WOFF2 is 72,028 bytes versus 172,088 bytes for the original TTF (58.1% less), preserving 883 glyphs and the wght 200–700 axis. These measurements do not establish production latency or real-user Core Web Vitals.
+
+Cart acknowledgement preserves the established semantics: submitted 3/current 5 leaves 2 unsent units. Invalid currency never becomes an invented RUB price; missing currency retains the existing RUB default. Search aliases remain opt-in and disabled by the fixed gateway; incomplete optional alias results are identified. Related-article batching remains deferred because the existing gateway does not accept the required batch filter.
+
+This is local synthetic-data acceptance, not production deployment or acceptance of the real 100k catalogue. The production items above remain separately verifiable.
