@@ -141,9 +141,11 @@ export default async function ProductPage({ params }: Props) {
           <h1>{heading}</h1>
           <div className="article-big"><span>Артикул <strong>{product.sku}</strong></span><CopyArticle article={product.sku} /></div>
           <p>{product.short_description ?? "Описание и применяемость уточняются по запросу."}</p>
-          <div className="product-price">{price}</div>
-          <AddToRequest product={product} full />
-          <Link className="button secondary wide" href="/request">Открыть заявку</Link>
+          <div className="purchase-area">
+            <div className="product-price">{price}</div>
+            <AddToRequest product={product} full />
+            <Link className="button secondary wide" href="/request">Открыть корзину</Link>
+          </div>
           <div className="product-trust">
             <div><strong>Поставка</strong><span>уточняется для выбранной позиции</span></div>
             <div><strong>Документы</strong><span>состав документов согласуется при оформлении</span></div>

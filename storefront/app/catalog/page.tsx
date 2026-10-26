@@ -111,30 +111,6 @@ export default async function CatalogPage({ searchParams }: Props) {
         <ResponsiveFilters>
         <summary>Фильтры и подбор</summary>
         <aside className="filters panel">
-          <details open>
-            <summary>Категории</summary>
-            <div className="filter-links">
-              <Link className={!params.category ? "active" : ""} href={href(params, { category: undefined, page: undefined })}>Все категории</Link>
-              {categories.map((category) => <Link className={params.category === category.slug ? "active" : ""} href={href(params, { category: category.slug, page: undefined })} key={category.slug}>{category.title}</Link>)}
-            </div>
-          </details>
-
-          <details open>
-            <summary>Бренд</summary>
-            <div className="filter-links">
-              <Link className={!params.brand ? "active" : ""} href={href(params, { brand: undefined, page: undefined })}>Все бренды</Link>
-              {brandList.map((brand) => (
-                <Link
-                  className={params.brand === brand.slug ? "active" : ""}
-                  href={href(params, { brand: brand.slug, page: undefined })}
-                  key={brand.slug}
-                >
-                  {brand.name}
-                </Link>
-              ))}
-            </div>
-          </details>
-
           <form className="facet-form" action="/catalog" method="get">
             {params.q && <input type="hidden" name="q" value={params.q} />}
             {params.brand && <input type="hidden" name="brand" value={params.brand} />}
@@ -164,6 +140,30 @@ export default async function CatalogPage({ searchParams }: Props) {
             <button className="button secondary wide" type="submit">Применить фильтры</button>
             {(params.q || params.brand || params.category || params.availability || params.partType || params.sort) && <Link className="reset-filters" href="/catalog">Сбросить все фильтры</Link>}
           </form>
+
+          <details open>
+            <summary>Категории</summary>
+            <div className="filter-links">
+              <Link className={!params.category ? "active" : ""} href={href(params, { category: undefined, page: undefined })}>Все категории</Link>
+              {categories.map((category) => <Link className={params.category === category.slug ? "active" : ""} href={href(params, { category: category.slug, page: undefined })} key={category.slug}>{category.title}</Link>)}
+            </div>
+          </details>
+
+          <details open>
+            <summary>Бренд</summary>
+            <div className="filter-links">
+              <Link className={!params.brand ? "active" : ""} href={href(params, { brand: undefined, page: undefined })}>Все бренды</Link>
+              {brandList.map((brand) => (
+                <Link
+                  className={params.brand === brand.slug ? "active" : ""}
+                  href={href(params, { brand: brand.slug, page: undefined })}
+                  key={brand.slug}
+                >
+                  {brand.name}
+                </Link>
+              ))}
+            </div>
+          </details>
         </aside>
         </ResponsiveFilters>
 

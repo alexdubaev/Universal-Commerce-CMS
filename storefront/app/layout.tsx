@@ -5,7 +5,9 @@ import "@/styles/home-ux.css";
 import "@/styles/catalog-ux.css";
 import "@/styles/request-ux.css";
 import "@/components/articles/articles.css";
+import "@/styles/responsive-ux.css";
 import { Header } from "@/components/Header";
+import { MobileActions } from "@/components/MobileActions";
 import { Footer } from "@/components/Footer";
 import { MotionEnhancements } from "@/components/MotionEnhancements";
 import { getCmsHome, getCmsSiteSettings, getNavigation } from "@/lib/content";
@@ -66,6 +68,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         />
         <main id="main-content" tabIndex={-1}>{children}</main>
         <Footer settings={settings} navigation={footerNav} legal={legalNav} />
+        <MobileActions />
       </body>
     </html>
   );
