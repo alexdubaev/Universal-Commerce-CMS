@@ -55,6 +55,7 @@
   .main-nav a, .catalog-menu-panel a, .site-footer a { padding-block: 4px; }
   .menu-toggle, .catalog-menu > summary { min-width: 44px; min-height: 44px; }
   .search-box input, .search-box button { min-height: 44px; }
+  .header-search .search-box button { height: 44px; min-height: 44px; }
   .catalog-toolbar button, .catalog-toolbar select, .facet-form button { min-height: 44px; }
   .facet-form { order: -1; }
   .catalog-layout > .filter-disclosure .filters { max-height: min(65vh, 520px); overflow-y: auto; overscroll-behavior: contain; }

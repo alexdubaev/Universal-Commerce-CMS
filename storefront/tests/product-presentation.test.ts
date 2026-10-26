@@ -1,6 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Product, ProductDetail } from "../lib/types";
+import { formatProductPrice } from "../lib/format";
 import { getProductDetail, getRelatedProducts } from "../lib/catalog";
 import ProductPage, { generateMetadata } from "../app/product/[slug]/page";
 
@@ -23,6 +24,20 @@ beforeEach(() => {
   product = { ...item("current"), title: "Фильтр", sku: "2654403", codes: [], images: [], documents: [], specification_items: [], relations: [] };
   vi.mocked(getProductDetail).mockImplementation(async () => product);
   vi.mocked(getRelatedProducts).mockResolvedValue([]);
+});
+
+describe("product price formatting", () => {
+  it("preserves each currency's fractional minor units and keeps integer rubles compact", () => {
+    expect(formatProductPrice(12.5, "RUB")).toBe("12,50\u00a0₽");
+    expect(formatProductPrice(12.5, "USD")).toBe("12,50\u00a0$");
+    expect(formatProductPrice(1.234, "KWD")).toBe("1,234\u00a0KWD");
+    expect(formatProductPrice(12, "RUB")).toBe("12\u00a0₽");
+  });
+
+  it("uses the fallback currency for unknown codes and keeps unavailable prices on request", () => {
+    expect(formatProductPrice(12.5, "invalid")).toBe("12,50\u00a0₽");
+    expect(formatProductPrice(null, "RUB")).toBe("Цена по запросу");
+  });
 });
 
 describe("rendered product identity and typed links", () => {
